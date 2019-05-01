@@ -1,0 +1,15 @@
+resolver: lts-11.22
+
+packages:
+- .
+
+extra-deps:
+  - base58-bytestring-0.1.0
+  - time-units-1.0.0
+
+
+
+build:
+  haddock-arguments:
+    haddock-args:
+    - "--odir=./../node-docs"

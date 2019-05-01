@@ -1,0 +1,9 @@
+.stack-work/*
+data/*
+*.swp
+cabal-helper*build/
+log.txt
+*.csv
+.hspec-failures
+*.cabal
+.vscode
