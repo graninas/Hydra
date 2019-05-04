@@ -2,13 +2,12 @@ module Hydra.Core.Lang.Interpreter where
 
 import           Hydra.Prelude
 
+import qualified Hydra.Core.Language                as L
+import           Hydra.Core.Logger.Impl.HsLogger    (runLoggerL)
+import           Hydra.Core.Random.Interpreter      (runRandomL)
 import           Hydra.Core.ControlFlow.Interpreter (runControlFlowL)
 import           Hydra.Core.Random.Interpreter      (runRandomL)
 import           Hydra.Core.State.Interpreter       (runStateL)
-
-import qualified Hydra.Core.Language                as L
-import           Hydra.Core.Logger.Impl.HsLogger    (runLoggerL)
-import           Hydra.Core.Random.Interpreter
 import qualified Hydra.Core.RLens                   as RLens
 import qualified Hydra.Core.Runtime                 as R
 
