@@ -1,6 +1,6 @@
-module Hydra.Core.ControlFlow.FTLI where
+module Hydra.Core.ControlFlow.FTL where
 
 import           Hydra.Prelude
 
 class Monad m => ControlFlowL m where
-    delay :: Int -> m ()
+  delay :: Int -> m ()

@@ -1,24 +1,33 @@
 {-# LANGUAGE GADTs           #-}
 {-# LANGUAGE TemplateHaskell #-}
 
-module Hydra.Core.Lang.Language where
+module Hydra.Core.Lang.FTL where
 
 import           Hydra.Prelude
 
-import           Hydra.Core.ControlFlow.Language as L
-import           Hydra.Core.Logger.Language      as L
-import           Hydra.Core.Random.Language      as L
-import           Hydra.Core.State.Language       as L
+import           Hydra.Core.ControlFlow.FTL as L
+import           Hydra.Core.Logger.FTL      as L
+import           Hydra.Core.Random.FTL      as L
+import           Hydra.Core.State.FTL       as L
 
+class Monad m => LangL m
 
+-- Doesn't work
+-- class Monad m => LangL m where
+--   atomically :: StateL m' => m' a -> m a
+--
+-- Compiles but wrong.
+-- class Monad m => LangL m where
+--   atomically :: StateL m => m a -> m a
 
+-- Doesn't work
+-- class (StateL sm, Monad m) => LangL m where
+--   atomically :: sm a -> m a
 
+-- Wrong, doesn't work
+-- class StateLLangL m where
+--   atomically :: (StateL sm, LangL m) => sm a -> m a
 
-class Monad m => IOL m where
-  evalIO :: IO a -> m a
-
-class (Monad m, IOL m) => LangL m where
-  evalStateAtomically :: L.StateL a -> m a
-  evalLogger :: L.LoggerL () -> m ()
-  evalRandom :: L.RandomL a -> m a
-  evalControlFlow :: L.ControlFlow a -> m a
+-- Wrong (we can't express this function without knowing the runtime.
+-- atomically :: (L.StateL m1, LangL m2) => m1 a -> m2 a
+-- atomically = ???

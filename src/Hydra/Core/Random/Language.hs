@@ -18,7 +18,7 @@ makeFunctorInstance ''RandomF
 type RandomL next = Free RandomF next
 
 class Random m where
-    getRandomInt :: (Int,Int) -> m Int
+    getRandomInt :: (Int, Int) -> m Int
 
 instance Random (Free RandomF) where
     getRandomInt range = liftF $ GetRandomInt range id
