@@ -8,5 +8,5 @@ import           Hydra.Prelude
 import qualified Hydra.Core.Domain as D
 
 
--- class Monad m => RandomL m where
---   getRandomInt :: (Int, Int) -> m Int
+class Monad m => RandomL m where
+  getRandomInt :: (Int, Int) -> m Int

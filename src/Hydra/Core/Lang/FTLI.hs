@@ -2,11 +2,16 @@ module Hydra.Core.Lang.FTLI where
 
 import           Hydra.Prelude
 
-import qualified Hydra.Core.FTL     as L
-import qualified Hydra.Core.RLens   as RLens
-import qualified Hydra.Core.Runtime as R
-import qualified Hydra.Core.State.Language as L
+import           Hydra.Core.ControlFlow.FTLI  ()
+import qualified Hydra.Core.FTL               as L
+import           Hydra.Core.Logger.FTLI       ()
+import           Hydra.Core.Random.FTLI       ()
+import qualified Hydra.Core.RLens             as RLens
+import qualified Hydra.Core.Runtime           as R
 import qualified Hydra.Core.State.Interpreter as Impl
+import qualified Hydra.Core.State.Language    as L
+
+import           Hydra.Core.Evaluable
 
 instance L.LangL (ReaderT R.CoreRuntime IO) where
   evalStateAtomically action = do
@@ -16,6 +21,9 @@ instance L.LangL (ReaderT R.CoreRuntime IO) where
     res <- liftIO $ atomically $ Impl.runStateL stateRt action
     liftIO $ R.flushStmLogger stateRt loggerRt
     pure res
+
+instance Evaluable (ReaderT R.CoreRuntime IO) where
+  evaluate = runReaderT
 
 -- Compiles but wrong.
 -- class Monad m => LangL m where

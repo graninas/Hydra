@@ -1,14 +1,18 @@
+{-# LANGUAGE FlexibleContexts #-}
+
 module Main where
 
-import qualified Data.Map      as Map
-import qualified Data.Set      as Set
+import qualified Data.Map             as Map
+import qualified Data.Set             as Set
 
-import qualified Hydra.Domain  as D
-import qualified Hydra.FTL     as L
-import qualified Hydra.FTLI    ()
+import qualified Hydra.Domain         as D
+import qualified Hydra.FTL            as L
+import qualified Hydra.FTLI           ()
 -- import qualified Hydra.Language as L
 import           Hydra.Prelude
-import qualified Hydra.Runtime as R
+import qualified Hydra.Runtime        as R
+
+import           Hydra.Core.Evaluable
 
 type MTime = Int
 
@@ -33,45 +37,52 @@ data AppState = AppState
   }
 
 initState :: L.LangL m => m AppState
-initState = do
-  ne <- L.newVarIO Map.empty
-  nw <- L.newVarIO Map.empty
-  se <- L.newVarIO Map.empty
-  sw <- L.newVarIO Map.empty
+initState = L.atomically $ do
+  ne <- L.newVar Map.empty
+  nw <- L.newVar Map.empty
+  se <- L.newVar Map.empty
+  sw <- L.newVar Map.empty
   let catalogueMap = Map.fromList
         [ (NorthEast, ne)
         , (NorthWest, nw)
         , (SouthEast, se)
         , (SouthWest, sw)
         ]
-  catalogue <- L.newVarIO catalogueMap
+  catalogue <- L.newVar catalogueMap
   pure $ AppState catalogue
 
--- meteorCounter :: L.LangL m => AppState -> m ()
--- meteorCounter st = pure ()
---
--- getRandomMeteor :: L.LangL m => m Meteor
--- getRandomMeteor = Meteor <$> L.getRandomInt (1, 100)
---
--- getRandomMilliseconds :: L.LangL m => m MTime
--- getRandomMilliseconds = (* 1000) <$> L.getRandomInt (0, 3000)
---
--- meteorShower :: L.LangL m => AppState -> Region -> m ()
--- meteorShower st region = do
---   getRandomMilliseconds >>= L.delay
---   meteor <- getRandomMeteor
---   L.logInfo $ "[MS] " <> " a new meteor appeared at " <> show region <> ": " <> show meteor
---   meteorShower st region
---
--- meteorsMonitoring :: L.AppL m => m ()
--- meteorsMonitoring = do
---   L.logInfo "Starting app..."
---   st <- initState
---   L.process $ meteorCounter st
---   L.process $ meteorShower st NorthEast
---   L.process $ meteorShower st NorthWest
---   L.process $ meteorShower st SouthEast
---   L.process $ meteorShower st SouthWest
+meteorCounter :: L.LangL m => AppState -> m ()
+meteorCounter st = pure ()
+
+getRandomMeteor :: L.RandomL m => m Meteor
+getRandomMeteor = Meteor <$> L.getRandomInt (1, 100)
+
+getRandomMilliseconds :: L.RandomL m => m MTime
+getRandomMilliseconds = (* 1000) <$> L.getRandomInt (0, 3000)
+
+meteorShower :: L.LangL m => AppState -> Region -> m ()
+meteorShower st region = do
+  getRandomMilliseconds >>= L.delay
+  meteor <- getRandomMeteor
+  L.logInfo $ "[MS] " <> " a new meteor appeared at " <> show region <> ": " <> show meteor
+  meteorShower st region
+
+meteorsMonitoring :: (L.ProcessL m, L.LangL m) => m ()
+meteorsMonitoring = do
+  L.logInfo "Starting app..."
+  L.logInfo "Delaying..."
+  L.delay 10000
+  L.logInfo "Done."
+  st <- initState
+  L.forkProcess $ cnt st
+  -- L.forkProcess $ meteorShower st NorthEast
+  -- L.forkProcess $ meteorShower st NorthWest
+  -- L.forkProcess $ meteorShower st SouthEast
+  -- L.forkProcess $ meteorShower st SouthWest
+  pure ()
+  where
+    cnt :: (L.LangL m, Evaluable m) => AppState -> m ()
+    cnt st = meteorCounter st
 
 loggerCfg :: D.LoggerConfig
 loggerCfg = D.LoggerConfig
@@ -92,11 +103,6 @@ loggerCfg = D.LoggerConfig
 delayAction :: L.ControlFlowL m => Int -> m ()
 delayAction = L.delay
 
-meteorsMonitoring :: (L.ControlFlowL m, L.LoggerL m) => m ()
-meteorsMonitoring = do
-  L.logInfo "Delaying..."
-  L.delay 10000
-  L.logInfo "Done."
 
 -- Could not decuce...
 -- initStateApp :: L.LangL m => m AppState
@@ -112,6 +118,5 @@ main :: IO ()
 main = do
   loggerRt <- R.createLoggerRuntime loggerCfg
   coreRt <- R.createCoreRuntime loggerRt
-  appRt <- R.createAppRuntime loggerRt
   runReaderT meteorsMonitoring coreRt
   void $ runReaderT initState coreRt

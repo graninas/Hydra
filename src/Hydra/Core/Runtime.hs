@@ -22,6 +22,7 @@ data ProcessRuntime = ProcessRuntime
 data CoreRuntime = CoreRuntime
     { _loggerRuntime  :: LoggerRuntime
     , _stateRuntime   :: StateRuntime
+    , _processRuntime :: ProcessRuntime
     }
 
 -- | Logger that can be used in runtime via the logging subsystem.
@@ -62,6 +63,7 @@ createCoreRuntime :: LoggerRuntime -> IO CoreRuntime
 createCoreRuntime loggerRt = CoreRuntime
     <$> pure loggerRt
     <*> createStateRuntime
+    <*> createProcessRuntime
 
 -- clearCoreRuntime :: CoreRuntime -> IO ()
 -- clearCoreRuntime _ = pure ()

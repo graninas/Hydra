@@ -1,5 +1,5 @@
-{-# LANGUAGE GADTs           #-}
-{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE GADTs                #-}
+{-# LANGUAGE TemplateHaskell      #-}
 {-# LANGUAGE UndecidableInstances #-}
 
 module Hydra.Core.Lang.FTL where
@@ -7,13 +7,12 @@ module Hydra.Core.Lang.FTL where
 import           Hydra.Prelude
 
 import           Hydra.Core.ControlFlow.FTL as L
+import           Hydra.Core.Evaluable
 import           Hydra.Core.Logger.FTL      as L
 import           Hydra.Core.Random.FTL      as L
--- import           Hydra.Core.State.FTL       as L
-import qualified Hydra.Core.State.Language as L
+import qualified Hydra.Core.State.Language  as L
 
-
-class Monad m => LangL m where
+class (Evaluable m, L.ControlFlowL m, L.RandomL m, L.LoggerL m) => LangL m where
   evalStateAtomically :: L.StateL a -> m a
 
 instance LangL m => L.StateIO m where
