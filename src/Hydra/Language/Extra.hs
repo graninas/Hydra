@@ -10,6 +10,7 @@ import qualified Hydra.Domain             as D
 import qualified Hydra.Framework.Language as L
 
 
+
 foreverApp :: L.AppL a -> L.AppL ()
 foreverApp app = do
   app

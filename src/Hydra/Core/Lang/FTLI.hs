@@ -5,6 +5,17 @@ import           Hydra.Prelude
 import qualified Hydra.Core.FTL     as L
 import qualified Hydra.Core.RLens   as RLens
 import qualified Hydra.Core.Runtime as R
+import qualified Hydra.Core.State.Language as L
+import qualified Hydra.Core.State.Interpreter as Impl
+
+instance L.LangL (ReaderT R.CoreRuntime IO) where
+  evalStateAtomically action = do
+    coreRt <- ask
+    let stateRt  = coreRt ^. RLens.stateRuntime
+    let loggerRt = coreRt ^. RLens.loggerRuntime
+    res <- liftIO $ atomically $ Impl.runStateL stateRt action
+    liftIO $ R.flushStmLogger stateRt loggerRt
+    pure res
 
 -- Compiles but wrong.
 -- class Monad m => LangL m where
@@ -28,11 +39,3 @@ import qualified Hydra.Core.Runtime as R
 --     let stmAction = runReaderT stmlAction coreRt
 --     res <- liftIO $ atomically stmAction
 --     pure res
-
-
-instance L.StateL (ReaderT R.CoreRuntime IO) where
-  atomically stmlAction = do
-    coreRt <- ask
-    let stmAction = runReaderT stmlAction coreRt
-    res <- liftIO $ atomically stmAction
-    pure res

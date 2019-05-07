@@ -32,19 +32,19 @@ data AppState = AppState
   { catalogue :: D.StateVar Catalogue
   }
 
-initState :: L.StateL m => m AppState
+initState :: L.LangL m => m AppState
 initState = do
-  ne <- L.newVar Map.empty
-  nw <- L.newVar Map.empty
-  se <- L.newVar Map.empty
-  sw <- L.newVar Map.empty
+  ne <- L.newVarIO Map.empty
+  nw <- L.newVarIO Map.empty
+  se <- L.newVarIO Map.empty
+  sw <- L.newVarIO Map.empty
   let catalogueMap = Map.fromList
         [ (NorthEast, ne)
         , (NorthWest, nw)
         , (SouthEast, se)
         , (SouthWest, sw)
         ]
-  catalogue <- L.newVar catalogueMap
+  catalogue <- L.newVarIO catalogueMap
   pure $ AppState catalogue
 
 -- meteorCounter :: L.LangL m => AppState -> m ()
@@ -107,8 +107,6 @@ meteorsMonitoring = do
 -- Also,
 -- 'No instance for (L.StateL (ReaderT R.CoreRuntime IO))':
 -- this interpreter should not exist (we don't want to evaluate the actions separately in IO)
-initStateApp :: (L.StateL m, L.LangL m) => m AppState
-initStateApp = initState
 
 main :: IO ()
 main = do
@@ -116,4 +114,4 @@ main = do
   coreRt <- R.createCoreRuntime loggerRt
   appRt <- R.createAppRuntime loggerRt
   runReaderT meteorsMonitoring coreRt
-  void $ runReaderT initStateApp coreRt
+  void $ runReaderT initState coreRt

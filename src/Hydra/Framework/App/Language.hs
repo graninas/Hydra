@@ -45,7 +45,6 @@ instance L.IOL AppL where
   evalIO = evalLang . L.evalIO
 
 instance L.StateIO AppL where
-    atomically     = evalLang . L.atomically
     newVarIO       = evalLang . L.newVarIO
     readVarIO      = evalLang . L.readVarIO
     writeVarIO var = evalLang . L.writeVarIO var
