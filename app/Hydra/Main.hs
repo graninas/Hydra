@@ -13,8 +13,6 @@ import qualified Hydra.Runtime        as R
 
 import Hydra.FTLI ()
 
-type MTime = Int
-
 data Meteor = Meteor
   { size :: Int
   }
@@ -27,65 +25,40 @@ data Region
   | SouthWest
   deriving (Show, Eq, Ord)
 
-type Meteors = D.StateVar (Map.Map MTime Meteor)
 
-type Catalogue = Map.Map Region Meteors
-
-data AppState = AppState
-  { catalogue :: D.StateVar Catalogue
-  }
-
-type AppType m a = ReaderT R.CoreRuntime m a
-
-initState :: (MonadIO m, L.LangL m) => AppType m AppState
-initState = L.atomically $ do
-  ne <- L.newVar Map.empty
-  nw <- L.newVar Map.empty
-  se <- L.newVar Map.empty
-  sw <- L.newVar Map.empty
-  let catalogueMap = Map.fromList
-        [ (NorthEast, ne)
-        , (NorthWest, nw)
-        , (SouthEast, se)
-        , (SouthWest, sw)
-        ]
-  catalogue <- L.newVar catalogueMap
-  pure $ AppState catalogue
-
-meteorCounter :: (L.LangL m, MonadIO m) => AppState -> AppType m ()
-meteorCounter st = do
-  void $ readFile "abc"
-  pure ()
-
-getRandomMeteor :: (MonadIO m, L.RandomL m) => AppType m Meteor
+getRandomMeteor :: L.RandomL m => m Meteor
 getRandomMeteor = Meteor <$> L.getRandomInt (1, 100)
 
-getRandomMilliseconds :: (MonadIO m, L.RandomL m) => AppType m MTime
-getRandomMilliseconds = (* 1000) <$> L.getRandomInt (0, 3000)
+getRandomRegion :: L.RandomL m => m Region
+getRandomRegion = toRegion <$> L.getRandomInt (1, 4)
+  where
+    toRegion 1 = NorthWest
+    toRegion 2 = NorthEast
+    toRegion 3 = SouthWest
+    toRegion _ = SouthEast
 
-meteorShower :: (MonadIO m, L.LangL m) => AppState -> Region -> AppType m ()
-meteorShower st region = do
-  getRandomMilliseconds >>= L.delay
+createMeteor :: L.LangL m => m (Meteor, Region)
+createMeteor = do
   meteor <- getRandomMeteor
+  region <- getRandomRegion
+  pure (meteor, region)
+
+meteorStorm :: L.LangL m => m ()
+meteorStorm = do
+  (meteor, region) <- createMeteor
   L.logInfo $ "[MS] " <> " a new meteor appeared at " <> show region <> ": " <> show meteor
-  meteorShower st region
 
-meteorsMonitoring :: (MonadIO m, L.LangL m) => AppType m ()
-meteorsMonitoring = do
-  L.logInfo "Starting app..."
-  L.logInfo "Delaying..."
-  L.delay 10000
-  L.logInfo "Done."
-  st <- initState
-  -- liftIO $ forkIO $ meteorCounter st
+meteorStormRec :: L.LangL m => Int -> m ()
+meteorStormRec 0 = pure ()
+meteorStormRec n = do
+  meteorStorm
+  meteorStormRec (n - 1)
 
-  -- liftIO $ forkIO $ meteorCounter st
-  -- L.forkProcess $ meteorShower st NorthEast
-  -- L.forkProcess $ meteorShower st NorthWest
-  -- L.forkProcess $ meteorShower st SouthEast
-  -- L.forkProcess $ meteorShower st SouthWest
-  pure ()
-
+meteorStormRec2 :: L.LangL m => Int -> m ()
+meteorStormRec2 0 = pure ()
+meteorStormRec2 n = do
+  meteorStormRec2 (n - 1)
+  meteorStorm
 
 loggerCfg :: D.LoggerConfig
 loggerCfg = D.LoggerConfig
@@ -96,30 +69,15 @@ loggerCfg = D.LoggerConfig
   , D._logToFile    = False
   }
 
--- main :: IO ()
--- main = do
---   loggerRt <- R.createLoggerRuntime loggerCfg
---   appRt <- R.createAppRuntime loggerRt
---   -- R.startApp appRt $ L.foreverApp meteorsMonitoring
---   runReaderT (L.foreverApp meteorsMonitoring) appRt
-
-delayAction :: (MonadIO m, L.ControlFlowL m) => Int -> AppType m ()
-delayAction = L.delay
-
-
--- Could not decuce...
--- initStateApp :: L.LangL m => m AppState
--- initStateApp = L.atomically initState
-
--- This is wrong: the upper m should not be a state-working m
--- (because the state is STM, and should not appear as is, only with atomically).
--- Also,
--- 'No instance for (L.StateL (ReaderT R.CoreRuntime IO))':
--- this interpreter should not exist (we don't want to evaluate the actions separately in IO)
-
 main :: IO ()
 main = do
+  voidLoggerRt <- R.createVoidLoggerRuntime
   loggerRt <- R.createLoggerRuntime loggerCfg
-  coreRt <- R.createCoreRuntime loggerRt
-  runReaderT meteorsMonitoring coreRt
-  void $ runReaderT initState coreRt
+  coreRt <- R.createCoreRuntime voidLoggerRt
+
+  let ops = 100000
+
+  let actions = sequence $ replicate ops meteorStorm
+  void $ runReaderT (meteorStormRec ops) coreRt
+  void $ runReaderT (meteorStormRec2 ops) coreRt
+  void $ runReaderT actions coreRt
