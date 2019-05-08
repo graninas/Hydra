@@ -1,0 +1,8 @@
+Config
+  { useLog = False
+  , method = FT
+  , iterations = 1000000
+  , scenario1 = True
+  , scenario2 = True
+  , scenario3 = True
+  }

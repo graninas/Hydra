@@ -1,17 +1,32 @@
-{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE AllowAmbiguousTypes #-}
+{-# LANGUAGE FlexibleContexts    #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 module Main where
 
-import qualified Data.Map             as Map
-import qualified Data.Set             as Set
+import           Control.Monad
+import qualified Data.Map      as Map
+import qualified Data.Set      as Set
 
-import qualified Hydra.Domain         as D
-import qualified Hydra.FTL            as L
+import qualified Hydra.Domain  as D
+import qualified Hydra.FTL     as L
 import           Hydra.Prelude
-import qualified Hydra.Runtime        as R
+import qualified Hydra.Runtime as R
 
-import Hydra.FTLI ()
+import           Hydra.FTLI    ()
+
+data Method = FT | FreeM | ChurchM
+  deriving (Show, Read, Eq, Ord)
+
+data Config = Config
+  { useLog     :: Bool
+  , method     :: Method
+  , iterations :: Int
+  , scenario1  :: Bool
+  , scenario2  :: Bool
+  , scenario3  :: Bool
+  }
+  deriving (Show, Read, Eq, Ord)
 
 data Meteor = Meteor
   { size :: Int
@@ -71,13 +86,17 @@ loggerCfg = D.LoggerConfig
 
 main :: IO ()
 main = do
-  voidLoggerRt <- R.createVoidLoggerRuntime
-  loggerRt <- R.createLoggerRuntime loggerCfg
-  coreRt <- R.createCoreRuntime voidLoggerRt
+  cfgStr <- readFile "cfg"
+  let cfg :: Config = read $ toString cfgStr
 
-  let ops = 100000
+  loggerRt <- if useLog cfg
+    then R.createLoggerRuntime loggerCfg
+    else R.createVoidLoggerRuntime
+  coreRt <- R.createCoreRuntime loggerRt
 
-  let actions = sequence $ replicate ops meteorStorm
-  void $ runReaderT (meteorStormRec ops) coreRt
-  void $ runReaderT (meteorStormRec2 ops) coreRt
-  void $ runReaderT actions coreRt
+  let ops = iterations cfg
+
+  let actions = replicateM ops meteorStorm
+  when (scenario1 cfg) $ void $ runReaderT (meteorStormRec ops) coreRt
+  when (scenario2 cfg) $ void $ runReaderT (meteorStormRec2 ops) coreRt
+  when (scenario3 cfg) $ void $ runReaderT actions coreRt
