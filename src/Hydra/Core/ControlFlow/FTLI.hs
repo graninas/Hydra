@@ -6,5 +6,5 @@ import qualified Hydra.Core.FTL     as L
 import qualified Hydra.Core.RLens   as RLens
 import qualified Hydra.Core.Runtime as R
 
-instance L.ControlFlowL (ReaderT R.CoreRuntime IO) where
+instance MonadIO m => L.ControlFlowL (ReaderT R.CoreRuntime m) where
     delay = liftIO . threadDelay

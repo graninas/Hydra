@@ -1,4 +1,5 @@
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE AllowAmbiguousTypes #-}
 
 module Main where
 
@@ -7,12 +8,10 @@ import qualified Data.Set             as Set
 
 import qualified Hydra.Domain         as D
 import qualified Hydra.FTL            as L
-import qualified Hydra.FTLI           ()
--- import qualified Hydra.Language as L
 import           Hydra.Prelude
 import qualified Hydra.Runtime        as R
 
-import           Hydra.Core.Evaluable
+import Hydra.FTLI ()
 
 type MTime = Int
 
@@ -36,7 +35,9 @@ data AppState = AppState
   { catalogue :: D.StateVar Catalogue
   }
 
-initState :: L.LangL m => m AppState
+type AppType m a = ReaderT R.CoreRuntime m a
+
+initState :: (MonadIO m, L.LangL m) => AppType m AppState
 initState = L.atomically $ do
   ne <- L.newVar Map.empty
   nw <- L.newVar Map.empty
@@ -51,38 +52,40 @@ initState = L.atomically $ do
   catalogue <- L.newVar catalogueMap
   pure $ AppState catalogue
 
-meteorCounter :: L.LangL m => AppState -> m ()
-meteorCounter st = pure ()
+meteorCounter :: (L.LangL m, MonadIO m) => AppState -> AppType m ()
+meteorCounter st = do
+  void $ readFile "abc"
+  pure ()
 
-getRandomMeteor :: L.RandomL m => m Meteor
+getRandomMeteor :: (MonadIO m, L.RandomL m) => AppType m Meteor
 getRandomMeteor = Meteor <$> L.getRandomInt (1, 100)
 
-getRandomMilliseconds :: L.RandomL m => m MTime
+getRandomMilliseconds :: (MonadIO m, L.RandomL m) => AppType m MTime
 getRandomMilliseconds = (* 1000) <$> L.getRandomInt (0, 3000)
 
-meteorShower :: L.LangL m => AppState -> Region -> m ()
+meteorShower :: (MonadIO m, L.LangL m) => AppState -> Region -> AppType m ()
 meteorShower st region = do
   getRandomMilliseconds >>= L.delay
   meteor <- getRandomMeteor
   L.logInfo $ "[MS] " <> " a new meteor appeared at " <> show region <> ": " <> show meteor
   meteorShower st region
 
-meteorsMonitoring :: (L.ProcessL m, L.LangL m) => m ()
+meteorsMonitoring :: (MonadIO m, L.LangL m) => AppType m ()
 meteorsMonitoring = do
   L.logInfo "Starting app..."
   L.logInfo "Delaying..."
   L.delay 10000
   L.logInfo "Done."
   st <- initState
-  L.forkProcess $ cnt st
+  -- liftIO $ forkIO $ meteorCounter st
+
+  -- liftIO $ forkIO $ meteorCounter st
   -- L.forkProcess $ meteorShower st NorthEast
   -- L.forkProcess $ meteorShower st NorthWest
   -- L.forkProcess $ meteorShower st SouthEast
   -- L.forkProcess $ meteorShower st SouthWest
   pure ()
-  where
-    cnt :: (L.LangL m, Evaluable m) => AppState -> m ()
-    cnt st = meteorCounter st
+
 
 loggerCfg :: D.LoggerConfig
 loggerCfg = D.LoggerConfig
@@ -100,7 +103,7 @@ loggerCfg = D.LoggerConfig
 --   -- R.startApp appRt $ L.foreverApp meteorsMonitoring
 --   runReaderT (L.foreverApp meteorsMonitoring) appRt
 
-delayAction :: L.ControlFlowL m => Int -> m ()
+delayAction :: (MonadIO m, L.ControlFlowL m) => Int -> AppType m ()
 delayAction = L.delay
 
 

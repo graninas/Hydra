@@ -12,6 +12,7 @@ import qualified Hydra.Core.State.Interpreter as Impl
 import qualified Hydra.Core.State.Language    as L
 
 instance L.LangL (ReaderT R.CoreRuntime IO) where
+-- instance MonadIO m => L.LangL (ReaderT R.CoreRuntime m) where
   evalStateAtomically action = do
     coreRt <- ask
     let stateRt  = coreRt ^. RLens.stateRuntime

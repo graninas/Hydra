@@ -11,7 +11,7 @@ import qualified Hydra.Core.Logger.Impl.HsLogger as Hs
 import qualified System.Log.Logger               as Hs
 
 -- TODO: hslogger specific is here!
-instance L.LoggerL (ReaderT R.CoreRuntime IO) where
+instance MonadIO m => L.LoggerL (ReaderT R.CoreRuntime m) where
   logMessage lvl msg = do
     coreRt <- ask
     let mbHsRt = coreRt ^. RLens.loggerRuntime ^. RLens.hsLoggerHandle

@@ -11,19 +11,18 @@ import qualified Hydra.Core.Process.Interpreter as Impl
 import qualified Hydra.Core.RLens               as RLens
 import qualified Hydra.Core.Runtime             as R
 
-import           Hydra.Core.Evaluable
-import           Hydra.Core.Lang.FTLI           ()
 
-instance Evaluable m' => L.ProcessL m' (ReaderT R.CoreRuntime IO) where
-  forkProcess action = do
-    coreRt <- ask
-    let processRt = coreRt ^. RLens.processRuntime
-    (pPtr, pVar) <- liftIO (Impl.getNextProcessId processRt >>= D.createProcessPtr)
-    threadId <- liftIO $ forkIO $ do
-        res <- evaluate action coreRt
-        atomically $ putTMVar pVar res
-    liftIO $ Impl.addProcess processRt pPtr threadId
-    pure pPtr
+-- instance L.ProcessL (ReaderT R.CoreRuntime IO) where
+--   forkProcess action = do
+--     coreRt <- ask
+--     let processRt = coreRt ^. RLens.processRuntime
+--     (pPtr, pVar) <- liftIO (Impl.getNextProcessId processRt >>= D.createProcessPtr)
+--     threadId <- liftIO $ forkIO $ do
+--         res <- evaluate action coreRt
+--         atomically $ putTMVar pVar res
+--     liftIO $ Impl.addProcess processRt pPtr threadId
+--     pure pPtr
+
   -- killProcess  :: D.ProcessPtr a -> m ()
   -- tryGetResult :: D.ProcessPtr a -> m (Maybe a)
   -- awaitResult  :: D.ProcessPtr a -> m a

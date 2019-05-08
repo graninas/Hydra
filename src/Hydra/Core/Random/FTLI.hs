@@ -10,5 +10,5 @@ import qualified Hydra.Core.Runtime           as R
 import qualified Hydra.Core.State.Interpreter as Impl
 import qualified Hydra.Core.State.Language    as L
 
-instance L.RandomL (ReaderT R.CoreRuntime IO) where
+instance MonadIO m => L.RandomL (ReaderT R.CoreRuntime m) where
   getRandomInt range = liftIO $ randomRIO range

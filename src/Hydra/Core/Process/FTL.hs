@@ -8,11 +8,11 @@ module Hydra.Core.Process.FTL where
 import           Hydra.Prelude
 
 import qualified Hydra.Core.Domain    as D
-import           Hydra.Core.Evaluable
 
 
-class (Evaluable m', Monad m) => ProcessL m' m where
-  forkProcess  :: EvalM m' a -> m (D.ProcessPtr a)
+
+-- class (Monad m) => ProcessL m where
+--   forkProcess  :: m' a -> m (D.ProcessPtr a)
   -- killProcess  :: D.ProcessPtr a -> m ()
   -- tryGetResult :: D.ProcessPtr a -> m (Maybe a)
   -- awaitResult  :: D.ProcessPtr a -> m a
