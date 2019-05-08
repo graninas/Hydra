@@ -14,7 +14,7 @@ import qualified Hydra.Core.Runtime             as R
 import           Hydra.Core.Evaluable
 import           Hydra.Core.Lang.FTLI           ()
 
-instance L.ProcessL (ReaderT R.CoreRuntime IO) where
+instance Evaluable m' => L.ProcessL m' (ReaderT R.CoreRuntime IO) where
   forkProcess action = do
     coreRt <- ask
     let processRt = coreRt ^. RLens.processRuntime

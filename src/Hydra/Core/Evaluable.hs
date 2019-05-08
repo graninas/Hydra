@@ -9,6 +9,5 @@ import           Hydra.Prelude
 import qualified Hydra.Core.Runtime as R
 
 class Evaluable m where
-  -- type EvalM m :: * -> *
-  -- evaluate :: EvalM m a -> R.CoreRuntime -> IO a
-  evaluate :: m a -> R.CoreRuntime -> IO a
+  data EvalM m :: * -> *
+  evaluate :: EvalM m a -> R.CoreRuntime -> IO a
