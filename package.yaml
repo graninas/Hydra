@@ -103,7 +103,7 @@ library:
 executables:
   test-app-hydra:
     main:                Main.hs
-    source-dirs:         app/Hydra
+    source-dirs:         app/App
     ghc-options:
     - -threaded
     - -rtsopts

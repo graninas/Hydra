@@ -8,12 +8,10 @@ import qualified Hydra.Core.Domain  as D
 import qualified Hydra.Core.Runtime as R
 
 -- | App runtime data.
--- data AppRuntime = AppRuntime
---     { _coreRuntime :: R.CoreRuntime
---     , _processRuntime :: R.ProcessRuntime
---     }
---
--- createAppRuntime :: R.LoggerRuntime -> IO AppRuntime
--- createAppRuntime loggerRt = AppRuntime
---     <$> R.createCoreRuntime loggerRt
---     <*> R.createProcessRuntime
+data AppRuntime = AppRuntime
+    { _coreRuntime    :: R.CoreRuntime
+    }
+
+createAppRuntime :: R.LoggerRuntime -> IO AppRuntime
+createAppRuntime loggerRt = AppRuntime
+    <$> R.createCoreRuntime loggerRt
