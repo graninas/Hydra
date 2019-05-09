@@ -7,6 +7,7 @@ import qualified Data.Map                        as Map
 import qualified Hydra.Core.Domain               as D
 import qualified Hydra.Core.Language             as L
 import qualified Hydra.Core.Logger.Impl.HsLogger as Impl
+import qualified Hydra.Core.Logger.Impl.HsLoggerInterpreter as I
 
 -- | Runtime data for the concrete logger impl.
 newtype LoggerRuntime = LoggerRuntime
@@ -86,7 +87,7 @@ createCoreRuntime loggerRt = CoreRuntime
 -- logWarning' :: RuntimeLogger -> D.Message -> IO ()
 -- logWarning' (RuntimeLogger l) = l D.Warning
 
-
+-- TODO: Church version of flusher.
 -- | Writes all stm entries into real logger.
 flushStmLogger :: StateRuntime -> LoggerRuntime -> IO ()
 flushStmLogger stateRt loggerRt = do
@@ -95,4 +96,4 @@ flushStmLogger stateRt loggerRt = do
             writeTVar (_stmLog stateRt) []
             pure l
     let loggerHandle = _hsLoggerHandle loggerRt
-    mapM_ (\(D.LogEntry level msg) -> Impl.runLoggerL loggerHandle $ L.logMessage level msg) l
+    mapM_ (\(D.LogEntry level msg) -> I.runLoggerL loggerHandle $ L.logMessage level msg) l

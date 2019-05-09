@@ -5,60 +5,68 @@ module Hydra.Core.Lang.ChurchL where
 
 import           Hydra.Prelude
 
+import qualified Hydra.Core.ControlFlow.ChurchL as CL
+import qualified Hydra.Core.Random.ChurchL as CL
+import qualified Hydra.Core.Logger.ChurchL as CL
 import qualified Hydra.Core.ControlFlow.Language as L
-import qualified Hydra.Core.Logger.Language      as L
-import qualified Hydra.Core.Random.Language      as L
-import qualified Hydra.Core.State.Language       as L
+import qualified Hydra.Core.Random.Language as L
+import qualified Hydra.Core.Logger.Language as L
+import qualified Hydra.Core.ControlFlow.Class    as L
+import qualified Hydra.Core.Logger.Class         as L
+import qualified Hydra.Core.Random.Class         as L
+-- import qualified Hydra.Core.Logger.Language      as L
+-- import qualified Hydra.Core.Random.Language      as L
+-- import qualified Hydra.Core.State.Language       as L
 
 import           Language.Haskell.TH.MakeFunctor (makeFunctorInstance)
 
 -- | Core effects container language.
 data LangF next where
-  -- | Eval stateful action atomically.
-  EvalStateAtomically :: L.StateL a -> (a -> next) -> LangF next
+  -- -- | Eval stateful action atomically.
+  -- EvalStateAtomically :: L.StateL a -> (a -> next) -> LangF next
   -- | Logger effect
-  EvalLogger      :: L.LoggerL ()     -> (() -> next) -> LangF next
+  EvalLogger      :: CL.LoggerL ()     -> (() -> next) -> LangF next
   -- | Random effect
-  EvalRandom      :: L.RandomL a     -> (a  -> next) -> LangF next
+  EvalRandom      :: CL.RandomL a     -> (a  -> next) -> LangF next
   -- | ControlFlow effect
-  EvalControlFlow :: L.ControlFlowL a -> (a  -> next) -> LangF next
-  -- | Impure effect. Avoid using it in production code (it's not testable).
-  EvalIO          :: IO a           -> (a  -> next) -> LangF next
+  EvalControlFlow :: CL.ControlFlowL a -> (a  -> next) -> LangF next
+  -- -- | Impure effect. Avoid using it in production code (it's not testable).
+  -- EvalIO          :: IO a           -> (a  -> next) -> LangF next
 
 makeFunctorInstance ''LangF
 
-type LangL = Free LangF
+type LangL = F LangF
 
-class IOL m where
-  evalIO :: IO a -> m a
-
-instance IOL LangL where
-  evalIO io = liftF $ EvalIO io id
-
--- | Eval stateful action atomically.
-evalStateAtomically :: L.StateL a -> LangL a
-evalStateAtomically action = liftF $ EvalStateAtomically action id
-
-instance L.StateIO LangL where
-    atomically     = evalStateAtomically
-    newVarIO       = evalStateAtomically . L.newVar
-    readVarIO      = evalStateAtomically . L.readVar
-    writeVarIO var = evalStateAtomically . L.writeVar var
-
-evalLogger :: L.LoggerL () -> LangL ()
-evalLogger logger = liftF $ EvalLogger logger id
+-- class IOL m where
+--   evalIO :: IO a -> m a
+--
+-- instance IOL LangL where
+--   evalIO io = liftF $ EvalIO io id
+--
+-- -- | Eval stateful action atomically.
+-- evalStateAtomically :: L.StateL a -> LangL a
+-- evalStateAtomically action = liftF $ EvalStateAtomically action id
+--
+-- instance L.StateIO LangL where
+--     atomically     = evalStateAtomically
+--     newVarIO       = evalStateAtomically . L.newVar
+--     readVarIO      = evalStateAtomically . L.readVar
+--     writeVarIO var = evalStateAtomically . L.writeVar var
+--
+evalLogger :: CL.LoggerL () -> LangL ()
+evalLogger logger = liftFC $ EvalLogger logger id
 
 instance L.Logger LangL where
   logMessage level msg = evalLogger $ L.logMessage level msg
 
-evalRandom :: L.RandomL a -> LangL a
-evalRandom g = liftF $ EvalRandom g id
+evalRandom :: CL.RandomL a -> LangL a
+evalRandom g = liftFC $ EvalRandom g id
 
 instance L.Random LangL where
   getRandomInt = evalRandom . L.getRandomInt
 
-evalControlFlow :: L.ControlFlowL a -> LangL a
-evalControlFlow a = liftF $ EvalControlFlow a id
+evalControlFlow :: CL.ControlFlowL a -> LangL a
+evalControlFlow a = liftFC $ EvalControlFlow a id
 
 instance L.ControlFlow LangL where
   delay i = evalControlFlow $ L.delay i

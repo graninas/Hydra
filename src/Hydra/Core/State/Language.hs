@@ -6,6 +6,7 @@ module Hydra.Core.State.Language where
 import           Hydra.Prelude
 
 import qualified Hydra.Core.Domain               as D
+import qualified Hydra.Core.Logger.Class         as L
 import qualified Hydra.Core.Logger.Language      as L
 
 import           Language.Haskell.TH.MakeFunctor

@@ -11,6 +11,7 @@ import           Hydra.Prelude
 
 import qualified Free          as Free
 import qualified FTL           as FTL
+import qualified Church        as Church
 import qualified Hydra.Domain  as D
 import qualified Hydra.Runtime as R
 
@@ -59,3 +60,8 @@ main = do
     when (scenario1 cfg) $ Free.scenario1 ops coreRt
     when (scenario2 cfg) $ Free.scenario2 ops coreRt
     when (scenario3 cfg) $ Free.scenario3 ops coreRt
+
+  when (method cfg == ChurchM) $ do
+    when (scenario1 cfg) $ Church.scenario1 ops coreRt
+    when (scenario2 cfg) $ Church.scenario2 ops coreRt
+    when (scenario3 cfg) $ Church.scenario3 ops coreRt

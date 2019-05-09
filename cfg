@@ -1,6 +1,6 @@
 Config
   { useLog = False
-  , method = FreeM
+  , method = FT
   , iterations = 1000000
   , scenario1 = True
   , scenario2 = False

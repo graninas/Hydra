@@ -4,8 +4,7 @@ import           Hydra.Prelude
 
 import           Hydra.Core.ControlFlow.Interpreter (runControlFlowL)
 import qualified Hydra.Core.Language                as L
-import           Hydra.Core.Logger.Impl.HsLogger    (runLoggerL)
-import           Hydra.Core.Random.Interpreter      (runRandomL)
+import           Hydra.Core.Logger.Impl.HsLoggerInterpreter    (runLoggerL)
 import           Hydra.Core.Random.Interpreter      (runRandomL)
 import qualified Hydra.Core.RLens                   as RLens
 import qualified Hydra.Core.Runtime                 as R

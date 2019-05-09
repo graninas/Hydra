@@ -3,6 +3,7 @@ module Hydra.Core.ControlFlow.ChurchL where
 import           Hydra.Prelude
 
 import qualified Hydra.Core.ControlFlow.Language as L
+import qualified Hydra.Core.ControlFlow.Class as L
 
 type ControlFlowL = F L.ControlFlowF
 

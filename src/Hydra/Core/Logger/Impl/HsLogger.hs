@@ -9,7 +9,7 @@ import           System.Log.Handler        (close, setFormatter)
 import           System.Log.Handler.Simple (GenericHandler, fileHandler, streamHandler)
 import           System.Log.Logger
 
-import qualified Hydra.Core.Domain         as D (LogLevel (..), LoggerConfig (..))
+import qualified Hydra.Core.Domain         as D
 import qualified Hydra.Core.Language       as L
 
 -- | Opaque type covering all information needed to teardown the logger.
@@ -33,16 +33,6 @@ dispatchLogLevel D.Debug   = DEBUG
 dispatchLogLevel D.Info    = INFO
 dispatchLogLevel D.Warning = WARNING
 dispatchLogLevel D.Error   = ERROR
-
--- | Interpret LoggerL language.
-interpretLoggerL :: HsLoggerHandle -> L.LoggerF a -> IO a
-interpretLoggerL _ (L.LogMessage level msg next) = do
-    logM component (dispatchLogLevel level) $ TXT.unpack msg
-    pure $ next ()
-
-runLoggerL :: Maybe HsLoggerHandle -> L.LoggerL () -> IO ()
-runLoggerL (Just h) l = foldFree (interpretLoggerL h) l
-runLoggerL Nothing  _ = pure ()
 
 -- | Setup logger required by the application.
 setupLogger :: D.LoggerConfig -> IO HsLoggerHandle

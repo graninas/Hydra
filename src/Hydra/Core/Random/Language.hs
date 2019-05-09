@@ -6,6 +6,8 @@ module Hydra.Core.Random.Language where
 
 import           Hydra.Prelude
 
+import           Hydra.Core.Random.Class
+
 import           Language.Haskell.TH.MakeFunctor
 
 -- | Language for Random.
@@ -15,10 +17,7 @@ data RandomF next where
 
 makeFunctorInstance ''RandomF
 
-type RandomL next = Free RandomF next
-
-class Random m where
-    getRandomInt :: (Int, Int) -> m Int
+type RandomL = Free RandomF
 
 instance Random (Free RandomF) where
     getRandomInt range = liftF $ GetRandomInt range id

@@ -8,6 +8,9 @@ import           Hydra.Prelude
 import qualified Hydra.Core.ControlFlow.Language as L
 import qualified Hydra.Core.Logger.Language      as L
 import qualified Hydra.Core.Random.Language      as L
+import qualified Hydra.Core.ControlFlow.Class    as L
+import qualified Hydra.Core.Logger.Class         as L
+import qualified Hydra.Core.Random.Class         as L
 import qualified Hydra.Core.State.Language       as L
 
 import           Language.Haskell.TH.MakeFunctor (makeFunctorInstance)

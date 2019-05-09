@@ -18,8 +18,8 @@ import qualified Hydra.Framework.Runtime  as R
 -- langRunner :: R.CoreRuntime -> Impl.LangRunner CL.LangL
 -- langRunner coreRt = Impl.LangRunner (Impl.runLangL coreRt)
 
-interpretAppF :: R.CoreRuntime -> L.AppF a -> IO a
-interpretAppF coreRt (L.EvalLang action next) = do
+interpretAppF :: R.CoreRuntime -> CL.AppF a -> IO a
+interpretAppF coreRt (CL.EvalLang action next) = do
     res <- CI.runLangL coreRt action
     pure $ next res
 
