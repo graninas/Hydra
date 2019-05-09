@@ -8,9 +8,17 @@ import           Hydra.Prelude
 import           Hydra.Core.Runtime              as X
 import           Hydra.Framework.Runtime         as X
 
-import qualified Hydra.Framework.App.Interpreter as Impl
+import qualified Hydra.Framework.App.ChurchI     as CI
+import qualified Hydra.Framework.App.Interpreter as I
+import qualified Hydra.Framework.ChurchL         as CL
 import qualified Hydra.Framework.FTL             as FTL
 import qualified Hydra.Framework.Language        as L
 
-startApp :: X.CoreRuntime -> L.AppL a -> IO a
-startApp coreRt app = Impl.runAppL coreRt app
+class StartApp m where
+  startApp :: X.CoreRuntime -> m a -> IO a
+
+instance StartApp L.AppL where
+  startApp = I.runAppL
+
+instance StartApp CL.AppL where
+  startApp = CI.runAppL

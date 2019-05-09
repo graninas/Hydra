@@ -5,8 +5,8 @@ module Hydra.Framework.App.Language where
 
 import           Hydra.Prelude
 
-import           Hydra.Core.Domain         as D
-import           Hydra.Core.Language       as L
+import qualified Hydra.Core.Domain               as D
+import qualified Hydra.Core.Language             as L
 
 import           Language.Haskell.TH.MakeFunctor (makeFunctorInstance)
 

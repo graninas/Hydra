@@ -9,6 +9,7 @@ import qualified Data.Map      as Map
 import qualified Data.Set      as Set
 import           Hydra.Prelude
 
+import qualified Free          as Free
 import qualified FTL           as FTL
 import qualified Hydra.Domain  as D
 import qualified Hydra.Runtime as R
@@ -40,6 +41,8 @@ main = do
   cfgStr <- readFile "cfg"
   let cfg :: Config = read $ toString cfgStr
 
+  putStrLn @String $ "Method: " <> show (method cfg) <> ", iterations: " <> show (iterations cfg)
+
   loggerRt <- if useLog cfg
     then R.createLoggerRuntime loggerCfg
     else R.createVoidLoggerRuntime
@@ -51,3 +54,8 @@ main = do
     when (scenario1 cfg) $ FTL.scenario1 ops coreRt
     when (scenario2 cfg) $ FTL.scenario2 ops coreRt
     when (scenario3 cfg) $ FTL.scenario3 ops coreRt
+
+  when (method cfg == FreeM) $ do
+    when (scenario1 cfg) $ Free.scenario1 ops coreRt
+    when (scenario2 cfg) $ Free.scenario2 ops coreRt
+    when (scenario3 cfg) $ Free.scenario3 ops coreRt

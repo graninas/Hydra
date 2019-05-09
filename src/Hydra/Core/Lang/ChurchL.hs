@@ -1,7 +1,7 @@
 {-# LANGUAGE GADTs           #-}
 {-# LANGUAGE TemplateHaskell #-}
 
-module Hydra.Core.Lang.Language where
+module Hydra.Core.Lang.ChurchL where
 
 import           Hydra.Prelude
 

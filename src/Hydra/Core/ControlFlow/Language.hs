@@ -9,7 +9,7 @@ data ControlFlowF next where
 instance Functor ControlFlowF where
     fmap g (Delay i next) = Delay i (g . next)
 
-type ControlFlowL next = Free ControlFlowF next
+type ControlFlowL = Free ControlFlowF
 
 class ControlFlow m where
     delay :: Int -> m ()
