@@ -1,6 +1,7 @@
-{-# LANGUAGE GADTs                #-}
-{-# LANGUAGE TemplateHaskell      #-}
-{-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE GADTs                 #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE TemplateHaskell       #-}
+{-# LANGUAGE UndecidableInstances  #-}
 
 module Hydra.Core.Lang.FTL where
 
@@ -9,16 +10,20 @@ import           Hydra.Prelude
 import           Hydra.Core.ControlFlow.FTL as L
 import           Hydra.Core.Logger.FTL      as L
 import           Hydra.Core.Random.FTL      as L
+import qualified Hydra.Core.State.Class     as L
 import qualified Hydra.Core.State.Language  as L
 
-class (L.ControlFlowL m, L.RandomL m, L.LoggerL m) => LangL m where
+class (Monad m, L.ControlFlowL m, L.RandomL m, L.LoggerL m) => LangL m where
   evalStateAtomically :: L.StateL a -> m a
 
-instance LangL m => L.StateIO m where
-  atomically     = evalStateAtomically
+instance (Monad m, LangL m) => L.StateIO m where
   newVarIO       = evalStateAtomically . L.newVar
   readVarIO      = evalStateAtomically . L.readVar
   writeVarIO var = evalStateAtomically . L.writeVar var
+  retryIO        = evalStateAtomically L.retry
+
+instance (Monad m, LangL m) => L.Atomically L.StateL m where
+  atomically = evalStateAtomically
 
 
 -- Doesn't work

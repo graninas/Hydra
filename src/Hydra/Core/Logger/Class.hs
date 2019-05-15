@@ -5,9 +5,9 @@ module Hydra.Core.Logger.Class where
 
 import           Hydra.Prelude
 
-import qualified Hydra.Core.Domain               as D
+import qualified Hydra.Core.Domain as D
 
-class Logger m where
+class Monad m => Logger m where
   logMessage :: D.LogLevel -> D.Message -> m ()
 
 -- | Log message with Info level.

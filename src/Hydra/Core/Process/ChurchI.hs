@@ -1,9 +1,12 @@
-module Hydra.Core.Process.Interpreter where
+{-# LANGUAGE ExplicitForAll #-}
+
+module Hydra.Core.Process.ChurchI where
 
 import           Hydra.Prelude
 
 import qualified Data.Map                  as M
 
+import qualified Hydra.Core.ChurchL        as CL
 import qualified Hydra.Core.Domain.Process as D
 import qualified Hydra.Core.Language       as L
 import           Hydra.Core.Process.Impl
@@ -34,5 +37,5 @@ interpretProcessF _ _ (L.AwaitResult pPtr next) = do
     result <- atomically $ takeTMVar pVar
     pure $ next result
 
-runProcessL :: LangRunner m' -> R.ProcessRuntime -> L.ProcessL m' a -> IO a
-runProcessL runner processRt = foldFree (interpretProcessF runner processRt)
+runProcessL :: LangRunner m' -> R.ProcessRuntime -> CL.ProcessL m' a -> IO a
+runProcessL runner processRt = foldF (interpretProcessF runner processRt)

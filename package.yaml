@@ -101,9 +101,20 @@ library:
   - -Wall
 
 executables:
-  test-app-hydra:
+  perf-test-app:
     main:                Main.hs
-    source-dirs:         app/App
+    source-dirs:         app/PerfTestApp
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    - -Wall
+    - -O2
+    dependencies:
+    - Hydra
+  meteror-counter-app:
+    main:                Main.hs
+    source-dirs:         app/MeteorCounter
     ghc-options:
     - -threaded
     - -rtsopts

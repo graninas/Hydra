@@ -1,5 +1,6 @@
-{-# LANGUAGE GADTs           #-}
-{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE GADTs                 #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE TemplateHaskell       #-}
 
 module Hydra.Framework.App.Language where
 
@@ -45,9 +46,13 @@ instance L.IOL AppL where
   evalIO = evalLang . L.evalIO
 
 instance L.StateIO AppL where
-    newVarIO       = evalLang . L.newVarIO
-    readVarIO      = evalLang . L.readVarIO
-    writeVarIO var = evalLang . L.writeVarIO var
+  newVarIO       = evalLang . L.newVarIO
+  readVarIO      = evalLang . L.readVarIO
+  writeVarIO var = evalLang . L.writeVarIO var
+  retryIO        = evalLang L.retryIO
+
+instance L.Atomically L.StateL AppL where
+  atomically = evalLang . L.atomically
 
 instance L.Logger AppL where
   logMessage level msg = evalLang $ L.logMessage level msg

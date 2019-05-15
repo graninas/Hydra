@@ -5,9 +5,8 @@ module Hydra.Core.Logger.ChurchL where
 
 import           Hydra.Prelude
 
-import qualified Hydra.Core.Domain          as D
-import qualified Hydra.Core.Logger.Language as L
 import qualified Hydra.Core.Logger.Class    as L
+import qualified Hydra.Core.Logger.Language as L
 
 type LoggerL = F L.LoggerF
 

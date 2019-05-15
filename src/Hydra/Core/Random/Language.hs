@@ -1,5 +1,4 @@
 {-# LANGUAGE GADTs           #-}
-{-# LANGUAGE PackageImports  #-}
 {-# LANGUAGE TemplateHaskell #-}
 
 module Hydra.Core.Random.Language where
@@ -19,5 +18,5 @@ makeFunctorInstance ''RandomF
 
 type RandomL = Free RandomF
 
-instance Random (Free RandomF) where
-    getRandomInt range = liftF $ GetRandomInt range id
+instance Random RandomL where
+  getRandomInt range = liftF $ GetRandomInt range id

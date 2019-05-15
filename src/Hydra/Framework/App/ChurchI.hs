@@ -15,17 +15,17 @@ import qualified Hydra.Framework.Language as L
 import qualified Hydra.Framework.RLens    as RLens
 import qualified Hydra.Framework.Runtime  as R
 
--- langRunner :: R.CoreRuntime -> Impl.LangRunner CL.LangL
--- langRunner coreRt = Impl.LangRunner (Impl.runLangL coreRt)
+langRunner :: R.CoreRuntime -> CI.LangRunner CL.LangL
+langRunner coreRt = CI.LangRunner (CI.runLangL coreRt)
 
 interpretAppF :: R.CoreRuntime -> CL.AppF a -> IO a
 interpretAppF coreRt (CL.EvalLang action next) = do
     res <- CI.runLangL coreRt action
     pure $ next res
 
--- interpretAppF coreRt (L.EvalProcess action next) = do
---     res <- Impl.runProcessL (langRunner coreRt) (coreRt ^. RLens.processRuntime) action
---     pure $ next res
+interpretAppF coreRt (CL.EvalProcess action next) = do
+    res <- CI.runProcessL (langRunner coreRt) (coreRt ^. RLens.processRuntime) action
+    pure $ next res
 
 runAppL :: R.CoreRuntime -> CL.AppL a -> IO a
 runAppL coreRt = foldF (interpretAppF coreRt)

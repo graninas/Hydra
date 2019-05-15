@@ -1,16 +1,18 @@
-{-# LANGUAGE GADTs           #-}
-{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE GADTs                 #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE TemplateHaskell       #-}
 
 module Hydra.Core.Lang.Language where
 
 import           Hydra.Prelude
 
-import qualified Hydra.Core.ControlFlow.Language as L
-import qualified Hydra.Core.Logger.Language      as L
-import qualified Hydra.Core.Random.Language      as L
 import qualified Hydra.Core.ControlFlow.Class    as L
+import qualified Hydra.Core.ControlFlow.Language as L
 import qualified Hydra.Core.Logger.Class         as L
+import qualified Hydra.Core.Logger.Language      as L
 import qualified Hydra.Core.Random.Class         as L
+import qualified Hydra.Core.Random.Language      as L
+import qualified Hydra.Core.State.Class          as L
 import qualified Hydra.Core.State.Language       as L
 
 import           Language.Haskell.TH.MakeFunctor (makeFunctorInstance)
@@ -43,10 +45,13 @@ evalStateAtomically :: L.StateL a -> LangL a
 evalStateAtomically action = liftF $ EvalStateAtomically action id
 
 instance L.StateIO LangL where
-    atomically     = evalStateAtomically
-    newVarIO       = evalStateAtomically . L.newVar
-    readVarIO      = evalStateAtomically . L.readVar
-    writeVarIO var = evalStateAtomically . L.writeVar var
+  newVarIO       = evalStateAtomically . L.newVar
+  readVarIO      = evalStateAtomically . L.readVar
+  writeVarIO var = evalStateAtomically . L.writeVar var
+  retryIO        = evalStateAtomically L.retry
+
+instance L.Atomically L.StateL LangL where
+  atomically = evalStateAtomically
 
 evalLogger :: L.LoggerL () -> LangL ()
 evalLogger logger = liftF $ EvalLogger logger id
