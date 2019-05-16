@@ -1,113 +1,28 @@
+{-# LANGUAGE AllowAmbiguousTypes #-}
+{-# LANGUAGE FlexibleContexts    #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+
 module Main where
 
-import qualified Data.Map       as Map
-import qualified Data.Set       as Set
-
-import qualified Hydra.Domain   as D
-import qualified Hydra.Language as L
+import           Control.Monad
+import qualified Data.Map      as Map
+import qualified Data.Set      as Set
 import           Hydra.Prelude
-import qualified Hydra.Runtime  as R
 
-type Time = Int
+import qualified Free          as Free
+-- import qualified FTL           as FTL
+import qualified Church        as Church
+import qualified Hydra.Domain  as D
+import qualified Hydra.Runtime as R
 
-data Meteor = Meteor
-  { _size :: Int
-  , _mass :: Int
+data Method = FT | FreeM | ChurchM
+  deriving (Show, Read, Eq, Ord)
+
+data Config = Config
+  { useLog     :: Bool
+  , method     :: Method
   }
-  deriving (Show, Eq, Ord)
-
-data Region
-  = NorthEast
-  | NorthWest
-  | SouthEast
-  | SouthWest
-  deriving (Show, Eq, Ord)
-
-type Meteors = D.StateVar (Set.Set Meteor)
-
-type Catalogue = Map.Map Region Meteors
-
-data AppState = AppState
-  { _catalogue :: Catalogue
-  , _totalMeteors :: D.StateVar Int
-  , _discoveryChannel :: D.StateVar (Set.Set (Region, Meteor))
-  }
-
-delayFactor :: Int
-delayFactor = 100
-
-initState :: L.AppL AppState
-initState = do
-  ne <- L.newVarIO Set.empty
-  nw <- L.newVarIO Set.empty
-  se <- L.newVarIO Set.empty
-  sw <- L.newVarIO Set.empty
-
-  let catalogue = Map.fromList
-        [ (NorthEast, ne)
-        , (NorthWest, nw)
-        , (SouthEast, se)
-        , (SouthWest, sw)
-        ]
-
-  publised <- L.newVarIO Set.empty
-  total    <- L.newVarIO 0
-  pure $ AppState catalogue total publised
-
-getRandomMeteor :: L.LangL Meteor
-getRandomMeteor = do
-  size <- L.getRandomInt (1, 100)
-  mass <- L.getRandomInt (size * 1000, size * 10000)
-  pure $ Meteor size mass
-
-getRandomMilliseconds :: L.LangL Time
-getRandomMilliseconds = (* delayFactor) <$> L.getRandomInt (0, 3000)
-
-withRandomDelay :: L.LangL () -> L.LangL ()
-withRandomDelay action = do
-  getRandomMilliseconds >>= L.delay
-  action
-
-publishMeteor :: AppState -> (Region, Meteor) -> L.LangL ()
-publishMeteor st meteor =
-  L.atomically $ L.modifyVar (_discoveryChannel st) $ Set.insert meteor
-
-meteorShower :: AppState -> Region -> L.LangL ()
-meteorShower st region = do
-  meteor <- getRandomMeteor
-  L.logInfo $ "New meteor discovered: " <> show (region, meteor)
-  publishMeteor st (region, meteor)
-
-trackMeteor :: AppState -> (Region, Meteor) -> L.LangL ()
-trackMeteor st rm@(region, meteor) =
-  case Map.lookup region (_catalogue st) of
-    Nothing -> L.logError $ "Region not found: " <> show region
-    Just r  -> do
-      L.atomically $ L.modifyVar r $ Set.insert meteor
-      L.logInfo $ "New meteor tracked: " <> show rm
-
-meteorCounter :: AppState -> L.LangL ()
-meteorCounter st = do
-  untracked <- L.atomically $ do
-    ps <- L.readVar (_discoveryChannel st)
-    when (Set.null ps) L.retry
-    L.writeVar (_discoveryChannel st) Set.empty
-    pure $ Set.toList ps
-  mapM_ (trackMeteor st) untracked
-
-  L.atomically $ L.modifyVar (_totalMeteors st) $ (+(length untracked))
-  total <- L.readVarIO (_totalMeteors st)
-  L.logInfo $ "Total tracked: " <> show total
-
-meteorsMonitoring :: L.AppL ()
-meteorsMonitoring = do
-  L.logInfo "Starting app..."
-  st <- initState
-  L.process $ forever $ meteorCounter st
-  L.process $ forever $ withRandomDelay $ meteorShower st NorthEast
-  L.process $ forever $ withRandomDelay $ meteorShower st NorthWest
-  L.process $ forever $ withRandomDelay $ meteorShower st SouthEast
-  L.process $ forever $ withRandomDelay $ meteorShower st SouthWest
+  deriving (Show, Read, Eq, Ord)
 
 loggerCfg :: D.LoggerConfig
 loggerCfg = D.LoggerConfig
@@ -120,7 +35,22 @@ loggerCfg = D.LoggerConfig
 
 main :: IO ()
 main = do
+  cfgStr <- readFile "meteor_counter.cfg"
+  let cfg :: Config = read $ toString cfgStr
 
-  loggerRt <- R.createLoggerRuntime loggerCfg
+  putStrLn @String $ "Method: " <> show (method cfg)
+
+  loggerRt <- if useLog cfg
+    then R.createLoggerRuntime loggerCfg
+    else R.createVoidLoggerRuntime
   coreRt <- R.createCoreRuntime loggerRt
-  R.startApp coreRt $ L.foreverApp meteorsMonitoring
+
+  when (method cfg == FT) $
+    -- FTL.scenario1 ops coreRt
+    putStrLn @String "FT is not supported for this scenario."
+
+  when (method cfg == FreeM) $
+    Free.scenario coreRt
+
+  when (method cfg == ChurchM) $
+    Church.scenario coreRt

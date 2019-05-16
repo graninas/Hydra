@@ -39,7 +39,7 @@ loggerCfg = D.LoggerConfig
 
 main :: IO ()
 main = do
-  cfgStr <- readFile "cfg"
+  cfgStr <- readFile "perf_test_app.cfg"
   let cfg :: Config = read $ toString cfgStr
 
   putStrLn @String $ "Method: " <> show (method cfg) <> ", iterations: " <> show (iterations cfg)
