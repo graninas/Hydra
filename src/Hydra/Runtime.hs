@@ -11,7 +11,6 @@ import           Hydra.Framework.Runtime         as X
 import qualified Hydra.Framework.App.ChurchI     as CI
 import qualified Hydra.Framework.App.Interpreter as I
 import qualified Hydra.Framework.ChurchL         as CL
-import qualified Hydra.Framework.FTL             as FTL
 import qualified Hydra.Framework.Language        as L
 
 class StartApp m where
