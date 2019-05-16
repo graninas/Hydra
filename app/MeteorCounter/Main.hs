@@ -29,9 +29,12 @@ type Catalogue = Map.Map Region Meteors
 
 data AppState = AppState
   { _catalogue :: Catalogue
-  , _published :: D.StateVar (Set.Set (Region, Meteor))
+  , _totalMeteors :: D.StateVar Int
+  , _discoveryChannel :: D.StateVar (Set.Set (Region, Meteor))
   }
 
+delayFactor :: Int
+delayFactor = 100
 
 initState :: L.AppL AppState
 initState = do
@@ -48,7 +51,8 @@ initState = do
         ]
 
   publised <- L.newVarIO Set.empty
-  pure $ AppState catalogue publised
+  total    <- L.newVarIO 0
+  pure $ AppState catalogue total publised
 
 getRandomMeteor :: L.LangL Meteor
 getRandomMeteor = do
@@ -57,7 +61,7 @@ getRandomMeteor = do
   pure $ Meteor size mass
 
 getRandomMilliseconds :: L.LangL Time
-getRandomMilliseconds = (* 1000) <$> L.getRandomInt (0, 3000)
+getRandomMilliseconds = (* delayFactor) <$> L.getRandomInt (0, 3000)
 
 withRandomDelay :: L.LangL () -> L.LangL ()
 withRandomDelay action = do
@@ -66,29 +70,34 @@ withRandomDelay action = do
 
 publishMeteor :: AppState -> (Region, Meteor) -> L.LangL ()
 publishMeteor st meteor =
-  L.atomically $ L.modifyVar (_published st) $ Set.insert meteor
+  L.atomically $ L.modifyVar (_discoveryChannel st) $ Set.insert meteor
 
 meteorShower :: AppState -> Region -> L.LangL ()
 meteorShower st region = do
   meteor <- getRandomMeteor
-  L.logInfo $ "A new meteor appeared at " <> show region <> ": " <> show meteor
+  L.logInfo $ "New meteor discovered: " <> show (region, meteor)
   publishMeteor st (region, meteor)
 
-countMeteor :: AppState -> (Region, Meteor) -> L.LangL ()
-countMeteor st (region, meteor) =
+trackMeteor :: AppState -> (Region, Meteor) -> L.LangL ()
+trackMeteor st rm@(region, meteor) =
   case Map.lookup region (_catalogue st) of
     Nothing -> L.logError $ "Region not found: " <> show region
     Just r  -> do
       L.atomically $ L.modifyVar r $ Set.insert meteor
-      L.logInfo $ "A new meteor tracked at " <> show region <> ": " <> show meteor
+      L.logInfo $ "New meteor tracked: " <> show rm
 
 meteorCounter :: AppState -> L.LangL ()
 meteorCounter st = do
   untracked <- L.atomically $ do
-    ps <- L.readVar (_published st)
-    L.writeVar (_published st) Set.empty
+    ps <- L.readVar (_discoveryChannel st)
+    when (Set.null ps) L.retry
+    L.writeVar (_discoveryChannel st) Set.empty
     pure $ Set.toList ps
-  mapM_ (countMeteor st) untracked
+  mapM_ (trackMeteor st) untracked
+
+  L.atomically $ L.modifyVar (_totalMeteors st) $ (+(length untracked))
+  total <- L.readVarIO (_totalMeteors st)
+  L.logInfo $ "Total tracked: " <> show total
 
 meteorsMonitoring :: L.AppL ()
 meteorsMonitoring = do
