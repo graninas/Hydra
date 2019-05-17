@@ -8,6 +8,7 @@ import           Hydra.Prelude
 
 import qualified Hydra.Core.Domain               as D
 import qualified Hydra.Core.Language             as L
+import qualified Hydra.Core.Class                as C
 
 import           Language.Haskell.TH.MakeFunctor (makeFunctorInstance)
 
@@ -33,6 +34,15 @@ scenario = evalLang
 -- | Eval process.
 evalProcess :: L.ProcessL L.LangL a -> AppL a
 evalProcess action = liftF $ EvalProcess action id
+
+instance C.Process L.LangL AppL where
+  forkProcess  = evalProcess . L.forkProcess'
+  killProcess  = evalProcess . L.killProcess'
+  tryGetResult = evalProcess . L.tryGetResult'
+  awaitResult  = evalProcess . L.awaitResult'
+
+process :: L.LangL a -> AppL ()
+process action = void $ forkProcess action
 
 -- | Fork a process and keep the Process Ptr.
 fork :: L.LangL a -> AppL (D.ProcessPtr a)

@@ -14,6 +14,7 @@ import qualified Hydra.Core.Random.Class         as L
 import qualified Hydra.Core.Random.Language      as L
 import qualified Hydra.Core.State.Class          as L
 import qualified Hydra.Core.State.Language       as L
+import qualified Hydra.Core.Lang.Class           as C
 
 import           Language.Haskell.TH.MakeFunctor (makeFunctorInstance)
 
@@ -40,33 +41,38 @@ class IOL m where
 instance IOL LangL where
   evalIO io = liftF $ EvalIO io id
 
--- | Eval stateful action atomically.
-evalStateAtomically :: L.StateL a -> LangL a
-evalStateAtomically action = liftF $ EvalStateAtomically action id
+evalStateAtomically' :: L.StateL a -> LangL a
+evalStateAtomically' action = liftF $ EvalStateAtomically action id
+
+evalLogger' :: L.LoggerL () -> LangL ()
+evalLogger' logger = liftF $ EvalLogger logger id
+
+evalRandom' :: L.RandomL a -> LangL a
+evalRandom' g = liftF $ EvalRandom g id
+
+evalControlFlow' :: L.ControlFlowL a -> LangL a
+evalControlFlow' a = liftF $ EvalControlFlow a id
+
+instance C.Lang L.LoggerL L.RandomL L.ControlFlowL L.StateL LangL where
+  evalStateAtomically = evalStateAtomically'
+  evalLogger          = evalLogger'
+  evalRandom          = evalRandom'
+  evalControlFlow     = evalControlFlow'
 
 instance L.StateIO LangL where
-  newVarIO       = evalStateAtomically . L.newVar
-  readVarIO      = evalStateAtomically . L.readVar
-  writeVarIO var = evalStateAtomically . L.writeVar var
-  retryIO        = evalStateAtomically L.retry
+  newVarIO       = evalStateAtomically' . L.newVar
+  readVarIO      = evalStateAtomically' . L.readVar
+  writeVarIO var = evalStateAtomically' . L.writeVar var
+  retryIO        = evalStateAtomically' L.retry
 
 instance L.Atomically L.StateL LangL where
-  atomically = evalStateAtomically
-
-evalLogger :: L.LoggerL () -> LangL ()
-evalLogger logger = liftF $ EvalLogger logger id
+  atomically = evalStateAtomically'
 
 instance L.Logger LangL where
-  logMessage level msg = evalLogger $ L.logMessage level msg
-
-evalRandom :: L.RandomL a -> LangL a
-evalRandom g = liftF $ EvalRandom g id
+  logMessage level msg = evalLogger' $ L.logMessage level msg
 
 instance L.Random LangL where
-  getRandomInt = evalRandom . L.getRandomInt
-
-evalControlFlow :: L.ControlFlowL a -> LangL a
-evalControlFlow a = liftF $ EvalControlFlow a id
+  getRandomInt = evalRandom' . L.getRandomInt
 
 instance L.ControlFlow LangL where
-  delay i = evalControlFlow $ L.delay i
+  delay i = evalControlFlow' $ L.delay i

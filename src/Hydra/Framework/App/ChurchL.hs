@@ -7,6 +7,7 @@ module Hydra.Framework.App.ChurchL where
 import           Hydra.Prelude
 
 import qualified Hydra.Core.ChurchL              as L
+import qualified Hydra.Core.Class                as C
 import qualified Hydra.Core.Domain               as D
 
 import           Language.Haskell.TH.MakeFunctor (makeFunctorInstance)
@@ -30,26 +31,28 @@ evalLang action = liftFC $ EvalLang action id
 scenario :: L.LangL a -> AppL a
 scenario = evalLang
 
--- | Eval process.
-evalProcess :: L.ProcessL L.LangL a -> AppL a
+evalProcess :: L.ProcessL L.Lang a -> AppL a
 evalProcess action = liftF $ EvalProcess action id
+
+instance C.Process L.LangL AppL where
+  forkProcess  = evalProcess . L.forkProcess'
+  killProcess  = evalProcess . L.killProcess'
+  tryGetResult = evalProcess . L.tryGetResult'
+  awaitResult  = evalProcess . L.awaitResult'
 
 -- | Fork a process and keep the Process Ptr.
 fork :: L.LangL a -> AppL (D.ProcessPtr a)
-fork action = evalProcess (L.forkProcess action)
+fork action = evalProcess (L.forkProcess' action)
 
 -- | Fork a process and forget.
 process :: L.LangL a -> AppL ()
 process action = void $ fork action
 
--- instance L.IOL AppL where
---   evalIO = evalLang . L.evalIO
-
 instance L.StateIO AppL where
-    newVarIO       = evalLang . L.newVarIO
-    readVarIO      = evalLang . L.readVarIO
-    writeVarIO var = evalLang . L.writeVarIO var
-    retryIO        = evalLang L.retryIO
+  newVarIO       = evalLang . L.newVarIO
+  readVarIO      = evalLang . L.readVarIO
+  writeVarIO var = evalLang . L.writeVarIO var
+  retryIO        = evalLang L.retryIO
 
 instance L.Atomically L.StateL AppL where
   atomically = evalLang . L.atomically

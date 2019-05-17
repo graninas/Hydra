@@ -28,10 +28,6 @@ instance Functor (ProcessF m') where
 
 type ProcessL m' = Free (ProcessF m')
 
--- class Process m' m where
---   process :: m' () -> m ()
---   fork :: m' a -> m (D.ProcessPtr a)
-
 -- | Fork a process.
 forkProcess :: m' a -> ProcessL m' (D.ProcessPtr a)
 forkProcess action = liftF $ ForkProcess action id
