@@ -93,6 +93,7 @@ dependencies:
 - newtype-generics
 - regex-posix
 - safe-exceptions
+- unliftio
 
 library:
   source-dirs:
