@@ -87,4 +87,4 @@ meteorsMonitoring = do
   L.process $ forever $ withRandomDelay $ meteorShower st SouthWest
 
 scenario :: R.CoreRuntime -> IO ()
-scenario coreRt = void $ R.startApp coreRt $ L.foreverApp meteorsMonitoring
+scenario coreRt = void $ R.startApp coreRt $ L.foreverAppChurch meteorsMonitoring
