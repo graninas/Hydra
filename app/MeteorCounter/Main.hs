@@ -37,6 +37,7 @@ loggerCfg = D.LoggerConfig
 
 main :: IO ()
 main = do
+
   cfgStr <- readFile "meteor_counter.cfg"
   let cfg :: Config = read $ toString cfgStr
 

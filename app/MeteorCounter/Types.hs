@@ -26,7 +26,11 @@ type Meteors = D.StateVar (Set.Set Meteor)
 type Catalogue = Map.Map Region Meteors
 
 data AppConfig = AppConfig
-  { enableDelays :: Bool
+  { enableDelays  :: Bool
+  , maxMeteors    :: Maybe Int
+  , logDiscovered :: Bool
+  , logTracked    :: Bool
+  , logTotal      :: Bool
   }
   deriving (Show, Read, Eq, Ord)
 
@@ -39,3 +43,7 @@ data AppState = AppState
 
 delaysEnabled :: AppState -> Bool
 delaysEnabled = enableDelays . _config
+
+doLogDiscovered = logDiscovered . _config
+doLogTracked    = logTracked . _config
+doLogTotal      = logTotal . _config

@@ -51,7 +51,7 @@ publishMeteor st meteor =
 meteorShower :: AppState -> Region -> L.LangL ()
 meteorShower st region = do
   meteor <- L.evalRandom $ getRandomMeteor region
-  L.logInfo $ "New meteor discovered: " <> show meteor
+  when (doLogDiscovered st) $ L.logInfo $ "New meteor discovered: " <> show meteor
   publishMeteor st meteor
 
 trackMeteor :: AppState -> Meteor -> L.LangL ()
@@ -61,7 +61,7 @@ trackMeteor st meteor = do
     Nothing -> L.logError $ "Region not found: " <> show region
     Just r  -> do
       L.atomically $ L.modifyVar r $ Set.insert meteor
-      L.logInfo $ "New meteor tracked: " <> show meteor
+      when (doLogTracked st) $ L.logInfo $ "New meteor tracked: " <> show meteor
 
 meteorCounter :: AppState -> L.LangL ()
 meteorCounter st = do
@@ -74,11 +74,11 @@ meteorCounter st = do
 
   L.atomically $ L.modifyVar (_totalMeteors st) $ (+(length untracked))
   total <- L.readVarIO (_totalMeteors st)
-  L.logInfo $ "Total tracked: " <> show total
+
+  when (doLogTotal st) $ L.logInfo $ "Total tracked: " <> show total
 
 meteorsMonitoring :: AppConfig -> L.AppL ()
 meteorsMonitoring cfg = do
-  L.logInfo "Starting app..."
   st <- L.atomically $ initState cfg
   L.process $ forever $ meteorCounter st
   L.process $ forever $ withRandomDelay st $ meteorShower st NorthEast
@@ -86,8 +86,12 @@ meteorsMonitoring cfg = do
   L.process $ forever $ withRandomDelay st $ meteorShower st SouthEast
   L.process $ forever $ withRandomDelay st $ meteorShower st SouthWest
 
+  L.atomically $ do
+    let maxTotal = fromMaybe 0 $ maxMeteors cfg
+    total <- L.readVar $ _totalMeteors st
+    when (maxTotal == 0 || total < maxTotal) L.retry
+
 scenario :: R.CoreRuntime -> AppConfig -> IO ()
 scenario coreRt cfg = void
   $ R.startApp coreRt
-  $ L.foreverAppChurch
   $ meteorsMonitoring cfg
