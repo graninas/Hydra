@@ -12,8 +12,8 @@ import           Types
 delayFactor :: Int
 delayFactor = 100
 
-initState :: L.StateL AppState
-initState = do
+initState :: AppConfig -> L.StateL AppState
+initState cfg = do
   ne <- L.newVar Set.empty
   nw <- L.newVar Set.empty
   se <- L.newVar Set.empty
@@ -28,7 +28,7 @@ initState = do
 
   publised <- L.newVar Set.empty
   total    <- L.newVar 0
-  pure $ AppState catalogue total publised
+  pure $ AppState catalogue total publised cfg
 
 getRandomMeteor :: Region -> L.RandomL Meteor
 getRandomMeteor region = do
@@ -39,9 +39,9 @@ getRandomMeteor region = do
 getRandomMilliseconds :: L.LangL Int
 getRandomMilliseconds = (* delayFactor) <$> L.getRandomInt (0, 3000)
 
-withRandomDelay :: L.LangL () -> L.LangL ()
-withRandomDelay action = do
-  getRandomMilliseconds >>= L.delay
+withRandomDelay :: AppState -> L.LangL () -> L.LangL ()
+withRandomDelay st action = do
+  when (delaysEnabled st) $ getRandomMilliseconds >>= L.delay
   action
 
 publishMeteor :: AppState -> Meteor -> L.LangL ()
@@ -76,15 +76,18 @@ meteorCounter st = do
   total <- L.readVarIO (_totalMeteors st)
   L.logInfo $ "Total tracked: " <> show total
 
-meteorsMonitoring :: L.AppL ()
-meteorsMonitoring = do
+meteorsMonitoring :: AppConfig -> L.AppL ()
+meteorsMonitoring cfg = do
   L.logInfo "Starting app..."
-  st <- L.atomically initState
+  st <- L.atomically $ initState cfg
   L.process $ forever $ meteorCounter st
-  L.process $ forever $ withRandomDelay $ meteorShower st NorthEast
-  L.process $ forever $ withRandomDelay $ meteorShower st NorthWest
-  L.process $ forever $ withRandomDelay $ meteorShower st SouthEast
-  L.process $ forever $ withRandomDelay $ meteorShower st SouthWest
+  L.process $ forever $ withRandomDelay st $ meteorShower st NorthEast
+  L.process $ forever $ withRandomDelay st $ meteorShower st NorthWest
+  L.process $ forever $ withRandomDelay st $ meteorShower st SouthEast
+  L.process $ forever $ withRandomDelay st $ meteorShower st SouthWest
 
-scenario :: R.CoreRuntime -> IO ()
-scenario coreRt = void $ R.startApp coreRt $ L.foreverAppChurch meteorsMonitoring
+scenario :: R.CoreRuntime -> AppConfig -> IO ()
+scenario coreRt cfg = void
+  $ R.startApp coreRt
+  $ L.foreverAppChurch
+  $ meteorsMonitoring cfg

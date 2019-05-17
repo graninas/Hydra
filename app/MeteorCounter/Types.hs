@@ -25,8 +25,17 @@ type Meteors = D.StateVar (Set.Set Meteor)
 
 type Catalogue = Map.Map Region Meteors
 
+data AppConfig = AppConfig
+  { enableDelays :: Bool
+  }
+  deriving (Show, Read, Eq, Ord)
+
 data AppState = AppState
   { _catalogue    :: Catalogue
   , _totalMeteors :: D.StateVar Int
   , _channel      :: D.StateVar (Set.Set Meteor)
+  , _config       :: AppConfig
   }
+
+delaysEnabled :: AppState -> Bool
+delaysEnabled = enableDelays . _config

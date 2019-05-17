@@ -10,6 +10,7 @@ import qualified Data.Set      as Set
 import           Hydra.Prelude
 
 import qualified Free          as Free
+import           Types
 -- import qualified FTL           as FTL
 import qualified Church        as Church
 import qualified Hydra.Domain  as D
@@ -19,8 +20,9 @@ data Method = FT | FreeM | ChurchM
   deriving (Show, Read, Eq, Ord)
 
 data Config = Config
-  { useLog     :: Bool
-  , method     :: Method
+  { useLog    :: Bool
+  , method    :: Method
+  , appConfig :: AppConfig
   }
   deriving (Show, Read, Eq, Ord)
 
@@ -49,8 +51,10 @@ main = do
     -- FTL.scenario1 ops coreRt
     putStrLn @String "FT is not supported for this scenario."
 
-  when (method cfg == FreeM) $
-    Free.scenario coreRt
+  when (method cfg == FreeM)
+    $ Free.scenario coreRt
+    $ appConfig cfg
 
-  when (method cfg == ChurchM) $
-    Church.scenario coreRt
+  when (method cfg == ChurchM)
+    $ Church.scenario coreRt
+    $ appConfig cfg
