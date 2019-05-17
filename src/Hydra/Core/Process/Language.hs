@@ -29,21 +29,17 @@ instance Functor (ProcessF m') where
 type ProcessL m' = Free (ProcessF m')
 
 -- | Fork a process.
-forkProcess :: m' a -> ProcessL m' (D.ProcessPtr a)
-forkProcess action = liftF $ ForkProcess action id
+forkProcess' :: m' a -> ProcessL m' (D.ProcessPtr a)
+forkProcess' action = liftF $ ForkProcess action id
 
 -- | Hardly kill a process.
-killProcess :: D.ProcessPtr a -> ProcessL m' ()
-killProcess processPtr = liftF $ KillProcess processPtr id
+killProcess' :: D.ProcessPtr a -> ProcessL m' ()
+killProcess' processPtr = liftF $ KillProcess processPtr id
 
 -- | Try get result from a process (non-blocking).
-tryGetResult :: D.ProcessPtr a -> ProcessL m' (Maybe a)
-tryGetResult handle = liftF $ TryGetResult handle id
+tryGetResult' :: D.ProcessPtr a -> ProcessL m' (Maybe a)
+tryGetResult' handle = liftF $ TryGetResult handle id
 
 -- | Await for result from a process (blocking).
-awaitResult :: D.ProcessPtr a -> ProcessL m' a
-awaitResult handle = liftF $ AwaitResult handle id
-
--- instance Process m' (ProcessL m') where
---   process action = void (forkProcess action)
---   fork = forkProcess
+awaitResult' :: D.ProcessPtr a -> ProcessL m' a
+awaitResult' handle = liftF $ AwaitResult handle id

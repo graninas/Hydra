@@ -8,6 +8,7 @@ import           Hydra.Core.Lang.Language        as X
 import           Hydra.Core.Logger.Class         as X
 import           Hydra.Core.Logger.Language      as X
 import           Hydra.Core.Process.Language     as X
+import           Hydra.Core.Process.Class        as X
 import           Hydra.Core.Random.Class         as X
 import           Hydra.Core.Random.Language      as X
 import           Hydra.Core.State.Class          as X

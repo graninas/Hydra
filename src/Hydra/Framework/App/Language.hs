@@ -41,12 +41,9 @@ instance C.Process L.LangL AppL where
   tryGetResult = evalProcess . L.tryGetResult'
   awaitResult  = evalProcess . L.awaitResult'
 
-process :: L.LangL a -> AppL ()
-process action = void $ forkProcess action
-
 -- | Fork a process and keep the Process Ptr.
 fork :: L.LangL a -> AppL (D.ProcessPtr a)
-fork action = evalProcess (L.forkProcess action)
+fork = evalProcess . L.forkProcess'
 
 -- | Fork a process and forget.
 process :: L.LangL a -> AppL ()
