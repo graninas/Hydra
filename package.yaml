@@ -112,7 +112,7 @@ executables:
     - -O2
     dependencies:
     - Hydra
-  meteror-counter-app:
+  meteor-counter-app:
     main:                Main.hs
     source-dirs:         app/MeteorCounter
     ghc-options:
