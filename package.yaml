@@ -94,6 +94,7 @@ dependencies:
 - regex-posix
 - safe-exceptions
 - unliftio
+- unliftio-core
 
 library:
   source-dirs:

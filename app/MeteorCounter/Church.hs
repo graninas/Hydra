@@ -9,9 +9,6 @@ import           Hydra.Prelude
 import qualified Hydra.Runtime as R
 import           Types
 
-delayFactor :: Int
-delayFactor = 100
-
 initState :: AppConfig -> L.StateL AppState
 initState cfg = do
   ne <- L.newVar Set.empty
@@ -37,11 +34,12 @@ getRandomMeteor region = do
   pure $ Meteor size mass region
 
 getRandomMilliseconds :: L.LangL Int
-getRandomMilliseconds = (* delayFactor) <$> L.getRandomInt (0, 3000)
+getRandomMilliseconds = L.getRandomInt (0, 3000)
 
 withRandomDelay :: AppState -> L.LangL () -> L.LangL ()
 withRandomDelay st action = do
-  when (delaysEnabled st) $ getRandomMilliseconds >>= L.delay
+  when (delaysEnabled st)
+    $ getRandomMilliseconds >>= \d -> L.delay $ d * dFactor st
   action
 
 publishMeteor :: AppState -> Meteor -> L.LangL ()
@@ -60,7 +58,8 @@ trackMeteor st meteor = do
   case Map.lookup region (_catalogue st) of
     Nothing -> L.logError $ "Region not found: " <> show region
     Just r  -> do
-      L.atomically $ L.modifyVar r $ Set.insert meteor
+      when (storeTrackedMeteors st) $
+        L.atomically $ L.modifyVar r $ Set.insert meteor
       when (doLogTracked st) $ L.logInfo $ "New meteor tracked: " <> show meteor
 
 meteorCounter :: AppState -> L.LangL ()
@@ -92,6 +91,4 @@ meteorsMonitoring cfg = do
     when (maxTotal == 0 || total < maxTotal) L.retry
 
 scenario :: R.CoreRuntime -> AppConfig -> IO ()
-scenario coreRt cfg = void
-  $ R.startApp coreRt
-  $ meteorsMonitoring cfg
+scenario coreRt cfg = void $ R.startApp coreRt $ meteorsMonitoring cfg

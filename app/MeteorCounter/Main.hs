@@ -11,7 +11,7 @@ import           Hydra.Prelude
 
 import qualified Free          as Free
 import           Types
--- import qualified FTL           as FTL
+import qualified FTL           as FTL
 import qualified Church        as Church
 import qualified Hydra.Domain  as D
 import qualified Hydra.Runtime as R
@@ -48,9 +48,9 @@ main = do
     else R.createVoidLoggerRuntime
   coreRt <- R.createCoreRuntime loggerRt
 
-  when (method cfg == FT) $
-    -- FTL.scenario1 ops coreRt
-    putStrLn @String "FT is not supported for this scenario."
+  when (method cfg == FT)
+    $ FTL.scenario coreRt
+    $ appConfig cfg
 
   when (method cfg == FreeM)
     $ Free.scenario coreRt
