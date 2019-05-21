@@ -32,9 +32,9 @@ initState cfg = do
         , (SouthWest, sw)
         ]
 
-  publised <- newTVar Set.empty
+  published <- newTVar Set.empty
   total    <- newTVar 0
-  pure $ AppState' catalogue total publised cfg
+  pure $ AppState' catalogue total published cfg
 
 getRandomMeteor :: L.RandomL m => Region -> m Meteor
 getRandomMeteor region = do
@@ -53,9 +53,9 @@ withRandomDelay st action = do
     $ getRandomMilliseconds >>= \d -> L.delay $ d * dFactor' st
   action
 
-publishMeteor :: UIO.MonadUnliftIO m => AppState' -> Meteor -> m ()
+publishMeteor :: AppState' -> Meteor -> STM ()
 publishMeteor st meteor =
-  atomically $ modifyTVar (_channel' st) $ Set.insert meteor
+  modifyTVar (_channel' st) $ Set.insert meteor
 
 meteorShower
   :: (UIO.MonadUnliftIO m, L.LoggerL m, L.RandomL m)
@@ -63,7 +63,7 @@ meteorShower
 meteorShower st region = do
   meteor <- getRandomMeteor region
   when (doLogDiscovered' st) $ L.logInfo $ "New meteor discovered: " <> show meteor
-  publishMeteor st meteor
+  atomically $ publishMeteor st meteor
 
 trackMeteor
   :: (UIO.MonadUnliftIO m, L.LoggerL m)
