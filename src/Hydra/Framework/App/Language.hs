@@ -12,7 +12,7 @@ import qualified Hydra.Core.Language             as L
 
 import           Language.Haskell.TH.MakeFunctor (makeFunctorInstance)
 
--- | Core effects container language.
+-- | App language.
 data AppF next where
   -- | Eval process.
   EvalProcess :: L.ProcessL L.LangL a -> (a -> next) -> AppF next
