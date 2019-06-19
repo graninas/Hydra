@@ -13,7 +13,7 @@ import           Hydra.Core.Random.FTL      as L
 import qualified Hydra.Core.State.Class     as L
 import qualified Hydra.Core.State.Language  as L
 
-class (Monad m, L.ControlFlowL m, L.RandomL m, L.LoggerL m) => LangL m where
+class (Monad m, L.RandomL m, L.LoggerL m) => LangL m where
   evalStateAtomically :: L.StateL a -> m a
 
 instance (Monad m, LangL m) => L.StateIO m where

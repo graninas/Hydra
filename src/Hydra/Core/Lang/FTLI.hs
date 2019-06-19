@@ -2,7 +2,6 @@ module Hydra.Core.Lang.FTLI where
 
 import           Hydra.Prelude
 
-import           Hydra.Core.ControlFlow.FTLI  ()
 import qualified Hydra.Core.FTL               as L
 import           Hydra.Core.Logger.FTLI       ()
 import           Hydra.Core.Random.FTLI       ()
