@@ -23,9 +23,9 @@ initState cfg = do
         , (SouthWest, sw)
         ]
 
-  publised <- L.newVar Set.empty
+  published <- L.newVar Set.empty
   total    <- L.newVar 0
-  pure $ AppState catalogue total publised cfg
+  pure $ AppState catalogue total published cfg
 
 getRandomMeteor :: Region -> L.RandomL Meteor
 getRandomMeteor region = do
@@ -42,15 +42,15 @@ withRandomDelay st action = do
     $ getRandomMilliseconds >>= \d -> L.delay $ d * dFactor st
   action
 
-publishMeteor :: AppState -> Meteor -> L.LangL ()
+publishMeteor :: AppState -> Meteor -> L.StateL ()
 publishMeteor st meteor =
-  L.atomically $ L.modifyVar (_channel st) $ Set.insert meteor
+  L.modifyVar (_channel st) $ Set.insert meteor
 
 meteorShower :: AppState -> Region -> L.LangL ()
 meteorShower st region = do
   meteor <- L.evalRandom $ getRandomMeteor region
   when (doLogDiscovered st) $ L.logInfo $ "New meteor discovered: " <> show meteor
-  publishMeteor st meteor
+  L.atomically $ publishMeteor st meteor
 
 trackMeteor :: AppState -> Meteor -> L.LangL ()
 trackMeteor st meteor = do

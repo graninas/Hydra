@@ -3,28 +3,28 @@ module FTLTypes where
 import qualified Data.Map      as Map
 import qualified Data.Set      as Set
 
-import qualified Hydra.Domain  as D
 import           Hydra.Prelude
-import qualified Hydra.Runtime as R
+import           Hydra.FTL     as L
 import           Types
 
-type Meteors' = TVar (Set.Set Meteor)
+type Meteors' m = L.StateVar m (Set.Set Meteor)
 
-type Catalogue' = Map.Map Region Meteors'
+type Catalogue' m = Map.Map Region (Meteors' m)
 
-data AppState' = AppState'
-  { _catalogue'    :: Catalogue'
-  , _totalMeteors' :: TVar Int
-  , _channel'      :: TVar (Set.Set Meteor)
+data AppState' m = AppState'
+  { _catalogue'    :: Catalogue' m
+  , _totalMeteors' :: L.StateVar m Int
+  , _channel'      :: L.StateVar m (Set.Set Meteor)
   , _config'       :: AppConfig
   }
 
-delaysEnabled' :: AppState' -> Bool
+
+delaysEnabled' :: AppState' m -> Bool
 delaysEnabled' = enableDelays . _config'
 
 dFactor' = delaysFactor . _config'
 
-storeTrackedMeteors' :: AppState' -> Bool
+storeTrackedMeteors' :: AppState' m -> Bool
 storeTrackedMeteors' = storeTracked . _config'
 
 doLogDiscovered' = logDiscovered . _config'

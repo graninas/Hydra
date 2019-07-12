@@ -1,29 +1,27 @@
+{-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 module FTL where
 
 import qualified Data.Map                as Map
 import qualified Data.Set                as Set
 
 import           FTLTypes
-import qualified Hydra.Domain            as D
 import qualified Hydra.FTL               as L
 import           Hydra.Prelude
 import qualified Hydra.Runtime           as R
 import           Types
-
-import qualified Control.Monad.IO.Unlift as UIO
-import qualified UnliftIO.Concurrent     as UIO
 
 import           Hydra.FTLI              ()
 
 delayFactor :: Int
 delayFactor = 100
 
-initState :: AppConfig -> STM AppState'
+initState :: L.StateL m => AppConfig -> m (AppState' m)
 initState cfg = do
-  ne <- newTVar Set.empty
-  nw <- newTVar Set.empty
-  se <- newTVar Set.empty
-  sw <- newTVar Set.empty
+  ne <- L.newVar Set.empty
+  nw <- L.newVar Set.empty
+  se <- L.newVar Set.empty
+  sw <- L.newVar Set.empty
 
   let catalogue = Map.fromList
         [ (NorthEast, ne)
@@ -32,8 +30,8 @@ initState cfg = do
         , (SouthWest, sw)
         ]
 
-  publised <- newTVar Set.empty
-  total    <- newTVar 0
+  publised <- L.newVar Set.empty
+  total    <- L.newVar 0
   pure $ AppState' catalogue total publised cfg
 
 getRandomMeteor :: L.RandomL m => Region -> m Meteor
@@ -47,64 +45,76 @@ getRandomMilliseconds = L.getRandomInt (0, 3000)
 
 withRandomDelay
   :: (L.ControlFlowL m, L.RandomL m)
-  => AppState' -> m () -> m ()
+  => AppState' t -> m () -> m ()
 withRandomDelay st action = do
   when (delaysEnabled' st)
     $ getRandomMilliseconds >>= \d -> L.delay $ d * dFactor' st
   action
 
-publishMeteor :: UIO.MonadUnliftIO m => AppState' -> Meteor -> m ()
+publishMeteor :: L.StateL m => AppState' m -> Meteor -> m ()
 publishMeteor st meteor =
-  atomically $ modifyTVar (_channel' st) $ Set.insert meteor
+  L.modifyVar (_channel' st) $ Set.insert meteor
 
 meteorShower
-  :: (UIO.MonadUnliftIO m, L.LoggerL m, L.RandomL m)
-  => AppState' -> Region -> m ()
+  :: (Lang m)
+  => AppState' (L.Transaction m) -> Region -> m ()
 meteorShower st region = do
   meteor <- getRandomMeteor region
   when (doLogDiscovered' st) $ L.logInfo $ "New meteor discovered: " <> show meteor
-  publishMeteor st meteor
+  L.transaction $ publishMeteor st meteor
 
 trackMeteor
-  :: (UIO.MonadUnliftIO m, L.LoggerL m)
-  => AppState' -> Meteor -> m ()
+  :: (Lang m)
+  => AppState' (L.Transaction m) -> Meteor -> m ()
 trackMeteor st meteor = do
   let region = _region meteor
   case Map.lookup region (_catalogue' st) of
     Nothing -> L.logError $ "Region not found: " <> show region
     Just r  -> do
       when (storeTrackedMeteors' st) $
-        atomically $ modifyTVar r $ Set.insert meteor
+        L.transaction $ L.modifyVar r $ Set.insert meteor
       when (doLogTracked' st) $ L.logInfo $ "New meteor tracked: " <> show meteor
 
-meteorCounter :: (UIO.MonadUnliftIO m, L.LoggerL m) => AppState' -> m ()
+meteorCounter :: (Lang m) => AppState' (L.Transaction m) -> m ()
 meteorCounter st = do
-  untracked <- atomically $ do
-    ps <- readTVar (_channel' st)
-    when (Set.null ps) retry
-    writeTVar (_channel' st) Set.empty
-    pure $ Set.toList ps
+  untracked <- L.transaction $ do
+     ps <- L.readVar (_channel' st)
+     when (Set.null ps) L.retry
+     L.writeVar (_channel' st) Set.empty
+     pure $ Set.toList ps
   mapM_ (trackMeteor st) untracked
 
-  atomically $ modifyTVar (_totalMeteors' st) $ (+(length untracked))
-  total <- readTVarIO (_totalMeteors' st)
+  L.transaction $ L.modifyVar (_totalMeteors' st) $ (+(length untracked))
+  total <- L.transaction $ L.readVar (_totalMeteors' st)
 
   when (doLogTotal' st) $ L.logInfo $ "Total tracked: " <> show total
 
-meteorsMonitoring :: (UIO.MonadUnliftIO m, L.ControlFlowL m, L.LoggerL m, L.RandomL m) => AppConfig -> m ()
-meteorsMonitoring cfg = do
-  st <- atomically $ initState cfg
+meteorsMonitoring :: (Lang m, L.Transaction m ~ t) => AppConfig -> AppState' t -> m ()
+meteorsMonitoring cfg st = do
+  _ <- L.forkProcess $ forever $ meteorCounter st
+  _ <- L.forkProcess $ forever $ withRandomDelay st $ meteorShower st NorthEast
+  _ <- L.forkProcess $ forever $ withRandomDelay st $ meteorShower st NorthWest
+  _ <- L.forkProcess $ forever $ withRandomDelay st $ meteorShower st SouthEast
+  _ <- L.forkProcess $ forever $ withRandomDelay st $ meteorShower st SouthWest
 
-  UIO.forkIO $ forever $ meteorCounter st
-  UIO.forkIO $ forever $ withRandomDelay st $ meteorShower st NorthEast
-  UIO.forkIO $ forever $ withRandomDelay st $ meteorShower st NorthWest
-  UIO.forkIO $ forever $ withRandomDelay st $ meteorShower st SouthEast
-  UIO.forkIO $ forever $ withRandomDelay st $ meteorShower st SouthWest
-
-  atomically $ do
+  L.transaction $ do
     let maxTotal = fromMaybe 0 $ maxMeteors cfg
-    total <- readTVar $ _totalMeteors' st
-    when (maxTotal == 0 || total < maxTotal) retry
+    total <- L.readVar $ _totalMeteors' st
+    when (maxTotal == 0 || total < maxTotal) L.retry
 
 scenario :: R.CoreRuntime -> AppConfig -> IO ()
-scenario coreRt cfg = void $ runReaderT (meteorsMonitoring cfg) coreRt
+scenario coreRt cfg = void $ do
+   st <- atomically $ initState cfg
+   runReaderT (runAppM $ meteorsMonitoring cfg st) coreRt
+
+newtype AppM a = AppM { runAppM :: ReaderT R.CoreRuntime IO a }
+  deriving (Functor, Applicative, Monad, L.ControlFlowL, L.LoggerL, L.RandomL, L.ProcessL)
+
+class (L.StateL (L.Transaction m), L.Atomic m,
+  L.StateL (L.Transaction m), L.LoggerL m, L.RandomL m, L.ControlFlowL m, L.ProcessL m) => Lang m
+instance Lang AppM
+
+instance L.Atomic AppM where
+  type Transaction AppM = STM
+  transaction = AppM . atomically
+
