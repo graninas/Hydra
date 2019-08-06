@@ -6,6 +6,7 @@ packages:
 extra-deps:
   - base58-bytestring-0.1.0
   - time-units-1.0.0
+  - rocksdb-haskell-1.0.1
 
 
 

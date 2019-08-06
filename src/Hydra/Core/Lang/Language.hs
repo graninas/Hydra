@@ -76,3 +76,16 @@ instance L.Random LangL where
 
 instance L.ControlFlow LangL where
   delay i = evalControlFlow' $ L.delay i
+
+
+
+
+
+initKVDB :: D.DBConfig db -> LangL (D.DBResult (D.KVDBConn db))
+initKVDB config = liftF $ InitKVDB config id
+
+evalKVDB :: D.KVDBConn db -> L.KVDBL db a -> LangL a
+evalKVDB conn script = liftF $ EvalKVDB conn script id
+
+withKVDB :: D.KVDBConn db -> L.KVDBL db a -> LangL a
+withKVDB = evalKVDB

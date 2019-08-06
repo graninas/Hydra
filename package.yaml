@@ -95,6 +95,7 @@ dependencies:
 - safe-exceptions
 - unliftio
 - unliftio-core
+- rocksdb-haskell
 
 library:
   source-dirs:
