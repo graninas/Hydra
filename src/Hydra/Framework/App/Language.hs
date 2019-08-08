@@ -22,7 +22,7 @@ data AppF next where
 makeFunctorInstance ''AppF
 
 type AppL = Free AppF
---
+
 -- | Eval lang.
 evalLang' :: L.LangL a -> AppL a
 evalLang' action = liftF $ EvalLang action id

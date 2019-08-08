@@ -126,6 +126,17 @@ executables:
     - -O2
     dependencies:
     - Hydra
+  astro-app:
+    main:                Main.hs
+    source-dirs:         app/astro
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    - -Wall
+    - -O2
+    dependencies:
+    - Hydra
 
 
 tests:

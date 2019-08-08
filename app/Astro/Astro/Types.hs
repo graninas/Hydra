@@ -1,4 +1,4 @@
-module Types where
+module Astro.Types where
 
 import qualified Data.Map      as Map
 import qualified Data.Set      as Set
@@ -28,25 +28,18 @@ data Meteor = Meteor
 
 type Meteors = D.StateVar (Set.Set Meteor)
 
--- type Catalogue = Map.Map Region Meteors
-
 data AppConfig = AppConfig
   { enableDelays  :: Bool
   , delaysFactor  :: Int
-  , maxMeteors    :: Maybe Int
-  , storeTracked  :: Bool
-  , logDiscovered :: Bool
-  , logTracked    :: Bool
-  , logTotal      :: Bool
   }
   deriving (Show, Read, Eq, Ord)
 
 data AppState = AppState
-  { _catalogueDB  :: D.KVDBConn CatalogueDB
+  { _catalogueDB  :: D.KVDBStorage CatalogueDB
   , _totalMeteors :: D.StateVar Int
   , _config       :: AppConfig
   }
---
+
 -- delaysEnabled :: AppState -> Bool
 -- delaysEnabled = enableDelays . _config
 --

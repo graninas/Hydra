@@ -4,7 +4,7 @@
 module Hydra.Core.Domain.DB where
 
 import           Hydra.Prelude
-import           Data.Aeson.Extra     (noLensPrefix)
+
 import qualified Data.Aeson           as A
 import qualified Data.ByteString.Lazy as LBS
 
@@ -19,5 +19,5 @@ data DBError = DBError DBErrorType Text
 
 type DBResult a = Either DBError a
 
-data KVDBConn db = KVDBConn
+data KVDBStorage db = KVDBStorage
     deriving (Show, Generic)

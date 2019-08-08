@@ -2,22 +2,24 @@
 
 module Hydra.Core.KVDB.Language where
 
-import           Data.Typeable               (typeOf)
 import           Hydra.Prelude
 
-import qualified Hydra.Core.Domain.Database as D
+-- import           Data.Typeable               (typeOf)
+
+import qualified Hydra.Core.Domain.DB   as D
+import qualified Hydra.Core.Domain.KVDB as D
 
 data KVDBF db a where
-    GetValue :: D.DBKey -> (D.DBResult D.DBValue -> next) -> KVDBF db next
-    PutValue :: D.DBKey -> D.DBValue -> (D.DBResult () -> next) -> KVDBF db next
+    GetValue :: D.KVDBKey -> (D.DBResult D.KVDBValue -> next) -> KVDBF db next
+    PutValue :: D.KVDBKey -> D.KVDBValue -> (D.DBResult () -> next) -> KVDBF db next
   deriving (Functor)
 
 type KVDBL db = Free (KVDBF db)
 
-getValue :: D.DBKey -> KVDBL db (D.DBResult D.DBValue)
+getValue :: D.KVDBKey -> KVDBL db (D.DBResult D.KVDBValue)
 getValue key = liftF $ GetValue key id
 
-putValue :: D.DBKey -> D.DBValue -> KVDBL db (D.DBResult ())
+putValue :: D.KVDBKey -> D.KVDBValue -> KVDBL db (D.DBResult ())
 putValue key val = liftF $ PutValue key val id
 
 -- putEntity

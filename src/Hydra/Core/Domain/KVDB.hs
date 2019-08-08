@@ -5,7 +5,8 @@ module Hydra.Core.Domain.KVDB where
 
 import           Hydra.Prelude
 
-import           Data.Aeson.Extra     (noLensPrefix)
+--import           Data.Aeson.Extra     (noLensPrefix)
+
 import qualified Data.Aeson           as A
 import qualified Data.ByteString.Lazy as LBS
 
@@ -19,13 +20,13 @@ data KVDBOptions = KVDBOptions
 
 data KVDBConfig db = KVDBConfig
     { _path    :: FilePath
-    , _options :: DBOptions
+    , _options :: KVDBOptions
     }
     deriving (Show, Generic)
 
 
-type DBKey   = ByteString
-type DBValue = ByteString
+type KVDBKey   = ByteString
+type KVDBValue = ByteString
 
 -- class DB db where
 --     getDbName :: FilePath

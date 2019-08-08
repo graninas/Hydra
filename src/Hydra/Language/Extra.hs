@@ -45,6 +45,12 @@ foreverAppChurch app = do
     when (x == 1) CL.retry
 
 
+awaitAppForever :: L.AppL ()
+awaitAppForever = L.atomically $ do
+    xVar <- L.newVar (1 :: Int)
+    x <- L.readVar xVar
+    when (x == 1) L.retry
+
 --
 -- instance ForeverApp CL.LangL where
 --   foreverApp :: CL.AppL a -> CL.AppL ()

@@ -14,7 +14,9 @@ import qualified Hydra.Core.Random.Class         as L
 import qualified Hydra.Core.Random.Language      as L
 import qualified Hydra.Core.State.Class          as L
 import qualified Hydra.Core.State.Language       as L
+import qualified Hydra.Core.KVDB.Language        as L
 import qualified Hydra.Core.Lang.Class           as C
+import qualified Hydra.Core.Domain               as D
 
 import           Language.Haskell.TH.MakeFunctor (makeFunctorInstance)
 
@@ -30,6 +32,11 @@ data LangF next where
   EvalControlFlow :: L.ControlFlowL a -> (a  -> next) -> LangF next
   -- | Impure effect. Avoid using it in production code (it's not testable).
   EvalIO          :: IO a           -> (a  -> next) -> LangF next
+  -- | Init KV DB
+  InitKVDB :: D.KVDBConfig db -> (D.DBResult (D.KVDBStorage db) -> next) -> LangF next
+  -- | Eval KV DB action
+  EvalKVDB :: D.KVDBStorage db -> L.KVDBL db a -> (a -> next) -> LangF next
+
 
 makeFunctorInstance ''LangF
 
@@ -81,11 +88,11 @@ instance L.ControlFlow LangL where
 
 
 
-initKVDB :: D.DBConfig db -> LangL (D.DBResult (D.KVDBConn db))
+initKVDB :: D.KVDBConfig db -> LangL (D.DBResult (D.KVDBStorage db))
 initKVDB config = liftF $ InitKVDB config id
 
-evalKVDB :: D.KVDBConn db -> L.KVDBL db a -> LangL a
+evalKVDB :: D.KVDBStorage db -> L.KVDBL db a -> LangL a
 evalKVDB conn script = liftF $ EvalKVDB conn script id
 
-withKVDB :: D.KVDBConn db -> L.KVDBL db a -> LangL a
+withKVDB :: D.KVDBStorage db -> L.KVDBL db a -> LangL a
 withKVDB = evalKVDB

@@ -13,3 +13,4 @@ import           Hydra.Core.Random.Class         as X
 import           Hydra.Core.Random.Language      as X
 import           Hydra.Core.State.Class          as X
 import           Hydra.Core.State.Language       as X
+import           Hydra.Core.KVDB.Language        as X
