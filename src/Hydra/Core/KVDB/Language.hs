@@ -9,18 +9,24 @@ import           Hydra.Prelude
 import qualified Hydra.Core.Domain.DB   as D
 import qualified Hydra.Core.Domain.KVDB as D
 
-data KVDBF db a where
-    GetValue :: D.KVDBKey -> (D.DBResult D.KVDBValue -> next) -> KVDBF db next
-    PutValue :: D.KVDBKey -> D.KVDBValue -> (D.DBResult () -> next) -> KVDBF db next
-  deriving (Functor)
+-- data KVDBF db a where
+--     GetValue :: D.KVDBKey -> (D.DBResult D.KVDBValue -> next) -> KVDBF db next
+--     PutValue :: D.KVDBKey -> D.KVDBValue -> (D.DBResult () -> next) -> KVDBF db next
+--   deriving (Functor)
+--
+-- type KVDBL db = Free (KVDBF db)
 
-type KVDBL db = Free (KVDBF db)
+data KVDBF a where
+  GetValue :: D.KVDBKey -> KVDBF (D.DBResult D.KVDBValue)
+  PutValue :: D.KVDBKey -> D.KVDBValue -> KVDBF (D.DBResult ())
+
+type KVDBL db = KVDBF
 
 getValue :: D.KVDBKey -> KVDBL db (D.DBResult D.KVDBValue)
-getValue key = liftF $ GetValue key id
+getValue = GetValue
 
 putValue :: D.KVDBKey -> D.KVDBValue -> KVDBL db (D.DBResult ())
-putValue key val = liftF $ PutValue key val id
+putValue = PutValue
 
 -- putEntity
 --     :: forall entity db

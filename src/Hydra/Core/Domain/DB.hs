@@ -19,5 +19,5 @@ data DBError = DBError DBErrorType Text
 
 type DBResult a = Either DBError a
 
-data KVDBStorage db = KVDBStorage
+data KVDBStorage db = KVDBStorage FilePath
     deriving (Show, Generic)

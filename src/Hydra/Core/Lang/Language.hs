@@ -86,8 +86,6 @@ instance L.ControlFlow LangL where
 
 
 
-
-
 initKVDB :: D.KVDBConfig db -> LangL (D.DBResult (D.KVDBStorage db))
 initKVDB config = liftF $ InitKVDB config id
 

@@ -9,6 +9,10 @@ import qualified Hydra.Core.Language             as L
 import qualified Hydra.Core.Logger.Impl.HsLogger as Impl
 import qualified Hydra.Core.Logger.Impl.HsLoggerInterpreter as I
 
+import qualified Database.RocksDB as Rocks
+
+type RocksDBHandle = MVar Rocks.DB
+
 -- | Runtime data for the concrete logger impl.
 newtype LoggerRuntime = LoggerRuntime
     { _hsLoggerHandle :: Maybe Impl.HsLoggerHandle
@@ -21,7 +25,8 @@ data ProcessRuntime = ProcessRuntime
 
 -- | Runtime data for core subsystems.
 data CoreRuntime = CoreRuntime
-    { _loggerRuntime  :: LoggerRuntime
+    { _rocksDBs       :: TVar (Map String RocksDBHandle)
+    , _loggerRuntime  :: LoggerRuntime
     , _stateRuntime   :: StateRuntime
     , _processRuntime :: ProcessRuntime
     }
@@ -62,7 +67,8 @@ createProcessRuntime = ProcessRuntime
 
 createCoreRuntime :: LoggerRuntime -> IO CoreRuntime
 createCoreRuntime loggerRt = CoreRuntime
-    <$> pure loggerRt
+    <$> newTVarIO Map.empty
+    <*> pure loggerRt
     <*> createStateRuntime
     <*> createProcessRuntime
 

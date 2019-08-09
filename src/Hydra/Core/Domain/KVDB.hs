@@ -5,8 +5,6 @@ module Hydra.Core.Domain.KVDB where
 
 import           Hydra.Prelude
 
---import           Data.Aeson.Extra     (noLensPrefix)
-
 import qualified Data.Aeson           as A
 import qualified Data.ByteString.Lazy as LBS
 

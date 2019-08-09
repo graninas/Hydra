@@ -12,26 +12,23 @@ import           Astro.Types
 import           Astro.KVDB.Model
 import           Astro.Lens
 
--- withKBlocksDB
---     ::
---     -- forall s db a
---     -- .  Lens.HasKBlocksDB s (D.Storage db)
---     -- =>
---     D.KVDBStorage CatalogueDB
---     -> L.KVDBL db a
---     -> L.LangL a
--- withKBlocksDB kvDBModel = L.withDatabase (kvDBModel ^. Lens.meteorsTable)
+withCatalogueDB
+  :: AppState
+  -> L.KVDBL db a
+  -> L.LangL a
+withCatalogueDB st = L.withKVDB (st ^. catalogueDB)
 
-loadMeteorsCount :: L.KVDBL CatalogueDB Int
-loadMeteorsCount = do
-  eTest <- L.getValue "test"
+-- loadMeteorsCount :: L.KVDBL CatalogueDB Int
+loadMeteorsCount :: AppState -> L.LangL Int
+loadMeteorsCount st = do
+  eTest <- withCatalogueDB st $ L.getValue "test"
 
   pure 10
 
 dynamicsMonitor :: AppState -> L.LangL ()
 dynamicsMonitor st = do
-  meteorsCount <- L.withKVDB (st ^. catalogueDB) loadMeteorsCount
-  -- L.logInfo $ "Meteors count: " +|| meteorsCount ||+ ""
+  meteorsCount <- loadMeteorsCount st
+  L.logInfo $ "Meteors count: " +|| meteorsCount ||+ ""
 
   pure ()
 
