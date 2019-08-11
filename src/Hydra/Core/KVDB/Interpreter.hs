@@ -15,18 +15,17 @@ writeOpts = Rocks.defaultWriteOptions
   }
 
 interpretKVDBF :: Rocks.DB -> L.KVDBF a -> IO a
-interpretKVDBF db (L.GetValue key) = do
+interpretKVDBF db (L.Load key next) = do
   mbVal <- Rocks.get db Rocks.defaultReadOptions key
-  pure $ case mbVal of
+  pure $ next $ case mbVal of
     Nothing  -> Left $ D.DBError D.KeyNotFound $ show key
     Just val -> Right val
-interpretKVDBF db (L.PutValue key val) =
-  Right <$> Rocks.put db writeOpts key val
+interpretKVDBF db (L.Save key val next) =
+  next . Right <$> Rocks.put db writeOpts key val
 
 runKVDBL :: R.RocksDBHandle -> L.KVDBL db a -> IO a
 runKVDBL handle act = do
   db <- takeMVar handle
-  -- res <- foldFree (interpretKVDBF db) act
-  res <- interpretKVDBF db act
+  res <- foldFree (interpretKVDBF db) act
   putMVar handle db
   pure res

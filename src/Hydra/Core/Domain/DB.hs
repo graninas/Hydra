@@ -12,6 +12,7 @@ data DBErrorType
     = SystemError
     | KeyNotFound
     | InvalidType
+    | DecodingFailed
     deriving (Generic, Ord, Eq, Enum, Bounded, Show, Read)
 
 data DBError = DBError DBErrorType Text

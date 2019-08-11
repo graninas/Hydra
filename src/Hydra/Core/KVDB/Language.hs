@@ -1,45 +1,63 @@
 {-# LANGUAGE AllowAmbiguousTypes #-}
+{-# LANGUAGE TemplateHaskell       #-}
 
 module Hydra.Core.KVDB.Language where
 
 import           Hydra.Prelude
 
--- import           Data.Typeable               (typeOf)
-
 import qualified Hydra.Core.Domain.DB   as D
 import qualified Hydra.Core.Domain.KVDB as D
 
--- data KVDBF db a where
---     GetValue :: D.KVDBKey -> (D.DBResult D.KVDBValue -> next) -> KVDBF db next
---     PutValue :: D.KVDBKey -> D.KVDBValue -> (D.DBResult () -> next) -> KVDBF db next
---   deriving (Functor)
---
--- type KVDBL db = Free (KVDBF db)
+import           Language.Haskell.TH.MakeFunctor (makeFunctorInstance)
 
-data KVDBF a where
-  GetValue :: D.KVDBKey -> KVDBF (D.DBResult D.KVDBValue)
-  PutValue :: D.KVDBKey -> D.KVDBValue -> KVDBF (D.DBResult ())
+data KVDBF next where
+  Save :: D.KVDBKey -> D.KVDBValue -> (D.DBResult () -> next) -> KVDBF next
+  Load :: D.KVDBKey -> (D.DBResult D.KVDBValue -> next) -> KVDBF next
 
-type KVDBL db = KVDBF
 
-getValue :: D.KVDBKey -> KVDBL db (D.DBResult D.KVDBValue)
-getValue = GetValue
+makeFunctorInstance ''KVDBF
 
-putValue :: D.KVDBKey -> D.KVDBValue -> KVDBL db (D.DBResult ())
-putValue = PutValue
+type KVDBL db = Free KVDBF
 
--- putEntity
---     :: forall entity db
---     .  D.RawDBEntity db entity
---     => D.DBKey entity
---     -> D.DBValue entity
---     -> KVDBL db (D.DBResult ())
--- putEntity dbKey dbVal = let
---     rawKey = D.toRawDBKey   @db dbKey
---     rawVal = D.toRawDBValue @db dbVal
---     in putValue rawKey rawVal
---
--- -- | Puts a typed entity to the corresponding DB.
+save'
+  :: forall src entity db
+   . D.DBEntity entity
+  => D.AsKeyEntity entity src
+  => D.AsValueEntity entity src
+  => D.RawDBEntity entity
+  => src
+  -> KVDBL db (D.DBResult ())
+save' src = liftF $ Save dbkey dbval id
+  where
+    k :: D.KeyEntity entity
+    k = D.toKeyEntity src
+    v :: D.ValueEntity entity
+    v = D.toValueEntity src
+    dbkey = D.toDBKey k
+    dbval = D.toDBValue v
+
+load'
+  :: forall entity dst db
+   . D.DBEntity entity
+  => D.AsKeyEntity entity dst
+  => D.AsValueEntity entity dst
+  => D.RawDBEntity entity
+  => Show (D.KeyEntity entity)
+  => D.KeyEntity entity
+  -> KVDBL db (D.DBResult dst)
+load' key = do
+  eRawVal <- liftF $ Load (D.toDBKey key) id
+  pure $ case eRawVal of
+    Left err  -> Left err
+    Right val -> maybe (decodingErr val) (Right . D.fromValueEntity) $ mbE val
+  where
+    mbE :: D.KVDBValue -> Maybe (D.ValueEntity entity)
+    mbE = D.fromDBValue
+    decodingErr val = Left
+      $ D.DBError D.DecodingFailed
+      $ "Failed to decode entity, k: "
+          <> show key <> ", v: " <> show val
+
 -- putEntity'
 --     :: forall entity db src
 --     .  D.RawDBEntity db entity

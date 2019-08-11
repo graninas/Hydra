@@ -12,25 +12,21 @@ import           Astro.Types
 import           Astro.KVDB.Model
 import           Astro.Lens
 
-withCatalogueDB
-  :: AppState
-  -> L.KVDBL db a
-  -> L.LangL a
+withCatalogueDB :: AppState -> L.KVDBL db a -> L.LangL a
 withCatalogueDB st = L.withKVDB (st ^. catalogueDB)
 
--- loadMeteorsCount :: L.KVDBL CatalogueDB Int
 loadMeteorsCount :: AppState -> L.LangL Int
 loadMeteorsCount st = do
-  eTest <- withCatalogueDB st $ L.getValue "test"
-
-  pure 10
+  eCount <- withCatalogueDB st $ L.getValue "meteors_count"
+  case eCount of
+    Left err -> L.logError ("Failed to get meteors count: " <> show err)
+    Right n  -> pure 10
 
 dynamicsMonitor :: AppState -> L.LangL ()
 dynamicsMonitor st = do
   meteorsCount <- loadMeteorsCount st
   L.logInfo $ "Meteors count: " +|| meteorsCount ||+ ""
-
-  pure ()
+  L.delay $ 1000
 
 
 initState :: AppConfig -> L.AppL AppState
@@ -60,4 +56,5 @@ astroCatalogue cfg = do
 
   L.process $ dynamicsMonitor appSt
 
-  L.awaitAppForever
+  -- L.awaitAppForever
+  L.delay 10000000

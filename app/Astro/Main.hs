@@ -15,10 +15,19 @@ import qualified Hydra.Runtime as R
 import           Astro.Types
 import           Astro.Catalogue
 
+loggerCfg :: D.LoggerConfig
+loggerCfg = D.LoggerConfig
+  { D._format       = "$prio $loggername: $msg"
+  , D._level        = D.Debug
+  , D._logFilePath  = ""
+  , D._logToConsole = True
+  , D._logToFile    = False
+  }
+
 main :: IO ()
 main = do
 
-  loggerRt <- R.createVoidLoggerRuntime
+  loggerRt <- R.createLoggerRuntime loggerCfg
   coreRt   <- R.createCoreRuntime loggerRt
 
   let cfg = AppConfig False 0
