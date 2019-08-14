@@ -21,38 +21,38 @@ type KVDBL db = Free KVDBF
 
 save'
   :: forall src entity db
-   . D.DBEntity entity
-  => D.AsKeyEntity entity src
-  => D.AsValueEntity entity src
-  => D.RawDBEntity entity
+   . D.DBEntity db entity
+  => D.AsKeyEntity db entity src
+  => D.AsValueEntity db entity src
+  => D.RawDBEntity db entity
   => src
   -> KVDBL db (D.DBResult ())
 save' src = liftF $ Save dbkey dbval id
   where
-    k :: D.KeyEntity entity
+    k :: D.KeyEntity db entity
     k = D.toKeyEntity src
-    v :: D.ValueEntity entity
+    v :: D.ValueEntity db entity
     v = D.toValueEntity src
-    dbkey = D.toDBKey k
-    dbval = D.toDBValue v
+    dbkey = D.toDBKey @db k
+    dbval = D.toDBValue @db v
 
 load'
   :: forall entity dst db
-   . D.DBEntity entity
-  => D.AsKeyEntity entity dst
-  => D.AsValueEntity entity dst
-  => D.RawDBEntity entity
-  => Show (D.KeyEntity entity)
-  => D.KeyEntity entity
+   . D.DBEntity db entity
+  => D.AsKeyEntity db entity dst
+  => D.AsValueEntity db entity dst
+  => D.RawDBEntity db entity
+  => Show (D.KeyEntity db entity)
+  => D.KeyEntity db entity
   -> KVDBL db (D.DBResult dst)
 load' key = do
-  eRawVal <- liftF $ Load (D.toDBKey key) id
+  eRawVal <- liftF $ Load (D.toDBKey @db key) id
   pure $ case eRawVal of
     Left err  -> Left err
     Right val -> maybe (decodingErr val) (Right . D.fromValueEntity) $ mbE val
   where
-    mbE :: D.KVDBValue -> Maybe (D.ValueEntity entity)
-    mbE = D.fromDBValue
+    mbE :: D.KVDBValue -> Maybe (D.ValueEntity db entity)
+    mbE = D.fromDBValue @db
     decodingErr val = Left
       $ D.DBError D.DecodingFailed
       $ "Failed to decode entity, k: "

@@ -8,7 +8,7 @@ import qualified Hydra.Domain  as D
 import           Hydra.Prelude
 import qualified Hydra.Runtime as R
 
-import           Astro.KVDB.Model
+import           Astro.KVDB.Entities.DBs
 
 type DateTime = UTCTime
 

@@ -12,6 +12,7 @@ import           Text.Printf
 import qualified Hydra.Domain          as D
 
 import qualified Astro.Domain.Meteor   as D
+import           Astro.KVDB.Entities.DBs
 
 -- catalogue
 -- ( meteors_count_key -> int
@@ -23,65 +24,54 @@ import qualified Astro.Domain.Meteor   as D
 -- 0|0000001     {...}
 
 data MeteorEntity
-data MeteorsCountEntity
 
--- MeteorEntity
-
-instance D.DBEntity MeteorEntity where
-  data KeyEntity MeteorEntity = MeteorKey Int
+instance D.DBEntity CatalogueDB MeteorEntity where
+  data KeyEntity CatalogueDB MeteorEntity = MeteorKey Int
     deriving (Show, Eq, Ord)
-  data ValueEntity MeteorEntity = MeteorValue D.Meteor
+  data ValueEntity CatalogueDB MeteorEntity = MeteorValue D.Meteor
     deriving (Show, Eq, Ord, Generic, ToJSON, FromJSON)
 
-instance D.AsKeyEntity MeteorEntity Int where
+instance D.AsKeyEntity CatalogueDB MeteorEntity Int where
   toKeyEntity = MeteorKey
 
-instance D.AsKeyEntity MeteorEntity D.Meteor where
+instance D.AsKeyEntity CatalogueDB MeteorEntity D.Meteor where
   toKeyEntity = MeteorKey . D._id
 
-instance D.AsValueEntity MeteorEntity D.Meteor where
+instance D.AsValueEntity CatalogueDB MeteorEntity D.Meteor where
   toValueEntity = MeteorValue
   fromValueEntity (MeteorValue v) = v
 
-instance D.RawDBEntity MeteorEntity where
+instance D.RawDBEntity CatalogueDB MeteorEntity where
   toDBKey (MeteorKey idx) = show $ toMeteorEntityKey idx
   toDBValue   = D.toDBValueJSON
   fromDBValue = D.fromDBValueJSON
 
--- instance D.DBModelEntity CatalogueDB MeteorEntity
 
 
 
--- instance D.DBModelEntity CatalogueDB MeteorsCountEntity
+data MeteorsCountEntity
+
+instance D.DBEntity CatalogueDB MeteorsCountEntity where
+  data KeyEntity CatalogueDB MeteorsCountEntity = MeteorsCountKey String
+    deriving (Show, Eq, Ord)
+  data ValueEntity CatalogueDB MeteorsCountEntity = MeteorsCountValue Int
+    deriving (Show, Eq, Ord, Generic, ToJSON, FromJSON)
+
+instance D.AsKeyEntity CatalogueDB MeteorsCountEntity String where
+  toKeyEntity _ = MeteorsCountKey "meteors_count"
+
+instance D.AsValueEntity CatalogueDB MeteorsCountEntity Int where
+  toValueEntity = MeteorsCountValue
+  fromValueEntity (MeteorsCountValue v) = v
+
+instance D.RawDBEntity CatalogueDB MeteorsCountEntity where
+  toDBKey (MeteorsCountKey k) = show k
+  toDBValue   = D.toDBValueJSON
+  fromDBValue = D.fromDBValueJSON
 
 
--- instance D.RawDBEntity CatalogueDB MeteorEntity where
---   toRawDBKey (MeteorKey idx) = A.encode kBlockIdx
---   toRawDBValue = LBS.toStrict . A.encode
---   fromRawDBValue = A.decode . LBS.fromStrict
-
--- -- KBlock entity
---
--- instance D.DBEntity KBlockEntity where
---     data DBKey   KBlockEntity = KBlockKey D.BlockNumber
---         deriving (Show, Eq, Ord)
---     data DBValue KBlockEntity = KBlockValue D.BlockTime D.BlockNumber D.Nonce D.Solver
---         deriving (Show, Eq, Ord, Generic, ToJSON, FromJSON)
---
--- instance D.ToDBKey KBlockEntity D.BlockNumber where
---     toDBKey = KBlockKey
---
--- instance D.ToDBKey KBlockEntity D.KBlock where
---     toDBKey = KBlockKey . D._number
---
--- instance D.ToDBValue KBlockEntity D.KBlock where
---     toDBValue (D.KBlock time _ number nonce solver) = KBlockValue time number nonce solver
---
--- instance D.RawDBEntity KBlocksDB KBlockEntity where
---     toRawDBKey (KBlockKey kBlockIdx) = encodeUtf8 $ toKBlockEntityKeyBase kBlockIdx
---     toRawDBValue = LBS.toStrict . A.encode
---     fromRawDBValue = A.decode . LBS.fromStrict
-
+meteorsCountKey :: D.KeyEntity CatalogueDB MeteorsCountEntity
+meteorsCountKey = D.toKeyEntity ("" :: String)
 
 toIdxBase :: Int -> String
 toIdxBase = printf "%07d"

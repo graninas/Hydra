@@ -9,17 +9,20 @@ import           Hydra.Prelude
 import qualified Hydra.Runtime  as R
 
 import           Astro.Types
-import           Astro.KVDB.Model
 import           Astro.Lens
+import           Astro.KVDB.Entities.Meteor
+import           Astro.KVDB.Entities.DBs
 
-withCatalogueDB :: AppState -> L.KVDBL db a -> L.LangL a
+withCatalogueDB :: AppState -> L.KVDBL CatalogueDB a -> L.LangL a
 withCatalogueDB st = L.withKVDB (st ^. catalogueDB)
 
 loadMeteorsCount :: AppState -> L.LangL Int
 loadMeteorsCount st = do
-  eCount <- withCatalogueDB st $ L.getValue "meteors_count"
+  eCount <- withCatalogueDB st $ L.load' meteorsCountKey
   case eCount of
-    Left err -> L.logError ("Failed to get meteors count: " <> show err)
+    Left err -> do
+      L.logError ("Failed to get meteors count: " <> show err)
+      pure 0
     Right n  -> pure 10
 
 dynamicsMonitor :: AppState -> L.LangL ()
