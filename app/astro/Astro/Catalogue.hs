@@ -23,7 +23,7 @@ loadMeteorsCount st = do
     Left err -> do
       L.logError ("Failed to get meteors count: " <> show err)
       pure 0
-    Right n  -> pure 10
+    Right n -> pure n
 
 dynamicsMonitor :: AppState -> L.LangL ()
 dynamicsMonitor st = do

@@ -39,7 +39,6 @@ save' src = liftF $ Save dbkey dbval id
 load'
   :: forall entity dst db
    . D.DBEntity db entity
-  => D.AsKeyEntity db entity dst
   => D.AsValueEntity db entity dst
   => D.RawDBEntity db entity
   => Show (D.KeyEntity db entity)
