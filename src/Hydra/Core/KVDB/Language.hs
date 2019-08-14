@@ -1,5 +1,6 @@
 {-# LANGUAGE AllowAmbiguousTypes #-}
-{-# LANGUAGE TemplateHaskell       #-}
+{-# LANGUAGE TemplateHaskell     #-}
+{-# LANGUAGE TypeOperators       #-}
 
 module Hydra.Core.KVDB.Language where
 
@@ -22,36 +23,34 @@ type KVDBL db = Free KVDBF
 save'
   :: forall src entity db
    . D.DBEntity db entity
-  => D.AsKeyEntity db entity src
-  => D.AsValueEntity db entity src
-  => D.RawDBEntity db entity
+  => D.AsKeyEntity entity src
+  => D.AsValueEntity entity src
   => src
   -> KVDBL db (D.DBResult ())
 save' src = liftF $ Save dbkey dbval id
   where
-    k :: D.KeyEntity db entity
+    k :: D.KeyEntity entity
     k = D.toKeyEntity src
-    v :: D.ValueEntity db entity
+    v :: D.ValueEntity entity
     v = D.toValueEntity src
-    dbkey = D.toDBKey @db k
-    dbval = D.toDBValue @db v
+    dbkey = D.toDBKey k
+    dbval = D.toDBValue v
 
 load'
   :: forall entity dst db
    . D.DBEntity db entity
-  => D.AsValueEntity db entity dst
-  => D.RawDBEntity db entity
-  => Show (D.KeyEntity db entity)
-  => D.KeyEntity db entity
+  => D.AsValueEntity entity dst
+  => Show (D.KeyEntity entity)
+  => D.KeyEntity entity
   -> KVDBL db (D.DBResult dst)
 load' key = do
-  eRawVal <- liftF $ Load (D.toDBKey @db key) id
+  eRawVal <- liftF $ Load (D.toDBKey key) id
   pure $ case eRawVal of
     Left err  -> Left err
     Right val -> maybe (decodingErr val) (Right . D.fromValueEntity) $ mbE val
   where
-    mbE :: D.KVDBValue -> Maybe (D.ValueEntity db entity)
-    mbE = D.fromDBValue @db
+    mbE :: D.KVDBValue -> Maybe (D.ValueEntity entity)
+    mbE = D.fromDBValue
     decodingErr val = Left
       $ D.DBError D.DecodingFailed
       $ "Failed to decode entity, k: "

@@ -1,17 +1,19 @@
 {-# LANGUAGE DeriveAnyClass        #-}
 {-# LANGUAGE DuplicateRecordFields #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE TypeFamilies          #-}
 
 module Astro.KVDB.Entities.Meteor where
 
 import           Hydra.Prelude
 
-import qualified Data.Aeson            as A
-import qualified Data.ByteString.Lazy  as LBS
+import qualified Data.Aeson              as A
+import qualified Data.ByteString.Lazy    as LBS
 import           Text.Printf
 
-import qualified Hydra.Domain          as D
+import qualified Hydra.Domain            as D
 
-import qualified Astro.Domain.Meteor   as D
+import qualified Astro.Domain.Meteor     as D
 import           Astro.KVDB.Entities.DBs
 
 -- catalogue
@@ -26,51 +28,45 @@ import           Astro.KVDB.Entities.DBs
 data MeteorEntity
 
 instance D.DBEntity CatalogueDB MeteorEntity where
-  data KeyEntity CatalogueDB MeteorEntity = MeteorKey Int
+  data KeyEntity MeteorEntity = MeteorKey Int
     deriving (Show, Eq, Ord)
-  data ValueEntity CatalogueDB MeteorEntity = MeteorValue D.Meteor
+  data ValueEntity MeteorEntity = MeteorValue D.Meteor
     deriving (Show, Eq, Ord, Generic, ToJSON, FromJSON)
-
-instance D.AsKeyEntity CatalogueDB MeteorEntity Int where
-  toKeyEntity = MeteorKey
-
-instance D.AsKeyEntity CatalogueDB MeteorEntity D.Meteor where
-  toKeyEntity = MeteorKey . D._id
-
-instance D.AsValueEntity CatalogueDB MeteorEntity D.Meteor where
-  toValueEntity = MeteorValue
-  fromValueEntity (MeteorValue v) = v
-
-instance D.RawDBEntity CatalogueDB MeteorEntity where
   toDBKey (MeteorKey idx) = show $ toMeteorEntityKey idx
   toDBValue   = D.toDBValueJSON
   fromDBValue = D.fromDBValueJSON
 
+instance D.AsKeyEntity MeteorEntity Int where
+  toKeyEntity = MeteorKey
 
+instance D.AsKeyEntity MeteorEntity D.Meteor where
+  toKeyEntity = MeteorKey . D._id
+
+instance D.AsValueEntity MeteorEntity D.Meteor where
+  toValueEntity = MeteorValue
+  fromValueEntity (MeteorValue v) = v
 
 
 data MeteorsCountEntity
 
 instance D.DBEntity CatalogueDB MeteorsCountEntity where
-  data KeyEntity CatalogueDB MeteorsCountEntity = MeteorsCountKey String
+  data KeyEntity MeteorsCountEntity = MeteorsCountKey String
     deriving (Show, Eq, Ord)
-  data ValueEntity CatalogueDB MeteorsCountEntity = MeteorsCountValue Int
+  data ValueEntity MeteorsCountEntity = MeteorsCountValue Int
     deriving (Show, Eq, Ord, Generic, ToJSON, FromJSON)
-
-instance D.AsKeyEntity CatalogueDB MeteorsCountEntity String where
-  toKeyEntity _ = MeteorsCountKey "meteors_count"
-
-instance D.AsValueEntity CatalogueDB MeteorsCountEntity Int where
-  toValueEntity = MeteorsCountValue
-  fromValueEntity (MeteorsCountValue v) = v
-
-instance D.RawDBEntity CatalogueDB MeteorsCountEntity where
   toDBKey (MeteorsCountKey k) = show k
   toDBValue   = D.toDBValueJSON
   fromDBValue = D.fromDBValueJSON
 
+instance D.AsKeyEntity MeteorsCountEntity String where
+  toKeyEntity _ = MeteorsCountKey "meteors_count"
 
-meteorsCountKey :: D.KeyEntity CatalogueDB MeteorsCountEntity
+instance D.AsValueEntity MeteorsCountEntity Int where
+  toValueEntity = MeteorsCountValue
+  fromValueEntity (MeteorsCountValue v) = v
+
+
+meteorsCountKey :: D.KeyEntity MeteorsCountEntity
 meteorsCountKey = D.toKeyEntity ("" :: String)
 
 toIdxBase :: Int -> String
