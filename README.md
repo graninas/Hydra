@@ -1,7 +1,7 @@
 The Hydra Project
 =================
 
-An all-in-one framework for building Haskell apps which has the following
+An all-in-one framework for constructing Haskell apps which has the following
 possibilities out of the box:
 
 - Multithreading
