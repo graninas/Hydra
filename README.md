@@ -1,6 +1,16 @@
 The Hydra Project
 =================
 
+This project demonstrates the principles of Software Design and Architecture
+in pure Functional Programming. It provides a framework implemented with several different approaches for ease comparison:
+
+- Final Tagless
+- Free Monad
+- Church Encoded Free Monad
+
+Hydra Framework
+---------------
+
 An all-in-one framework for constructing Haskell apps with the following
 possibilities out of the box:
 
@@ -18,6 +28,3 @@ and are easy to read and change. The key principles in the framework:
 - Separation of Business Logic, Runtime and Implementation
 - Convenient and simple to use eDSLs for Business Logic
 - Layered structure of business application: State, Domain, Business Logic
-
-This project demonstrates the principles of Software Design and Architecture
-in pure Functional Programming.
