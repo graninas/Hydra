@@ -1,7 +1,7 @@
 The Hydra Project
 =================
 
-This project demonstrates the principles of Software Design and Architecture in pure Functional Programming. It provides a framework implemented with several different approaches for ease comparison:
+This project demonstrates the principles of Software Design and Architecture in pure Functional Programming. It provides a framework implemented with several different approaches for easy comparison:
 
 - Final Tagless
 - Free Monad
