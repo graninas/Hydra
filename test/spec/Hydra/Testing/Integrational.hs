@@ -42,19 +42,20 @@ evalApp app = do
   -- R.clearAppRuntime rt
   pure res
 
-mkDbPath :: FilePath -> IO FilePath
-mkDbPath testName = do
+mkTestPath :: FilePath -> IO FilePath
+mkTestPath testName = do
   hd <- Dir.getHomeDirectory
   pure $ hd </> ".hydra" </> testName
 
-rmDb :: FilePath -> IO ()
-rmDb dbPath = do
-  whenM (Dir.doesDirectoryExist dbPath) $ Dir.removePathForcibly dbPath
-  whenM (Dir.doesDirectoryExist dbPath) $ error "Can't delete db."
+rmTestPath :: FilePath -> IO ()
+rmTestPath path = do
+  whenM (Dir.doesDirectoryExist path) $ Dir.removePathForcibly path
+  whenM (Dir.doesDirectoryExist path) $ error "Can't delete path."
 
-mkDb :: FilePath -> IO ()
-mkDb dbPath = do
-  rmDb dbPath
+
+mkEmptyRocksDb :: FilePath -> IO ()
+mkEmptyRocksDb dbPath = do
+  rmTestPath dbPath
   Dir.createDirectoryIfMissing True dbPath
   -- This creates an empty DB to get correct files in the directory.
   let opening = Rocks.open dbPath $ Rocks.defaultOptions { Rocks.createIfMissing = True
@@ -62,12 +63,12 @@ mkDb dbPath = do
                                                          }
   bracket opening Rocks.close (const (pure ()))
 
-withDbAbsence :: FilePath -> IO a -> IO ()
-withDbAbsence dbPath act = do
-  rmDb dbPath
-  void act `finally` rmDb dbPath
+withRocksDbAbsence :: FilePath -> IO a -> IO ()
+withRocksDbAbsence dbPath act = do
+  rmTestPath dbPath
+  void act `finally` rmTestPath dbPath
 
-withDbPresence :: FilePath -> IO a -> IO ()
-withDbPresence dbPath act = do
-  mkDb dbPath
-  void act `finally` rmDb dbPath
+withRocksDbPresence :: FilePath -> IO a -> IO ()
+withRocksDbPresence dbPath act = do
+  mkEmptyRocksDb dbPath
+  void act `finally` rmTestPath dbPath

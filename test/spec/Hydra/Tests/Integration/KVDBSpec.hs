@@ -113,15 +113,17 @@ dbInitApp cfg = do
 
 spec :: Spec
 spec = stableTest $ fastTest $ describe "KV DB tests" $ do
-    dbPath <- runIO $ mkDbPath "test"
-    let cfg1 = D.KVDBConfig dbPath $ D.KVDBOptions
+    dbTestPath <- runIO $ mkTestPath "db_test"
+    let cfg1 = D.KVDBConfig @CatalogueDB dbTestPath $ D.KVDBOptions
                 { D._createIfMissing = True
                 , D._errorIfExists   = False
                 }
-    let cfg2 = D.KVDBConfig dbPath $ D.KVDBOptions
+    let cfg2 = D.KVDBConfig @CatalogueDB dbTestPath $ D.KVDBOptions
                 { D._createIfMissing = True
                 , D._errorIfExists   = True
                 }
+    let kvdbPath1 = D.getKVDBName cfg1
+    let kvdbPath2 = D.getKVDBName cfg2
 
     -- describe "DB Entities tests" $ do
     --     it "ToDBKey test" $
@@ -144,21 +146,22 @@ spec = stableTest $ fastTest $ describe "KV DB tests" $ do
     --         D.toRawDBValue @KBlocksMetaDB kBlock1MetaValue `shouldNotBe` D.toRawDBValue @KBlocksMetaDB kBlock2MetaValue
     --
     describe "Database creation tests" $ do
-        it "DB is missing, create, errorIfExists False, no errors expected" $ withDbAbsence dbPath $ do
-            eRes <- evalApp $ dbInitApp @CatalogueDB cfg1
+        it "DB is missing, create, errorIfExists False, no errors expected" $ withRocksDbAbsence kvdbPath1 $ do
+            eRes <- evalApp $ dbInitApp cfg1
             eRes `shouldBe` Right ()
 
-        it "DB is missing, create, errorIfExists True, no errors expected" $ withDbAbsence dbPath $ do
-            eRes <- evalApp $ dbInitApp @CatalogueDB cfg2
+        it "DB is missing, create, errorIfExists True, no errors expected" $ withRocksDbAbsence kvdbPath2 $ do
+            eRes <- evalApp $ dbInitApp cfg2
             eRes `shouldBe` Right ()
 
-        it "DB is present, create, errorIfExists False, no errors expected" $ withDbPresence dbPath $ do
-            eRes <- evalApp $ dbInitApp @CatalogueDB cfg1
+        it "DB is present, create, errorIfExists False, no errors expected" $ withRocksDbPresence kvdbPath1 $ do
+            eRes <- evalApp $ dbInitApp cfg1
             eRes `shouldBe` Right ()
 
-        it "DB is present, create, errorIfExists False, errors expected" $ withDbPresence dbPath $ do
-            eRes <- evalApp $ dbInitApp @CatalogueDB cfg2
-            eRes `shouldBe` Left (D.DBError D.SystemError ("user error (open: Invalid argument: " +| dbPath |+ ": exists (error_if_exists is true))"))
+        it "DB is present, create, errorIfExists False, errors expected" $ withRocksDbPresence kvdbPath2 $ do
+            eRes <- evalApp $ dbInitApp cfg2
+            eRes `shouldBe` Left (D.DBError D.SystemError ("user error (open: Invalid argument: "
+              +| kvdbPath2 |+ ": exists (error_if_exists is true))"))
 
     -- describe "Database usage tests" $ do
     --     it "Write and Read KBlock Meta" $ withDbAbsence dbPath $ do

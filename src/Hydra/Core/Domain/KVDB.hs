@@ -13,6 +13,7 @@ import           Hydra.Prelude
 
 import qualified Data.Aeson           as A
 import qualified Data.ByteString.Lazy as LBS
+import           System.FilePath ((</>))
 
 import           Hydra.Core.Domain.DB
 
@@ -31,9 +32,6 @@ data KVDBConfig db = KVDBConfig
 
 type KVDBKey   = ByteString
 type KVDBValue = ByteString
-
-class DB db where
-  getDBName :: String
 
 -- Domain data type /= DB data type.
 -- DB data type can be very different.
@@ -64,3 +62,6 @@ fromDBKeyJSON = A.decode . LBS.fromStrict
 
 fromDBValueJSON :: FromJSON (ValueEntity entity) => KVDBValue -> Maybe (ValueEntity entity)
 fromDBValueJSON = A.decode . LBS.fromStrict
+
+getKVDBName :: forall db. DB db => KVDBConfig db -> FilePath
+getKVDBName (KVDBConfig path _) = path </> getDBName @db

@@ -20,5 +20,8 @@ data DBError = DBError DBErrorType Text
 
 type DBResult a = Either DBError a
 
+class DB db where
+  getDBName :: String
+
 data KVDBStorage db = KVDBStorage FilePath
     deriving (Show, Generic)

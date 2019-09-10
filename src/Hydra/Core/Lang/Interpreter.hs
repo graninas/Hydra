@@ -15,17 +15,15 @@ import           Hydra.Core.State.Interpreter               (runStateL)
 import           Hydra.Core.KVDB.Interpreter                (runKVDBL)
 import qualified Database.RocksDB                           as Rocks
 
-import           System.FilePath                            ((</>))
-
 initOptions :: D.KVDBOptions -> Rocks.Options
 initOptions opts = Rocks.defaultOptions
   { Rocks.createIfMissing = D._createIfMissing opts
   , Rocks.errorIfExists   = D._errorIfExists opts
   }
 
-initKVDB' :: R.CoreRuntime -> D.KVDBConfig db -> String -> IO (D.DBResult (D.KVDBStorage db))
-initKVDB' coreRt (D.KVDBConfig path opts) dbName = do
-  let dbPath = path </> dbName
+initKVDB' :: forall db. D.DB db => R.CoreRuntime -> D.KVDBConfig db -> String -> IO (D.DBResult (D.KVDBStorage db))
+initKVDB' coreRt cfg@(D.KVDBConfig _ opts) dbName = do
+  let dbPath = D.getKVDBName cfg
   eDb <- try $ Rocks.open dbPath $ initOptions opts
   case eDb of
     Left (err :: SomeException) -> pure $ Left $ D.DBError D.SystemError $ show err
