@@ -15,7 +15,7 @@ import qualified Hydra.TestData.Types.Meteor     as D
 data CatalogueDB
 
 instance D.DB CatalogueDB where
-  getDBName = "test_catalogue.rdb"
+  getDBName = "catalogue.rdb"
 
 
 -- test_catalogue
