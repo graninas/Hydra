@@ -14,7 +14,7 @@ import qualified Hydra.Framework.ChurchL         as CL
 import qualified Hydra.Framework.Language        as L
 
 class StartApp m where
-  startApp :: X.CoreRuntime -> m a -> IO a
+  startApp :: X.AppRuntime -> m a -> IO a
 
 instance StartApp L.AppL where
   startApp = I.runAppL

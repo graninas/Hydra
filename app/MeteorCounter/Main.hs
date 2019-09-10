@@ -15,6 +15,7 @@ import qualified FTL           as FTL
 import qualified Church        as Church
 import qualified Hydra.Domain  as D
 import qualified Hydra.Runtime as R
+import qualified Hydra.Framework.RLens as RLens
 
 data Method = FT | FreeM | ChurchM
   deriving (Show, Read, Eq, Ord)
@@ -46,16 +47,16 @@ main = do
   loggerRt <- if useLog cfg
     then R.createLoggerRuntime loggerCfg
     else R.createVoidLoggerRuntime
-  coreRt <- R.createCoreRuntime loggerRt
+  appRt <- R.createAppRuntime loggerRt
 
   when (method cfg == FT)
-    $ FTL.scenario coreRt
+    $ FTL.scenario (appRt ^. RLens.coreRuntime)
     $ appConfig cfg
 
   when (method cfg == FreeM)
-    $ Free.scenario coreRt
+    $ Free.scenario appRt
     $ appConfig cfg
 
   when (method cfg == ChurchM)
-    $ Church.scenario coreRt
+    $ Church.scenario appRt
     $ appConfig cfg

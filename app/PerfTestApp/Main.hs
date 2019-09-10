@@ -14,6 +14,7 @@ import qualified FTL           as FTL
 import qualified Church        as Church
 import qualified Hydra.Domain  as D
 import qualified Hydra.Runtime as R
+import qualified Hydra.Framework.RLens as RLens
 
 data Method = FT | FreeM | ChurchM
   deriving (Show, Read, Eq, Ord)
@@ -47,21 +48,21 @@ main = do
   loggerRt <- if useLog cfg
     then R.createLoggerRuntime loggerCfg
     else R.createVoidLoggerRuntime
-  coreRt <- R.createCoreRuntime loggerRt
+  appRt <- R.createAppRuntime loggerRt
 
   let ops = iterations cfg
 
   when (method cfg == FT) $ do
-    when (scenario1 cfg) $ FTL.scenario1 ops coreRt
-    when (scenario2 cfg) $ FTL.scenario2 ops coreRt
-    when (scenario3 cfg) $ FTL.scenario3 ops coreRt
+    when (scenario1 cfg) $ FTL.scenario1 ops $ appRt ^. RLens.coreRuntime
+    when (scenario2 cfg) $ FTL.scenario2 ops $ appRt ^. RLens.coreRuntime
+    when (scenario3 cfg) $ FTL.scenario3 ops $ appRt ^. RLens.coreRuntime
 
   when (method cfg == FreeM) $ do
-    when (scenario1 cfg) $ Free.scenario1 ops coreRt
-    when (scenario2 cfg) $ Free.scenario2 ops coreRt
-    when (scenario3 cfg) $ Free.scenario3 ops coreRt
+    when (scenario1 cfg) $ Free.scenario1 ops appRt
+    when (scenario2 cfg) $ Free.scenario2 ops appRt
+    when (scenario3 cfg) $ Free.scenario3 ops appRt
 
   when (method cfg == ChurchM) $ do
-    when (scenario1 cfg) $ Church.scenario1 ops coreRt
-    when (scenario2 cfg) $ Church.scenario2 ops coreRt
-    when (scenario3 cfg) $ Church.scenario3 ops coreRt
+    when (scenario1 cfg) $ Church.scenario1 ops appRt
+    when (scenario2 cfg) $ Church.scenario2 ops appRt
+    when (scenario3 cfg) $ Church.scenario3 ops appRt

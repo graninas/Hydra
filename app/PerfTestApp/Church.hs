@@ -51,9 +51,9 @@ meteorStormRec2 n = do
   meteorStormRec2 (n - 1)
   meteorStorm
 
-scenario1, scenario2, scenario3 :: Int -> R.CoreRuntime -> IO ()
-scenario1 ops coreRt = void $ R.startApp coreRt (meteorStormRec ops)
-scenario2 ops coreRt = void $ R.startApp coreRt (meteorStormRec2 ops)
-scenario3 ops coreRt = void $ R.startApp coreRt actions
+scenario1, scenario2, scenario3 :: Int -> R.AppRuntime -> IO ()
+scenario1 ops appRt = void $ R.startApp appRt (meteorStormRec ops)
+scenario2 ops appRt = void $ R.startApp appRt (meteorStormRec2 ops)
+scenario3 ops appRt = void $ R.startApp appRt actions
   where
     actions = replicateM ops meteorStorm

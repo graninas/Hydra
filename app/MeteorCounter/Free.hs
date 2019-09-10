@@ -90,5 +90,5 @@ meteorsMonitoring cfg = do
     total <- L.readVar $ _totalMeteors st
     when (maxTotal == 0 || total < maxTotal) L.retry
 
-scenario :: R.CoreRuntime -> AppConfig -> IO ()
-scenario coreRt cfg = void $ R.startApp coreRt $ meteorsMonitoring cfg
+scenario :: R.AppRuntime -> AppConfig -> IO ()
+scenario appRt cfg = void $ R.startApp appRt $ meteorsMonitoring cfg

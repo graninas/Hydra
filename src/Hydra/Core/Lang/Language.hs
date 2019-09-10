@@ -33,7 +33,7 @@ data LangF next where
   -- | Impure effect. Avoid using it in production code (it's not testable).
   EvalIO          :: IO a           -> (a  -> next) -> LangF next
   -- | Init KV DB
-  InitKVDB :: D.KVDBConfig db -> (D.DBResult (D.KVDBStorage db) -> next) -> LangF next
+  InitKVDB :: D.KVDBConfig db -> String -> (D.DBResult (D.KVDBStorage db) -> next) -> LangF next
   -- | Eval KV DB action
   EvalKVDB :: D.KVDBStorage db -> L.KVDBL db a -> (a -> next) -> LangF next
 
@@ -86,8 +86,10 @@ instance L.ControlFlow LangL where
 
 
 
-initKVDB :: D.KVDBConfig db -> LangL (D.DBResult (D.KVDBStorage db))
-initKVDB config = liftF $ InitKVDB config id
+initKVDB :: forall db. D.DB db => D.KVDBConfig db -> LangL (D.DBResult (D.KVDBStorage db))
+initKVDB config = do
+  let dbName = D.getDBName @db
+  liftF $ InitKVDB config dbName id
 
 evalKVDB :: D.KVDBStorage db -> L.KVDBL db a -> LangL a
 evalKVDB conn script = liftF $ EvalKVDB conn script id

@@ -15,23 +15,26 @@ import           Hydra.Core.State.Interpreter               (runStateL)
 import           Hydra.Core.KVDB.Interpreter                (runKVDBL)
 import qualified Database.RocksDB                           as Rocks
 
+import           System.FilePath                            ((</>))
+
 initOptions :: D.KVDBOptions -> Rocks.Options
 initOptions opts = Rocks.defaultOptions
   { Rocks.createIfMissing = D._createIfMissing opts
   , Rocks.errorIfExists   = D._errorIfExists opts
   }
 
-initKVDB' :: R.CoreRuntime -> D.KVDBConfig db -> IO (D.DBResult (D.KVDBStorage db))
-initKVDB' coreRt (D.KVDBConfig path opts) = do
-  eDb <- try $ Rocks.open path $ initOptions opts
+initKVDB' :: R.CoreRuntime -> D.KVDBConfig db -> String -> IO (D.DBResult (D.KVDBStorage db))
+initKVDB' coreRt (D.KVDBConfig path opts) dbName = do
+  let dbPath = path </> dbName
+  eDb <- try $ Rocks.open dbPath $ initOptions opts
   case eDb of
     Left (err :: SomeException) -> pure $ Left $ D.DBError D.SystemError $ show err
     Right db -> do
       dbM <- newMVar db
       atomically
         $ modifyTVar (coreRt ^. RLens.rocksDBs)
-        $ Map.insert path dbM
-      pure $ Right $ D.KVDBStorage path
+        $ Map.insert dbPath dbM
+      pure $ Right $ D.KVDBStorage dbPath
 
 evalKVDB'
   :: R.CoreRuntime
@@ -56,7 +59,7 @@ interpretLangF coreRt (L.EvalLogger msg next) =
 interpretLangF _      (L.EvalRandom  s next)        = next <$> runRandomL s
 interpretLangF coreRt (L.EvalControlFlow f    next) = next <$> runControlFlowL coreRt f
 interpretLangF _      (L.EvalIO f next)             = next <$> f
-interpretLangF coreRt (L.InitKVDB cfg next)         = next <$> initKVDB' coreRt cfg
+interpretLangF coreRt (L.InitKVDB cfg dbName next)  = next <$> initKVDB' coreRt cfg dbName
 interpretLangF coreRt (L.EvalKVDB storage act next) = next <$> evalKVDB' coreRt storage act
 
 runLangL :: R.CoreRuntime -> L.LangL a -> IO a

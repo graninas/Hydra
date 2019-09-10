@@ -33,7 +33,7 @@ type KVDBKey   = ByteString
 type KVDBValue = ByteString
 
 class DB db where
-  getDBName :: FilePath
+  getDBName :: String
 
 -- Domain data type /= DB data type.
 -- DB data type can be very different.

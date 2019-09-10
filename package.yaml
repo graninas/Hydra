@@ -8,7 +8,7 @@ copyright:           "Granin A.S. 2019"
 
 description:
   Hydra is the project that allows to build multithreaded concurrent applications.
-  Hydra is initially based on the Enecuum.Framework.
+  Hydra is initially based on the Hydra.Framework.
 
 default-extensions:
 - NoImplicitPrelude

@@ -28,8 +28,8 @@ main :: IO ()
 main = do
 
   loggerRt <- R.createLoggerRuntime loggerCfg
-  coreRt   <- R.createCoreRuntime loggerRt
+  appRt   <- R.createAppRuntime loggerRt
 
   let cfg = AppConfig False 0
 
-  void $ R.startApp coreRt $ astroCatalogue cfg
+  void $ R.startApp appRt $ astroCatalogue cfg

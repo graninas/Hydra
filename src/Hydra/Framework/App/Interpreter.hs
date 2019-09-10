@@ -14,14 +14,16 @@ import qualified Hydra.Framework.Runtime  as R
 langRunner :: R.CoreRuntime -> Impl.LangRunner L.LangL
 langRunner coreRt = Impl.LangRunner (Impl.runLangL coreRt)
 
-interpretAppF :: R.CoreRuntime -> L.AppF a -> IO a
-interpretAppF coreRt (L.EvalLang action next) = do
-    res <- Impl.runLangL coreRt action
-    pure $ next res
+interpretAppF :: R.AppRuntime -> L.AppF a -> IO a
+interpretAppF appRt (L.EvalLang action next) = do
+  let coreRt = appRt ^. RLens.coreRuntime
+  res <- Impl.runLangL coreRt action
+  pure $ next res
 
-interpretAppF coreRt (L.EvalProcess action next) = do
-    res <- Impl.runProcessL (langRunner coreRt) (coreRt ^. RLens.processRuntime) action
-    pure $ next res
+interpretAppF appRt (L.EvalProcess action next) = do
+  let coreRt = appRt ^. RLens.coreRuntime
+  res <- Impl.runProcessL (langRunner coreRt) (coreRt ^. RLens.processRuntime) action
+  pure $ next res
 
-runAppL :: R.CoreRuntime -> L.AppL a -> IO a
-runAppL coreRt = foldFree (interpretAppF coreRt)
+runAppL :: R.AppRuntime -> L.AppL a -> IO a
+runAppL appRt = foldFree (interpretAppF appRt)

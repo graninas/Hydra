@@ -35,6 +35,8 @@ data LangF next where
   -- | Impure effect. Avoid using it in production code (it's not testable).
   EvalIO              :: IO a              -> (a  -> next) -> LangF next
 
+  -- TODO: KVDB
+
 makeFunctorInstance ''LangF
 
 type LangL = F LangF
