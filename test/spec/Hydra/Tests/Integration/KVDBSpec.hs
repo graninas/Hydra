@@ -104,7 +104,7 @@ import           Hydra.TestData
 
 dbInitApp :: forall db. D.DB db => D.KVDBConfig db -> L.AppL (D.DBResult ())
 dbInitApp cfg = do
-  eDB <- L.scenario $ L.initKVDB cfg
+  eDB <- L.initKVDB cfg
   pure $ eDB >> Right ()
 --
 -- withCatalogueDB :: AppState -> L.KVDBL CatalogueDB a -> L.LangL a
@@ -112,16 +112,10 @@ dbInitApp cfg = do
 
 
 spec :: Spec
-spec = stableTest $ fastTest $ describe "KV DB tests" $ do
+spec = stableTest $ fastTest $ describe "Rocks KV DB tests" $ do
     dbTestPath <- runIO $ mkTestPath "db_test"
-    let cfg1 = D.KVDBConfig @CatalogueDB dbTestPath $ D.KVDBOptions
-                { D._createIfMissing = True
-                , D._errorIfExists   = False
-                }
-    let cfg2 = D.KVDBConfig @CatalogueDB dbTestPath $ D.KVDBOptions
-                { D._createIfMissing = True
-                , D._errorIfExists   = True
-                }
+    let cfg1 = D.RocksConfig @CatalogueDB dbTestPath True False
+    let cfg2 = D.RocksConfig @CatalogueDB dbTestPath True True
     let kvdbPath1 = D.getKVDBName cfg1
     let kvdbPath2 = D.getKVDBName cfg2
 

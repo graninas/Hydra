@@ -45,24 +45,22 @@ main = do
 
   putStrLn @String $ "Method: " <> show (method cfg) <> ", iterations: " <> show (iterations cfg)
 
-  loggerRt <- if useLog cfg
-    then R.createLoggerRuntime loggerCfg
-    else R.createVoidLoggerRuntime
-  appRt <- R.createAppRuntime loggerRt
-
   let ops = iterations cfg
 
-  when (method cfg == FT) $ do
-    when (scenario1 cfg) $ FTL.scenario1 ops $ appRt ^. RLens.coreRuntime
-    when (scenario2 cfg) $ FTL.scenario2 ops $ appRt ^. RLens.coreRuntime
-    when (scenario3 cfg) $ FTL.scenario3 ops $ appRt ^. RLens.coreRuntime
+  let mbLoggerCfg = if useLog cfg then Just loggerCfg else Nothing
 
-  when (method cfg == FreeM) $ do
-    when (scenario1 cfg) $ Free.scenario1 ops appRt
-    when (scenario2 cfg) $ Free.scenario2 ops appRt
-    when (scenario3 cfg) $ Free.scenario3 ops appRt
+  R.withAppRuntime mbLoggerCfg $ \appRt -> do
+    when (method cfg == FT) $ do
+      when (scenario1 cfg) $ FTL.scenario1 ops $ appRt ^. RLens.coreRuntime
+      when (scenario2 cfg) $ FTL.scenario2 ops $ appRt ^. RLens.coreRuntime
+      when (scenario3 cfg) $ FTL.scenario3 ops $ appRt ^. RLens.coreRuntime
 
-  when (method cfg == ChurchM) $ do
-    when (scenario1 cfg) $ Church.scenario1 ops appRt
-    when (scenario2 cfg) $ Church.scenario2 ops appRt
-    when (scenario3 cfg) $ Church.scenario3 ops appRt
+    when (method cfg == FreeM) $ do
+      when (scenario1 cfg) $ Free.scenario1 ops appRt
+      when (scenario2 cfg) $ Free.scenario2 ops appRt
+      when (scenario3 cfg) $ Free.scenario3 ops appRt
+
+    when (method cfg == ChurchM) $ do
+      when (scenario1 cfg) $ Church.scenario1 ops appRt
+      when (scenario2 cfg) $ Church.scenario2 ops appRt
+      when (scenario3 cfg) $ Church.scenario3 ops appRt

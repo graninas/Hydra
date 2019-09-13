@@ -10,40 +10,40 @@ import           Hydra.Core.Logger.Impl.HsLoggerInterpreter (runLoggerL)
 import           Hydra.Core.Random.Interpreter              (runRandomL)
 import qualified Hydra.Core.RLens                           as RLens
 import qualified Hydra.Core.Runtime                         as R
+import qualified Hydra.Core.KVDBRuntime                     as R
 import qualified Hydra.Core.Domain                          as D
 import           Hydra.Core.State.Interpreter               (runStateL)
 import           Hydra.Core.KVDB.Interpreter                (runKVDBL)
 import qualified Database.RocksDB                           as Rocks
 
-initOptions :: D.KVDBOptions -> Rocks.Options
-initOptions opts = Rocks.defaultOptions
-  { Rocks.createIfMissing = D._createIfMissing opts
-  , Rocks.errorIfExists   = D._errorIfExists opts
-  }
+evalRocksKVDB'
+  :: R.CoreRuntime
+  -> String
+  -> L.KVDBL db a
+  -> IO a
+evalRocksKVDB' coreRt dbname act = do
+  dbs <- atomically $ readTMVar $ coreRt ^. RLens.rocksDBs
+  case Map.lookup dbname dbs of
+    Nothing       -> error $ "Rocks KV DB not registered: " +| dbname |+ ""
+    Just dbHandle -> runKVDBL dbHandle act
 
-initKVDB' :: forall db. D.DB db => R.CoreRuntime -> D.KVDBConfig db -> String -> IO (D.DBResult (D.KVDBStorage db))
-initKVDB' coreRt cfg@(D.KVDBConfig _ opts) dbName = do
-  let dbPath = D.getKVDBName cfg
-  eDb <- try $ Rocks.open dbPath $ initOptions opts
-  case eDb of
-    Left (err :: SomeException) -> pure $ Left $ D.DBError D.SystemError $ show err
-    Right db -> do
-      dbM <- newMVar db
-      atomically
-        $ modifyTVar (coreRt ^. RLens.rocksDBs)
-        $ Map.insert dbPath dbM
-      pure $ Right $ D.KVDBStorage dbPath
+-- TODO: implement Redis
+evalRedisKVDB'
+  :: R.CoreRuntime
+  -> String
+  -> L.KVDBL db a
+  -> IO a
+evalRedisKVDB' coreRt dbname act = error "Not implemented yet."
 
 evalKVDB'
   :: R.CoreRuntime
-  -> D.KVDBStorage db
+  -> D.DBHandle db
   -> L.KVDBL db a
   -> IO a
-evalKVDB' coreRt (D.KVDBStorage path) act = do
-  dbs <- readTVarIO $ coreRt ^. RLens.rocksDBs
-  case Map.lookup path dbs of
-    Nothing       -> error $ "KV DB not registered: " +| path |+ ""
-    Just dbHandle -> runKVDBL dbHandle act
+evalKVDB' coreRt (D.DBHandle dbtype dbname) act
+  | dbtype == R.rocksdb = evalRocksKVDB' coreRt dbname act
+  | dbtype == R.redisdb = evalRedisKVDB' coreRt dbname act
+  | otherwise = error $ "Unknownd DB Type: " <> show dbtype
 
 interpretLangF :: R.CoreRuntime -> L.LangF a -> IO a
 interpretLangF coreRt (L.EvalStateAtomically action next) = do
@@ -57,7 +57,6 @@ interpretLangF coreRt (L.EvalLogger msg next) =
 interpretLangF _      (L.EvalRandom  s next)        = next <$> runRandomL s
 interpretLangF coreRt (L.EvalControlFlow f    next) = next <$> runControlFlowL coreRt f
 interpretLangF _      (L.EvalIO f next)             = next <$> f
-interpretLangF coreRt (L.InitKVDB cfg dbName next)  = next <$> initKVDB' coreRt cfg dbName
 interpretLangF coreRt (L.EvalKVDB storage act next) = next <$> evalKVDB' coreRt storage act
 
 runLangL :: R.CoreRuntime -> L.LangL a -> IO a

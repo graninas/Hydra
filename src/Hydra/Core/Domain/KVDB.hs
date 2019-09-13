@@ -17,18 +17,14 @@ import           System.FilePath ((</>))
 
 import           Hydra.Core.Domain.DB
 
-data KVDBOptions = KVDBOptions
-  { _createIfMissing :: Bool
-  , _errorIfExists   :: Bool
-  }
+data KVDBConfig db
+  = RedisConfig
+  | RocksConfig
+      { _path            :: FilePath
+      , _createIfMissing :: Bool
+      , _errorIfExists   :: Bool
+      }
   deriving (Show, Generic)
-
-data KVDBConfig db = KVDBConfig
-  { _path    :: FilePath
-  , _options :: KVDBOptions
-  }
-  deriving (Show, Generic)
-
 
 type KVDBKey   = ByteString
 type KVDBValue = ByteString
@@ -63,5 +59,7 @@ fromDBKeyJSON = A.decode . LBS.fromStrict
 fromDBValueJSON :: FromJSON (ValueEntity entity) => KVDBValue -> Maybe (ValueEntity entity)
 fromDBValueJSON = A.decode . LBS.fromStrict
 
+-- TODO: RedisConfig
 getKVDBName :: forall db. DB db => KVDBConfig db -> FilePath
-getKVDBName (KVDBConfig path _) = path </> getDBName @db
+getKVDBName (RocksConfig path _ _) = path </> getDBName @db
+getKVDBName RedisConfig = getDBName @db

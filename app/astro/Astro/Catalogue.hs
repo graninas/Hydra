@@ -34,10 +34,8 @@ dynamicsMonitor st = do
 
 initState :: AppConfig -> L.AppL AppState
 initState cfg = do
-  eCatalogueDB <- L.scenario
-    $ L.initKVDB
-    $ D.KVDBConfig @CatalogueDB "catalogue"
-    $ D.KVDBOptions True False
+  eCatalogueDB <- L.initKVDB
+    $ D.RocksConfig @CatalogueDB "/tmp/hydra/catalogue" True False
 
   catalogueDB <- case eCatalogueDB of
     Right db -> pure db

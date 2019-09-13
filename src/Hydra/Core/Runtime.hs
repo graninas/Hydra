@@ -9,23 +9,25 @@ import qualified Hydra.Core.Language             as L
 import qualified Hydra.Core.Logger.Impl.HsLogger as Impl
 import qualified Hydra.Core.Logger.Impl.HsLoggerInterpreter as I
 
+import qualified Hydra.Core.KVDBRuntime as R
 import qualified Database.RocksDB as Rocks
-
-type RocksDBHandle = MVar Rocks.DB
+import qualified Database.Redis as Redis
 
 -- | Runtime data for the concrete logger impl.
 newtype LoggerRuntime = LoggerRuntime
     { _hsLoggerHandle :: Maybe Impl.HsLoggerHandle
     }
 
+-- | Runtime for processes.
 data ProcessRuntime = ProcessRuntime
     { _idCounter :: IORef Int
-    , _processes :: TVar (Map D.ProcessId ThreadId)
+    , _processes :: TVar (Map D.ProcessId ThreadId)   -- TODO: FIXME: should be TMVar
     }
 
 -- | Runtime data for core subsystems.
 data CoreRuntime = CoreRuntime
-    { _rocksDBs       :: TVar (Map String RocksDBHandle)
+    { _rocksDBs       :: R.RocksDBHandles
+    , _redisConns     :: R.RedisConnections
     , _loggerRuntime  :: LoggerRuntime
     , _stateRuntime   :: StateRuntime
     , _processRuntime :: ProcessRuntime
@@ -38,6 +40,7 @@ newtype RuntimeLogger = RuntimeLogger
 
 newtype VarHandle = VarHandle (TVar Any)
 
+-- | State runtime.
 data StateRuntime = StateRuntime
     { _varId  :: TVar D.VarId                       -- ^ Var id counter
     , _state  :: TMVar (Map.Map D.VarId VarHandle)  -- ^ Node state.
@@ -56,42 +59,35 @@ clearLoggerRuntime _                               = pure ()
 
 createStateRuntime :: IO StateRuntime
 createStateRuntime = StateRuntime
-    <$> newTVarIO 0
-    <*> newTMVarIO Map.empty
-    <*> newTVarIO []
+  <$> newTVarIO 0
+  <*> newTMVarIO Map.empty
+  <*> newTVarIO []
 
 createProcessRuntime :: IO ProcessRuntime
 createProcessRuntime = ProcessRuntime
-    <$> newIORef 0
-    <*> newTVarIO Map.empty
+  <$> newIORef 0
+  <*> newTVarIO Map.empty
 
 createCoreRuntime :: LoggerRuntime -> IO CoreRuntime
 createCoreRuntime loggerRt = CoreRuntime
-    <$> newTVarIO Map.empty
-    <*> pure loggerRt
-    <*> createStateRuntime
-    <*> createProcessRuntime
+  <$> newTMVarIO Map.empty
+  <*> newTMVarIO Map.empty
+  <*> pure loggerRt
+  <*> createStateRuntime
+  <*> createProcessRuntime
 
--- clearCoreRuntime :: CoreRuntime -> IO ()
--- clearCoreRuntime _ = pure ()
+clearProcessRuntime :: ProcessRuntime -> IO ()
+clearProcessRuntime procRt = do
+  -- TODO: should be TMVar for a better thread safety.
+  processes <- atomically $ readTVar $ _processes procRt
+  mapM_ killThread $ Map.elems processes
 
--- mkRuntimeLogger :: LoggerRuntime -> RuntimeLogger
--- mkRuntimeLogger (LoggerRuntime hsLog) = RuntimeLogger
---     { logMessage' = \lvl msg -> Impl.runLoggerL hsLog $ L.logMessage lvl msg
---     }
-
--- Runtime log functions
--- logInfo' :: RuntimeLogger -> D.Message -> IO ()
--- logInfo' (RuntimeLogger l) = l D.Info
---
--- logError' :: RuntimeLogger -> D.Message -> IO ()
--- logError' (RuntimeLogger l) = l D.Error
---
--- logDebug' :: RuntimeLogger -> D.Message -> IO ()
--- logDebug' (RuntimeLogger l) = l D.Debug
---
--- logWarning' :: RuntimeLogger -> D.Message -> IO ()
--- logWarning' (RuntimeLogger l) = l D.Warning
+-- TODO: close DB handlers.
+clearCoreRuntime :: CoreRuntime -> IO ()
+clearCoreRuntime coreRt =
+  (clearProcessRuntime $ _processRuntime coreRt)
+  `finally` (R.closeRocksDBs $ _rocksDBs coreRt)
+  `finally` (R.closeRedisConns $ _redisConns coreRt)
 
 -- TODO: Church version of flusher.
 -- | Writes all stm entries into real logger.

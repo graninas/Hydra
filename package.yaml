@@ -96,6 +96,7 @@ dependencies:
 - unliftio
 - unliftio-core
 - rocksdb-haskell
+- hedis
 
 library:
   source-dirs:

@@ -32,10 +32,8 @@ data LangF next where
   EvalControlFlow :: L.ControlFlowL a -> (a  -> next) -> LangF next
   -- | Impure effect. Avoid using it in production code (it's not testable).
   EvalIO          :: IO a           -> (a  -> next) -> LangF next
-  -- | Init KV DB
-  InitKVDB :: D.DB db => D.KVDBConfig db -> String -> (D.DBResult (D.KVDBStorage db) -> next) -> LangF next
   -- | Eval KV DB action
-  EvalKVDB :: D.DB db => D.KVDBStorage db -> L.KVDBL db a -> (a -> next) -> LangF next
+  EvalKVDB :: D.DB db => D.DBHandle db -> L.KVDBL db a -> (a -> next) -> LangF next
 
 
 makeFunctorInstance ''LangF
@@ -85,13 +83,8 @@ instance L.ControlFlow LangL where
   delay i = evalControlFlow' $ L.delay i
 
 
-initKVDB :: forall db. D.DB db => D.KVDBConfig db -> LangL (D.DBResult (D.KVDBStorage db))
-initKVDB config = do
-  let dbName = D.getDBName @db
-  liftF $ InitKVDB config dbName id
-
-evalKVDB :: forall db a. D.DB db => D.KVDBStorage db -> L.KVDBL db a -> LangL a
+evalKVDB :: forall db a. D.DB db => D.DBHandle db -> L.KVDBL db a -> LangL a
 evalKVDB conn script = liftF $ EvalKVDB conn script id
 
-withKVDB :: forall db a. D.DB db => D.KVDBStorage db -> L.KVDBL db a -> LangL a
+withKVDB :: forall db a. D.DB db => D.DBHandle db -> L.KVDBL db a -> LangL a
 withKVDB = evalKVDB

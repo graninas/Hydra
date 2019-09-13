@@ -6,6 +6,7 @@ module Hydra.Runtime
 import           Hydra.Prelude
 
 import           Hydra.Core.Runtime              as X
+import           Hydra.Core.KVDBRuntime          as X
 import           Hydra.Framework.Runtime         as X
 
 import qualified Hydra.Framework.App.ChurchI     as CI

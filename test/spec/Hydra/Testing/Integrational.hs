@@ -32,15 +32,8 @@ consoleLoggerConfig = D.LoggerConfig
 testConfigFilePath :: IsString a => a
 testConfigFilePath = "./configs/tst_client_test_config.json"
 
-createAppRuntime :: R.LoggerRuntime -> IO R.AppRuntime
-createAppRuntime loggerRuntime = R.createAppRuntime loggerRuntime
-
 evalApp :: L.AppL a -> IO a
-evalApp app = do
-  rt <- R.createVoidLoggerRuntime >>= createAppRuntime
-  res <- R.startApp rt app
-  -- R.clearAppRuntime rt
-  pure res
+evalApp app = R.withAppRuntime Nothing $ \appRt -> R.startApp appRt app
 
 mkTestPath :: FilePath -> IO FilePath
 mkTestPath testName = do

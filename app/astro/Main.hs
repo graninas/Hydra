@@ -15,8 +15,8 @@ import qualified Hydra.Runtime as R
 import           Astro.Types
 import           Astro.Catalogue
 
-loggerCfg :: D.LoggerConfig
-loggerCfg = D.LoggerConfig
+mkLoggerCfg :: D.LoggerConfig
+mkLoggerCfg = D.LoggerConfig
   { D._format       = "$prio $loggername: $msg"
   , D._level        = D.Debug
   , D._logFilePath  = ""
@@ -26,10 +26,7 @@ loggerCfg = D.LoggerConfig
 
 main :: IO ()
 main = do
-
-  loggerRt <- R.createLoggerRuntime loggerCfg
-  appRt   <- R.createAppRuntime loggerRt
-
+  let loggerCfg = mkLoggerCfg
   let cfg = AppConfig False 0
-
-  void $ R.startApp appRt $ astroCatalogue cfg
+  let appF appRt = void $ R.startApp appRt $ astroCatalogue cfg
+  R.withAppRuntime (Just loggerCfg) appF

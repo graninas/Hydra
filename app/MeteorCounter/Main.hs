@@ -44,19 +44,17 @@ main = do
 
   putStrLn @String $ "Method: " <> show (method cfg)
 
-  loggerRt <- if useLog cfg
-    then R.createLoggerRuntime loggerCfg
-    else R.createVoidLoggerRuntime
-  appRt <- R.createAppRuntime loggerRt
+  let mbLoggerCfg = if useLog cfg then Just loggerCfg else Nothing
+  
+  R.withAppRuntime mbLoggerCfg $ \appRt -> do
+    when (method cfg == FT)
+      $ FTL.scenario (appRt ^. RLens.coreRuntime)
+      $ appConfig cfg
 
-  when (method cfg == FT)
-    $ FTL.scenario (appRt ^. RLens.coreRuntime)
-    $ appConfig cfg
+    when (method cfg == FreeM)
+      $ Free.scenario appRt
+      $ appConfig cfg
 
-  when (method cfg == FreeM)
-    $ Free.scenario appRt
-    $ appConfig cfg
-
-  when (method cfg == ChurchM)
-    $ Church.scenario appRt
-    $ appConfig cfg
+    when (method cfg == ChurchM)
+      $ Church.scenario appRt
+      $ appConfig cfg

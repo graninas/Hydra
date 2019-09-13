@@ -35,7 +35,7 @@ data AppConfig = AppConfig
   deriving (Show, Read, Eq, Ord)
 
 data AppState = AppState
-  { _catalogueDB  :: D.KVDBStorage CatalogueDB
+  { _catalogueDB  :: D.DBHandle CatalogueDB
   , _totalMeteors :: D.StateVar Int
   , _config       :: AppConfig
   }
