@@ -12,7 +12,7 @@ import qualified Hydra.Core.Logger.Impl.HsLoggerInterpreter as I
 import qualified Database.RocksDB as Rocks
 import qualified Database.Redis as Redis
 
-type RocksDBHandle = MVar Rocks.DB
+type RocksDBHandle    = MVar Rocks.DB
 type RocksDBHandles   = TMVar (Map D.DBName RocksDBHandle)
 type RedisConnections = TMVar (Map D.DBName Redis.Connection)
 
@@ -42,7 +42,7 @@ initRocksDB' rocksDBsVars cfg@(D.RocksConfig _ createIfMiss errorIfErr) dbname =
       atomically
         $ putTMVar rocksDBsVars
         $ Map.insert dbname dbM rocksDBs
-      pure $ Right $ D.DBHandle rocksdb dbname
+      pure $ Right $ D.DBHandle D.RocksDB dbname
 
 -- TODO: defaultConnectInfo
 initRedisDB'
@@ -63,7 +63,7 @@ initRedisDB' redisConnsVar _ dbname = do
       atomically
         $ putTMVar redisConnsVar
         $ Map.insert dbname conn mConns
-      pure $ Right $ D.DBHandle redisdb dbname
+      pure $ Right $ D.DBHandle D.Redis dbname
 
 deInitRocksDB :: RocksDBHandle -> IO ()
 deInitRocksDB rocksDBVar = do
@@ -82,9 +82,3 @@ closeRedisConns connsMapVar = do
   connsMap <- atomically $ takeTMVar connsMapVar
   mapM_ Redis.disconnect $ Map.elems connsMap
   atomically $ putTMVar connsMapVar Map.empty
-
-rocksdb :: String
-rocksdb = "rocksdb"
-
-redisdb :: String
-redisdb = "redisdb"

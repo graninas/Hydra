@@ -1,5 +1,6 @@
 {-# LANGUAGE AllowAmbiguousTypes    #-}
 {-# LANGUAGE DuplicateRecordFields  #-}
+{-# LANGUAGE DeriveAnyClass         #-}
 
 module Hydra.Core.Domain.DB where
 
@@ -13,6 +14,7 @@ data DBErrorType
     | KeyNotFound
     | InvalidType
     | DecodingFailed
+    | UnknownDBError
     deriving (Generic, Ord, Eq, Enum, Bounded, Show, Read)
 
 data DBError = DBError DBErrorType Text
@@ -23,7 +25,11 @@ type DBResult a = Either DBError a
 class DB db where
   getDBName :: DBName
 
-type DBType = String
+data DBType
+  = Redis
+  | RocksDB
+  deriving (Show, Read, Ord, Eq, Enum, Bounded, Generic, ToJSON, FromJSON)
+
 type DBName = String
 
 data DBHandle db = DBHandle DBType DBName

@@ -65,3 +65,13 @@ withRocksDbPresence :: FilePath -> IO a -> IO ()
 withRocksDbPresence dbPath act = do
   mkEmptyRocksDb dbPath
   void act `finally` rmTestPath dbPath
+
+withRedisDbAbsence :: FilePath -> IO a -> IO ()
+withRedisDbAbsence dbPath act = do
+  -- TODO
+  void act
+
+withRedisDbPresence :: FilePath -> IO a -> IO ()
+withRedisDbPresence dbPath act = do
+  -- TODO
+  void act

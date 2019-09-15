@@ -13,7 +13,7 @@ import qualified Hydra.Core.Runtime                         as R
 import qualified Hydra.Core.KVDBRuntime                     as R
 import qualified Hydra.Core.Domain                          as D
 import           Hydra.Core.State.Interpreter               (runStateL)
-import           Hydra.Core.KVDB.Interpreter                (runKVDBL)
+import           Hydra.Core.KVDB.Interpreter                (runAsRocksDBL, runAsRedisL)
 import qualified Database.RocksDB                           as Rocks
 
 evalRocksKVDB'
@@ -25,25 +25,28 @@ evalRocksKVDB' coreRt dbname act = do
   dbs <- atomically $ readTMVar $ coreRt ^. RLens.rocksDBs
   case Map.lookup dbname dbs of
     Nothing       -> error $ "Rocks KV DB not registered: " +| dbname |+ ""
-    Just dbHandle -> runKVDBL dbHandle act
+    Just dbHandle -> runAsRocksDBL dbHandle act
 
--- TODO: implement Redis
 evalRedisKVDB'
   :: R.CoreRuntime
   -> String
   -> L.KVDBL db a
   -> IO a
-evalRedisKVDB' coreRt dbname act = error "Not implemented yet."
+evalRedisKVDB' coreRt dbname act = do
+  conns <- atomically $ readTMVar $ coreRt ^. RLens.redisConns
+  case Map.lookup dbname conns of
+    Nothing   -> error $ "Redis KV DB not registered: " +| dbname |+ ""
+    Just conn -> runAsRedisL conn act
 
 evalKVDB'
   :: R.CoreRuntime
   -> D.DBHandle db
   -> L.KVDBL db a
   -> IO a
-evalKVDB' coreRt (D.DBHandle dbtype dbname) act
-  | dbtype == R.rocksdb = evalRocksKVDB' coreRt dbname act
-  | dbtype == R.redisdb = evalRedisKVDB' coreRt dbname act
-  | otherwise = error $ "Unknownd DB Type: " <> show dbtype
+evalKVDB' coreRt (D.DBHandle D.RocksDB dbname) act =
+  evalRocksKVDB' coreRt dbname act
+evalKVDB' coreRt (D.DBHandle D.Redis   dbname) act =
+  evalRedisKVDB' coreRt dbname act
 
 interpretLangF :: R.CoreRuntime -> L.LangF a -> IO a
 interpretLangF coreRt (L.EvalStateAtomically action next) = do
