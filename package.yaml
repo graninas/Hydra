@@ -97,6 +97,11 @@ dependencies:
 - unliftio-core
 - rocksdb-haskell
 - hedis
+- beam-core
+- beam-postgres
+- beam-sqlite
+- beam-migrate
+- sqlite-simple
 
 library:
   source-dirs:
