@@ -16,10 +16,12 @@ writeOpts = Rocks.defaultWriteOptions
 
 get :: Rocks.DB -> D.KVDBKey -> IO (D.DBResult D.KVDBValue)
 get db key = do
-  mbVal <- Rocks.get db Rocks.defaultReadOptions key
-  pure $ case mbVal of
-    Nothing  -> Left $ D.DBError D.KeyNotFound $ show key
-    Just val -> Right val
+  -- TODO: exception safety
+  eMbVal <- try $ Rocks.get db Rocks.defaultReadOptions key
+  pure $ case eMbVal of
+    Left (err :: SomeException) -> Left $ D.DBError D.SystemError $ show err
+    Right Nothing -> Left $ D.DBError D.KeyNotFound $ show key
+    Right (Just val) -> Right val
 
 put :: Rocks.DB -> D.KVDBKey -> D.KVDBValue -> IO (D.DBResult ())
 put db key val = do

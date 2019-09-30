@@ -13,12 +13,13 @@ import           Astro.Lens
 import           Astro.KVDB.Entities.Meteor
 import           Astro.KVDB.Entities.DBs
 
+
 withCatalogueDB :: AppState -> L.KVDBL CatalogueDB a -> L.LangL a
 withCatalogueDB st = L.withKVDB (st ^. catalogueDB)
 
 loadMeteorsCount :: AppState -> L.LangL Int
 loadMeteorsCount st = do
-  eCount <- withCatalogueDB st $ L.load' meteorsCountKey
+  eCount <- withCatalogueDB st $ L.load meteorsCountKey
   case eCount of
     Left err -> do
       L.logError ("Failed to get meteors count: " <> show err)
@@ -35,7 +36,7 @@ dynamicsMonitor st = do
 initState :: AppConfig -> L.AppL AppState
 initState cfg = do
   eCatalogueDB <- L.initKVDB
-    $ D.RocksConfig @CatalogueDB "/tmp/hydra/catalogue" True False
+    $ D.RocksDBConfig @CatalogueDB "/tmp/hydra/catalogue" True False
 
   catalogueDB <- case eCatalogueDB of
     Right db -> pure db

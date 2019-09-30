@@ -29,7 +29,7 @@ initRocksDB'
   -> D.KVDBConfig db
   -> String
   -> IO (D.DBResult (D.DBHandle db))
-initRocksDB' rocksDBsVars cfg@(D.RocksConfig _ createIfMiss errorIfErr) dbname = do
+initRocksDB' rocksDBsVars cfg@(D.RocksDBConfig _ createIfMiss errorIfErr) dbname = do
   rocksDBs <- atomically $ takeTMVar rocksDBsVars
   let dbPath = D.getKVDBName cfg
   eDb <- try $ Rocks.open dbPath $ initRocksOptions createIfMiss errorIfErr

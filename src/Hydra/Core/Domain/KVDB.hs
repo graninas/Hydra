@@ -5,6 +5,7 @@
 {-# LANGUAGE MultiParamTypeClasses  #-}
 {-# LANGUAGE PolyKinds              #-}
 {-# LANGUAGE TypeFamilies           #-}
+{-# LANGUAGE DeriveAnyClass         #-}
 
 
 module Hydra.Core.Domain.KVDB where
@@ -19,12 +20,12 @@ import           Hydra.Core.Domain.DB
 
 data KVDBConfig db
   = RedisConfig
-  | RocksConfig
+  | RocksDBConfig
       { _path            :: FilePath
       , _createIfMissing :: Bool
       , _errorIfExists   :: Bool
       }
-  deriving (Show, Generic)
+  deriving (Show, Read, Ord, Eq, Generic, ToJSON, FromJSON)
 
 type KVDBKey   = ByteString
 type KVDBValue = ByteString
@@ -61,5 +62,5 @@ fromDBValueJSON = A.decode . LBS.fromStrict
 
 -- TODO: RedisConfig
 getKVDBName :: forall db. DB db => KVDBConfig db -> FilePath
-getKVDBName (RocksConfig path _ _) = path </> getDBName @db
+getKVDBName (RocksDBConfig path _ _) = path </> getDBName @db
 getKVDBName RedisConfig = getDBName @db

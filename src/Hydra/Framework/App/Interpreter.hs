@@ -21,7 +21,7 @@ langRunner :: R.CoreRuntime -> Impl.LangRunner L.LangL
 langRunner coreRt = Impl.LangRunner (Impl.runLangL coreRt)
 
 initKVDB' :: forall db. D.DB db => R.CoreRuntime -> D.KVDBConfig db -> String -> IO (D.DBResult (D.DBHandle db))
-initKVDB' coreRt cfg@(D.RocksConfig _ _ _) dbName =
+initKVDB' coreRt cfg@(D.RocksDBConfig _ _ _) dbName =
   R.initRocksDB' (coreRt ^. RLens.rocksDBs) cfg dbName
 initKVDB' coreRt cfg@(D.RedisConfig) dbName =
   R.initRedisDB' (coreRt ^. RLens.redisConns) cfg dbName

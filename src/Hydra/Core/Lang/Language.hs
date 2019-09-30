@@ -84,7 +84,7 @@ instance L.ControlFlow LangL where
 
 
 evalKVDB :: forall db a. D.DB db => D.DBHandle db -> L.KVDBL db a -> LangL a
-evalKVDB conn script = liftF $ EvalKVDB conn script id
+evalKVDB handle script = liftF $ EvalKVDB handle script id
 
 withKVDB :: forall db a. D.DB db => D.DBHandle db -> L.KVDBL db a -> LangL a
 withKVDB = evalKVDB

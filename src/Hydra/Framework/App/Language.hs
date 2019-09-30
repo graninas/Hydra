@@ -23,7 +23,7 @@ data AppF next where
   -- A new connection will be created and stored.
   -- No need to explicitly close the connections.
   -- They will be closed automatically on the program finish.
-  InitKVDB :: D.DB db => D.KVDBConfig db -> String -> (D.DBResult (D.DBHandle db) -> next) -> AppF next
+  InitKVDB :: D.DB db => D.KVDBConfig db -> D.DBName -> (D.DBResult (D.DBHandle db) -> next) -> AppF next
   -- TODO: add explicit deinit.
   -- DeinitKVDB :: D.DB db => D.DBHandle db -> (D.DBResult Bool -> next) -> AppF next
 
