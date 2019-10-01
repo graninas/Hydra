@@ -10,8 +10,10 @@ import qualified Hydra.Core.Logger.Impl.HsLogger as Impl
 import qualified Hydra.Core.Logger.Impl.HsLoggerInterpreter as I
 
 import qualified Hydra.Core.KVDBRuntime as R
+import qualified Hydra.Core.SqlDBRuntime as R
 import qualified Database.RocksDB as Rocks
 import qualified Database.Redis as Redis
+import qualified Database.SQLite.Simple as SQLite
 
 -- | Runtime data for the concrete logger impl.
 newtype LoggerRuntime = LoggerRuntime
@@ -28,6 +30,7 @@ data ProcessRuntime = ProcessRuntime
 data CoreRuntime = CoreRuntime
     { _rocksDBs       :: R.RocksDBHandles
     , _redisConns     :: R.RedisConnections
+    , _sqliteConns    :: R.SQLiteDBConns
     , _loggerRuntime  :: LoggerRuntime
     , _stateRuntime   :: StateRuntime
     , _processRuntime :: ProcessRuntime
@@ -72,6 +75,7 @@ createCoreRuntime :: LoggerRuntime -> IO CoreRuntime
 createCoreRuntime loggerRt = CoreRuntime
   <$> newTMVarIO Map.empty
   <*> newTMVarIO Map.empty
+  <*> newTMVarIO Map.empty
   <*> pure loggerRt
   <*> createStateRuntime
   <*> createProcessRuntime
@@ -88,6 +92,7 @@ clearCoreRuntime coreRt =
   (clearProcessRuntime $ _processRuntime coreRt)
   `finally` (R.closeRocksDBs $ _rocksDBs coreRt)
   `finally` (R.closeRedisConns $ _redisConns coreRt)
+  `finally` (R.closeSQLiteConns $ _sqliteConns coreRt)
 
 -- TODO: Church version of flusher.
 -- | Writes all stm entries into real logger.

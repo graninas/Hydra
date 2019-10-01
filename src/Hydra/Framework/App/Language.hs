@@ -27,6 +27,8 @@ data AppF next where
   -- TODO: add explicit deinit.
   -- DeinitKVDB :: D.DB db => D.DBHandle db -> (D.DBResult Bool -> next) -> AppF next
 
+  InitSqlDB :: D.SqlDBConfig -> (D.DBResult D.SqlDBHandle -> next) -> AppF next
+
 makeFunctorInstance ''AppF
 
 type AppL = Free AppF

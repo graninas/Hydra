@@ -10,12 +10,14 @@ import qualified Hydra.Core.Language      as L
 import qualified Hydra.Core.RLens         as RLens
 import qualified Hydra.Core.Runtime       as R
 import qualified Hydra.Core.KVDBRuntime   as R
+import qualified Hydra.Core.SqlDBRuntime  as R
 import qualified Hydra.Framework.Language as L
 import qualified Hydra.Framework.RLens    as RLens
 import qualified Hydra.Framework.Runtime  as R
 
 import qualified Database.RocksDB         as Rocks
 import qualified Database.Redis           as Redis
+import qualified Database.SQLite.Simple   as SQLite
 
 langRunner :: R.CoreRuntime -> Impl.LangRunner L.LangL
 langRunner coreRt = Impl.LangRunner (Impl.runLangL coreRt)
@@ -25,6 +27,10 @@ initKVDB' coreRt cfg@(D.RocksDBConfig _ _ _) dbName =
   R.initRocksDB' (coreRt ^. RLens.rocksDBs) cfg dbName
 initKVDB' coreRt cfg@(D.RedisConfig) dbName =
   R.initRedisDB' (coreRt ^. RLens.redisConns) cfg dbName
+
+initSqlDB' :: R.CoreRuntime -> D.SqlDBConfig -> IO (D.DBResult D.SqlDBHandle)
+initSqlDB' coreRt cfg@(D.SQLiteConfig dbName) =
+  R.initSQLiteDB' (coreRt ^. RLens.sqliteConns) cfg
 
 interpretAppF :: R.AppRuntime -> L.AppF a -> IO a
 interpretAppF appRt (L.EvalLang action next) = do
@@ -37,7 +43,11 @@ interpretAppF appRt (L.EvalProcess action next) = do
   res <- Impl.runProcessL (langRunner coreRt) (coreRt ^. RLens.processRuntime) action
   pure $ next res
 
-interpretAppF appRt (L.InitKVDB cfg dbName next) = next <$> initKVDB' (appRt ^. RLens.coreRuntime) cfg dbName
+interpretAppF appRt (L.InitKVDB cfg dbName next) =
+  next <$> initKVDB' (appRt ^. RLens.coreRuntime) cfg dbName
+
+interpretAppF appRt (L.InitSqlDB cfg next) =
+  next <$> initSqlDB' (appRt ^. RLens.coreRuntime) cfg
 
 runAppL :: R.AppRuntime -> L.AppL a -> IO a
 runAppL appRt = foldFree (interpretAppF appRt)

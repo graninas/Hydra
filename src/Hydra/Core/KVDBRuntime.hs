@@ -6,8 +6,6 @@ import qualified Data.Map                        as Map
 
 import qualified Hydra.Core.Domain               as D
 import qualified Hydra.Core.Language             as L
-import qualified Hydra.Core.Logger.Impl.HsLogger as Impl
-import qualified Hydra.Core.Logger.Impl.HsLoggerInterpreter as I
 
 import qualified Database.RocksDB as Rocks
 import qualified Database.Redis as Redis
@@ -30,18 +28,15 @@ initRocksDB'
   -> String
   -> IO (D.DBResult (D.DBHandle db))
 initRocksDB' rocksDBsVars cfg@(D.RocksDBConfig _ createIfMiss errorIfErr) dbname = do
-  rocksDBs <- atomically $ takeTMVar rocksDBsVars
   let dbPath = D.getKVDBName cfg
   eDb <- try $ Rocks.open dbPath $ initRocksOptions createIfMiss errorIfErr
   case eDb of
-    Left (err :: SomeException) -> do
-      atomically $ putTMVar rocksDBsVars rocksDBs
-      pure $ Left $ D.DBError D.SystemError $ show err
+    Left (err :: SomeException) -> pure $ Left $ D.DBError D.SystemError $ show err
     Right db -> do
       dbM <- newMVar db
-      atomically
-        $ putTMVar rocksDBsVars
-        $ Map.insert dbname dbM rocksDBs
+      atomically $ do
+        rocksDBs <- takeTMVar rocksDBsVars
+        putTMVar rocksDBsVars $ Map.insert dbname dbM rocksDBs
       pure $ Right $ D.DBHandle D.RocksDB dbname
 
 -- TODO: defaultConnectInfo
@@ -53,16 +48,13 @@ initRedisDB'
   -> String
   -> IO (D.DBResult (D.DBHandle db))
 initRedisDB' redisConnsVar _ dbname = do
-  mConns <- atomically $ takeTMVar redisConnsVar
   eConn <- try $ Redis.checkedConnect Redis.defaultConnectInfo
   case eConn of
-    Left (err :: SomeException) -> do
-      atomically $ putTMVar redisConnsVar mConns
-      pure $ Left $ D.DBError D.SystemError $ show err
+    Left (err :: SomeException) -> pure $ Left $ D.DBError D.SystemError $ show err
     Right conn -> do
-      atomically
-        $ putTMVar redisConnsVar
-        $ Map.insert dbname conn mConns
+      atomically $ do
+        mConns <- takeTMVar redisConnsVar
+        putTMVar redisConnsVar $ Map.insert dbname conn mConns
       pure $ Right $ D.DBHandle D.Redis dbname
 
 deInitRocksDB :: RocksDBHandle -> IO ()
