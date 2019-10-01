@@ -28,14 +28,14 @@ initSQLiteDB' connsVar cfg@(D.SQLiteConfig dbName) = do
         putTMVar connsVar $ Map.insert dbName dbM conns
       pure $ Right $ D.SQLiteHandle D.SQLite dbName
 
-deInitSQLiteDB :: SQLiteDBConn -> IO ()
-deInitSQLiteDB connVar = do
+deInitSQLiteConn :: SQLiteDBConn -> IO ()
+deInitSQLiteConn connVar = do
   conn <- takeMVar connVar
-  void $ try $ SQLite.close conn
+  SQLite.close conn
   putMVar connVar conn
 
-closeSQLiteDBs :: SQLiteDBConns -> IO ()
-closeSQLiteDBs handleMapVar = do
+closeSQLiteConns :: SQLiteDBConns -> IO ()
+closeSQLiteConns handleMapVar = do
   handleMap <- atomically $ takeTMVar handleMapVar
-  mapM_ deInitSQLiteDB $ Map.elems handleMap
+  mapM_ deInitSQLiteConn $ Map.elems handleMap
   atomically $ putTMVar handleMapVar Map.empty

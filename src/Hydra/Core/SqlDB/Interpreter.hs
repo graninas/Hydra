@@ -17,7 +17,8 @@ import qualified Hydra.Core.Domain   as D
 
 
 interpretSqlDBF :: db -> L.SqlDBF a -> IO a
-interpretSqlDBF db (RawQuery rawQ next) = error "not implemented"
+-- interpretSqlDBF db (L.RawQuery rawQ next) = error "not implemented"
+interpretSqlDBF db (L.RunBeam _ next) = error "not implemented"
 
 runSqlDBL :: db -> L.SqlDBL a -> IO a
 runSqlDBL conn act = foldFree (interpretSqlDBF conn) act

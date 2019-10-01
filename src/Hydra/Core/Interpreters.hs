@@ -10,3 +10,4 @@ import           Hydra.Core.Process.Interpreter     as X
 import           Hydra.Core.Random.Interpreter      as X
 import           Hydra.Core.State.Interpreter       as X
 import           Hydra.Core.KVDB.Interpreter        as X
+import           Hydra.Core.SqlDB.Interpreter       as X

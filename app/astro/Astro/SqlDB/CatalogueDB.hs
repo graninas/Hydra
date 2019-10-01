@@ -5,6 +5,7 @@ module Astro.SqlDB.CatalogueDB where
 import Hydra.Prelude
 
 import Database.Beam
+import           Data.Time.Clock (UTCTime)
 
 
 data MeteorT f = Meteor
@@ -15,7 +16,7 @@ data MeteorT f = Meteor
   , _altitude    :: Columnar f Int
   , _timestamp   :: Columnar f UTCTime
   }
-  deriving (Show, Eq, Ord, Generic, Beamable)
+  deriving (Generic, Beamable)
 
 type Meteor = MeteorT Identity
 type MeteorId = PrimaryKey MeteorT Identity

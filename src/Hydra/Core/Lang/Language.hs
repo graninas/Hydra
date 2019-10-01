@@ -15,6 +15,7 @@ import qualified Hydra.Core.Random.Language      as L
 import qualified Hydra.Core.State.Class          as L
 import qualified Hydra.Core.State.Language       as L
 import qualified Hydra.Core.KVDB.Language        as L
+import qualified Hydra.Core.SqlDB.Language       as L
 import qualified Hydra.Core.Lang.Class           as C
 import qualified Hydra.Core.Domain               as D
 
