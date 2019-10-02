@@ -21,6 +21,8 @@ import           Database.Beam.Backend.SQL (BeamSqlBackend)
 data SqlDBF be next where
   RunBeamSelect :: (BeamSqlBackend be, FromBackendRow be a) => SqlSelect be a -> (D.DBResult a -> next) -> SqlDBF be next
 
+-- makeFunctorInstance ''SqlDBF
+
 instance Functor (SqlDBF be) where
   fmap f (RunBeamSelect selectQ next) = RunBeamSelect selectQ (f . next)
 

@@ -11,6 +11,7 @@ import qualified Hydra.Core.Domain               as D
 import qualified Hydra.Core.Language             as L
 
 import           Language.Haskell.TH.MakeFunctor (makeFunctorInstance)
+import           Database.Beam.Sqlite (Sqlite)
 
 -- | App language.
 data AppF next where
@@ -27,7 +28,7 @@ data AppF next where
   -- TODO: add explicit deinit.
   -- DeinitKVDB :: D.DB db => D.DBHandle db -> (D.DBResult Bool -> next) -> AppF next
 
-  InitSqlDB :: D.SqlDBConfig be -> (D.DBResult (D.SqlDBHandle be) -> next) -> AppF next
+  InitSqlDB :: D.SqlDBConfig Sqlite -> (D.DBResult (D.SqlDBHandle Sqlite) -> next) -> AppF next
 
 makeFunctorInstance ''AppF
 
@@ -85,5 +86,5 @@ initKVDB config = do
   let dbName = D.getDBName @db
   liftF $ InitKVDB config dbName id
 
-initSqlDB :: D.SqlDBConfig be -> AppL (D.DBResult (D.SqlDBHandle be))
+initSqlDB :: D.SqlDBConfig Sqlite -> AppL (D.DBResult (D.SqlDBHandle Sqlite))
 initSqlDB config = liftF $ InitSqlDB config id

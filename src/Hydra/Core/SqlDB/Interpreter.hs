@@ -38,8 +38,8 @@ import           Unsafe.Coerce (unsafeCoerce)
 -- TODO: get rid of unsafeCoerse
 -- TODO: get rid of Sqlite
 
-interpretSqlDBF :: R.CoreRuntime -> D.SqlDBHandle Sqlite -> L.SqlDBF Sqlite a -> IO a
-interpretSqlDBF coreRt (D.SQLiteHandle dbName) (L.RunBeamSelect selectQ next) = do
+interpretSQLiteDBF :: R.CoreRuntime -> D.DBName -> L.SqlDBF Sqlite a -> IO a
+interpretSQLiteDBF coreRt dbName (L.RunBeamSelect selectQ next) = do
   let loggerHandle = coreRt ^. RLens.loggerRuntime . RLens.hsLoggerHandle
   let loggerF msg = runLoggerL loggerHandle $ L.logDebug $ toText msg
   let connsVar = coreRt ^. RLens.sqliteConns
@@ -55,4 +55,5 @@ interpretSqlDBF coreRt (D.SQLiteHandle dbName) (L.RunBeamSelect selectQ next) = 
 
 
 runSqlDBL :: R.CoreRuntime -> D.SqlDBHandle Sqlite -> L.SqlDBL Sqlite a -> IO a
-runSqlDBL coreRt conn act = foldFree (interpretSqlDBF coreRt conn) act
+runSqlDBL coreRt (D.SQLiteHandle dbName) act =
+  foldFree (interpretSQLiteDBF coreRt dbName) act
