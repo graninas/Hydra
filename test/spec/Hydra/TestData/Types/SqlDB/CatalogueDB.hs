@@ -21,6 +21,8 @@ data MeteorT f = Meteor
 type Meteor = MeteorT Identity
 type MeteorId = PrimaryKey MeteorT Identity
 
+-- CREATE TABLE meteors (id INT NOT NULL AUTOINCREMENT, size INT NOT NULL, mass INT NOT NULL, azimuth INT NOT NULL, altitude INT NOT NULL, timestamp TIMESTAMP NULL, PRIMARY KEY( id ));
+-- CREATE TABLE meteors (id INTEGER PRIMARY KEY AUTOINCREMENT, size INT NOT NULL, mass INT NOT NULL, azimuth INT NOT NULL, altitude INT NOT NULL, timestamp TIMESTAMP NULL);
 
 instance Table MeteorT where
   data PrimaryKey MeteorT f = MeteorId (Columnar f Int)

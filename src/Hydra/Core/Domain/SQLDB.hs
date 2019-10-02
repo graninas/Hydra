@@ -19,9 +19,12 @@ import           Database.Beam.Sqlite (Sqlite)
 
 import           Hydra.Core.Domain.DB
 
-data SqlDBConfig be
-  = SQLiteConfig DBName
+-- data SqlDBConfig be
+--   = SQLiteConfig DBName
+--   deriving (Show, Read, Ord, Eq, Generic, ToJSON, FromJSON)
+
+data SQLiteConfig = SQLiteConfig DBName
   deriving (Show, Read, Ord, Eq, Generic, ToJSON, FromJSON)
 
-mkSQLiteConfig :: DBName -> SqlDBConfig Sqlite
+mkSQLiteConfig :: DBName -> SQLiteConfig
 mkSQLiteConfig = SQLiteConfig

@@ -15,8 +15,8 @@ type SQLiteDBConns  = TMVar (Map D.DBName SQLiteDBConn)
 
 initSQLiteDB'
   :: SQLiteDBConns
-  -> D.SqlDBConfig Sqlite
-  -> IO (D.DBResult (D.SqlDBHandle Sqlite))
+  -> D.SQLiteConfig
+  -> IO (D.DBResult D.SQLiteHandle)
 initSQLiteDB' connsVar cfg@(D.SQLiteConfig dbName) = do
   eConn <- try $ SQLite.open dbName
   case eConn of

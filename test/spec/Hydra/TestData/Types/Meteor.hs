@@ -16,7 +16,7 @@ data Coords = Coords
   }
   deriving (Show, Eq, Ord, Generic, ToJSON, FromJSON)
 
-data Meteor' k = Meteor'
+data Meteor' k = Meteor
   { _id          :: k
   , _size        :: Int
   , _mass        :: Int

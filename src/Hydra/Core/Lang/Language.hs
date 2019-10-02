@@ -22,6 +22,7 @@ import qualified Hydra.Core.Domain               as D
 import           Language.Haskell.TH.MakeFunctor (makeFunctorInstance)
 import           Database.Beam.Backend.SQL (BeamSqlBackend)
 import           Database.Beam (FromBackendRow, SqlSelect)
+import           Database.Beam.Sqlite (Sqlite)
 
 -- | Core effects container language.
 data LangF next where
@@ -37,9 +38,10 @@ data LangF next where
   EvalIO          :: IO a           -> (a  -> next) -> LangF next
   -- | Eval KV DB action
   EvalKVDB :: D.DB db => D.DBHandle db -> L.KVDBL db a -> (a -> next) -> LangF next
-  -- | Eval SQL DB action
-  EvalSqlDB :: (BeamSqlBackend be, FromBackendRow be a) =>
-    D.SqlDBHandle be -> L.SqlDBL be a -> (a -> next) -> LangF next
+  -- | Eval SQLite DB action
+  EvalSQliteDB :: D.SQLiteHandle -> L.SqlDBL Sqlite (D.DBResult a) -> (D.DBResult a -> next) -> LangF next
+  -- EvalSqlDB :: (BeamSqlBackend be, FromBackendRow be a) =>
+  --   D.SqlDBHandle be -> L.SqlDBL be (D.DBResult a) -> (D.DBResult a -> next) -> LangF next
 
 
 makeFunctorInstance ''LangF
@@ -95,21 +97,8 @@ evalKVDB handle script = liftF $ EvalKVDB handle script id
 withKVDB :: forall db a. D.DB db => D.DBHandle db -> L.KVDBL db a -> LangL a
 withKVDB = evalKVDB
 
-
-evalSqlDB
-  :: forall be a
-   . BeamSqlBackend be
-  => FromBackendRow be a
-  => D.SqlDBHandle be
-  -> L.SqlDBL be a
-  -> LangL a
-evalSqlDB handle script = liftF $ EvalSqlDB handle script id
-
-withSqlDB
-  :: forall be a
-   . BeamSqlBackend be
-  => FromBackendRow be a
-  => D.SqlDBHandle be
-  -> L.SqlDBL be a
-  -> LangL a
-withSqlDB = evalSqlDB
+evalSQLiteDB
+  :: D.SQLiteHandle
+  -> L.SqlDBL Sqlite (D.DBResult a)
+  -> LangL (D.DBResult a)
+evalSQLiteDB handle script = liftF $ EvalSQliteDB handle script id

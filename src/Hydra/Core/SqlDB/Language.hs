@@ -19,7 +19,8 @@ import           Database.Beam.Backend.SQL (BeamSqlBackend)
   -- => SqlSelect be a -> m [a]
 
 data SqlDBF be next where
-  RunBeamSelect :: (BeamSqlBackend be, FromBackendRow be a) => SqlSelect be a -> (D.DBResult a -> next) -> SqlDBF be next
+  RunBeamSelect :: (BeamSqlBackend be, FromBackendRow be a)
+    => SqlSelect be a -> (D.DBResult [a] -> next) -> SqlDBF be next
 
 -- makeFunctorInstance ''SqlDBF
 
@@ -33,5 +34,5 @@ runBeamSelect
    . BeamSqlBackend be
   => FromBackendRow be a
   => SqlSelect be a
-  -> SqlDBL be (D.DBResult a)
+  -> SqlDBL be (D.DBResult [a])
 runBeamSelect selectQ = liftF $ RunBeamSelect selectQ id

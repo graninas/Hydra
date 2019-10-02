@@ -29,9 +29,9 @@ initKVDB' coreRt cfg@(D.RocksDBConfig _ _ _) dbName =
 initKVDB' coreRt cfg@(D.RedisConfig) dbName =
   R.initRedisDB' (coreRt ^. RLens.redisConns) cfg dbName
 
-initSqlDB' :: R.CoreRuntime -> D.SqlDBConfig Sqlite -> IO (D.DBResult (D.SqlDBHandle Sqlite))
-initSqlDB' coreRt cfg@(D.SQLiteConfig dbName) =
-  R.initSQLiteDB' (coreRt ^. RLens.sqliteConns) cfg
+-- initSqlDB' :: R.CoreRuntime -> D.SqlDBConfig Sqlite -> IO (D.DBResult (D.SqlDBHandle Sqlite))
+-- initSqlDB' coreRt cfg@(D.SQLiteConfig dbName) =
+--   R.initSQLiteDB' (coreRt ^. RLens.sqliteConns) cfg
 
 interpretAppF :: R.AppRuntime -> L.AppF a -> IO a
 interpretAppF appRt (L.EvalLang action next) = do
@@ -47,8 +47,8 @@ interpretAppF appRt (L.EvalProcess action next) = do
 interpretAppF appRt (L.InitKVDB cfg dbName next) =
   next <$> initKVDB' (appRt ^. RLens.coreRuntime) cfg dbName
 
-interpretAppF appRt (L.InitSqlDB cfg next) =
-  next <$> initSqlDB' (appRt ^. RLens.coreRuntime) cfg
+interpretAppF appRt (L.InitSQLiteDB cfg next) = do
+  next <$> R.initSQLiteDB' (appRt ^. RLens.coreRuntime . RLens.sqliteConns) cfg
 
 runAppL :: R.AppRuntime -> L.AppL a -> IO a
 runAppL appRt = foldFree (interpretAppF appRt)

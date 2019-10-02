@@ -14,7 +14,9 @@ import           Test.Hspec
 import           Database.Beam
 
 import           Hydra.TestData
-import qualified Hydra.TestData.Types.SqlDB.CatalogueDB as SqlDB
+import           Hydra.TestData.Types.Meteor
+import qualified Hydra.TestData.Types.SqlDB.CatalogueDB as CatDB
+import           Database.Beam.Sqlite (Sqlite)
 
 -- runBeamSqliteDebug putStrLn {- for debug output -} conn $ runInsert $
 -- insert (_shoppingCartUsers shoppingCartDb) $
@@ -28,25 +30,36 @@ import qualified Hydra.TestData.Types.SqlDB.CatalogueDB as SqlDB
 --   users <- runSelectReturningList $ select allUsers
 --   mapM_ (liftIO . putStrLn . show) users
 
+convertMeteor :: CatDB.Meteor -> Meteor
+convertMeteor m = Meteor
+  { _id        = CatDB._id m
+  , _size      = CatDB._size m
+  , _mass      = CatDB._mass m
+  , _coords    = Coords (CatDB._azimuth m) (CatDB._altitude m)
+  , _timestamp = CatDB._timestamp m
+  }
 
-
-dbApp :: D.SqlDBConfig be -> L.AppL (Either String ())
+dbApp :: D.SQLiteConfig -> L.AppL (Either String [Meteor])
 dbApp cfg = do
-  eDB <- L.initSqlDB cfg
+  eDB <- L.initSQLiteDB cfg
   case eDB of
     Left err -> pure $ Left $ show err
     Right db -> do
-      meteors <- runQuery $ select (all_ (SqlDB._meteors SqlDB.catalogueDB))
-      pure $ Right ()
-
+      eMeteors <- L.scenario
+        $ L.evalSQLiteDB db
+        $ L.runBeamSelect
+        $ select (all_ (CatDB._meteors CatDB.catalogueDB))
+      case eMeteors of
+        Right ms -> pure $ Right $ map convertMeteor ms
+        Left err -> pure $ Left $ show err
 
 spec :: Spec
 spec = do
 
   unstableTest $ fastTest $ describe "SQLite DB tests" $ do
-    let cfg = D.mkSQLiteConfig "test_db"
+    let cfg = D.mkSQLiteConfig "test.db"
 
     describe "Some SQLite DB & Beam test" $ do
-      it "DB is missing, create, errorIfExists False, no errors expected" $ do
-        eRes <- evalApp $ dbInitApp cfg
-        eRes `shouldBe` Right ()
+      it "Simple queries" $ do
+        eRes <- evalApp $ dbApp cfg
+        eRes `shouldBe` Right []

@@ -14,6 +14,7 @@ import qualified Hydra.Core.KVDBRuntime                     as R
 import qualified Hydra.Core.Domain                          as D
 import           Hydra.Core.State.Interpreter               (runStateL)
 import           Hydra.Core.KVDB.Interpreter                (runAsRocksDBL, runAsRedisL)
+import           Hydra.Core.SqlDB.Interpreter               (runSQLiteDBL)
 import qualified Database.RocksDB                           as Rocks
 
 evalRocksKVDB'
@@ -61,6 +62,7 @@ interpretLangF _      (L.EvalRandom  s next)        = next <$> runRandomL s
 interpretLangF coreRt (L.EvalControlFlow f    next) = next <$> runControlFlowL coreRt f
 interpretLangF _      (L.EvalIO f next)             = next <$> f
 interpretLangF coreRt (L.EvalKVDB storage act next) = next <$> evalKVDB' coreRt storage act
+interpretLangF coreRt (L.EvalSQliteDB handle act next) = next <$> runSQLiteDBL coreRt handle act
 
 runLangL :: R.CoreRuntime -> L.LangL a -> IO a
 runLangL coreRt = foldFree (interpretLangF coreRt)

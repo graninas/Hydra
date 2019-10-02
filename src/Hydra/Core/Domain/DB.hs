@@ -38,7 +38,9 @@ type DBName = String
 data DBHandle db = DBHandle DBType DBName
   deriving (Show, Generic)
 
-data SqlDBHandle be = SQLiteHandle DBName
+-- data SqlDBHandle be = SQLiteHandle DBName
 
-mkSQLiteHandle :: DBName -> SqlDBHandle Sqlite
+data SQLiteHandle = SQLiteHandle DBName
+
+mkSQLiteHandle :: DBName -> SQLiteHandle
 mkSQLiteHandle = SQLiteHandle

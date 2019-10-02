@@ -51,9 +51,8 @@ interpretSQLiteDBF coreRt dbName (L.RunBeamSelect selectQ next) = do
       rs <- SQLite.runBeamSqliteDebug loggerF conn
               $ runSelectReturningList
               $ selectQ
-      error "Not implemented...."
+      pure $ next $ Right rs
 
 
-runSqlDBL :: R.CoreRuntime -> D.SqlDBHandle Sqlite -> L.SqlDBL Sqlite a -> IO a
-runSqlDBL coreRt (D.SQLiteHandle dbName) act =
-  foldFree (interpretSQLiteDBF coreRt dbName) act
+runSQLiteDBL :: R.CoreRuntime -> D.SQLiteHandle -> L.SqlDBL Sqlite a -> IO a
+runSQLiteDBL coreRt (D.SQLiteHandle dbName) act = foldFree (interpretSQLiteDBF coreRt dbName) act
