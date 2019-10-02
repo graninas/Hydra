@@ -9,12 +9,15 @@ import           Hydra.Prelude
 import qualified Data.Aeson           as A
 import qualified Data.ByteString.Lazy as LBS
 
+import           Database.Beam.Sqlite (Sqlite)
+
 data DBErrorType
   = SystemError
   | KeyNotFound
   | InvalidType
   | DecodingFailed
   | UnknownDBError
+  | ConnectionIsDead
   deriving (Generic, Ord, Eq, Enum, Bounded, Show, Read)
 
 data DBError = DBError DBErrorType Text
@@ -30,13 +33,12 @@ data DBType
   | RocksDB
   deriving (Show, Read, Ord, Eq, Enum, Bounded, Generic, ToJSON, FromJSON)
 
-data SqlDBType
-  = SQLite
-  deriving (Show, Read, Ord, Eq, Enum, Bounded, Generic, ToJSON, FromJSON)
-
 type DBName = String
 
 data DBHandle db = DBHandle DBType DBName
   deriving (Show, Generic)
 
-data SqlDBHandle = SQLiteHandle SqlDBType DBName
+data SqlDBHandle be = SQLiteHandle DBName
+
+mkSQLiteHandle :: DBName -> SqlDBHandle Sqlite
+mkSQLiteHandle = SQLiteHandle

@@ -8,15 +8,15 @@ import qualified Hydra.Core.Domain               as D
 import qualified Hydra.Core.Language             as L
 
 import qualified Database.SQLite.Simple          as SQLite
-
+import           Database.Beam.Sqlite (Sqlite)
 
 type SQLiteDBConn   = MVar SQLite.Connection
 type SQLiteDBConns  = TMVar (Map D.DBName SQLiteDBConn)
 
 initSQLiteDB'
   :: SQLiteDBConns
-  -> D.SqlDBConfig
-  -> IO (D.DBResult D.SqlDBHandle)
+  -> D.SqlDBConfig Sqlite
+  -> IO (D.DBResult (D.SqlDBHandle Sqlite))
 initSQLiteDB' connsVar cfg@(D.SQLiteConfig dbName) = do
   eConn <- try $ SQLite.open dbName
   case eConn of
@@ -26,7 +26,7 @@ initSQLiteDB' connsVar cfg@(D.SQLiteConfig dbName) = do
       atomically $ do
         conns <- takeTMVar connsVar
         putTMVar connsVar $ Map.insert dbName dbM conns
-      pure $ Right $ D.SQLiteHandle D.SQLite dbName
+      pure $ Right $ D.mkSQLiteHandle dbName
 
 deInitSQLiteConn :: SQLiteDBConn -> IO ()
 deInitSQLiteConn connVar = do

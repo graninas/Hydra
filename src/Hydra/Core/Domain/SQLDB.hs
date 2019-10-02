@@ -15,9 +15,13 @@ import           Hydra.Prelude
 import qualified Data.Aeson           as A
 import qualified Data.ByteString.Lazy as LBS
 import           System.FilePath ((</>))
+import           Database.Beam.Sqlite (Sqlite)
 
 import           Hydra.Core.Domain.DB
 
-data SqlDBConfig
+data SqlDBConfig be
   = SQLiteConfig DBName
   deriving (Show, Read, Ord, Eq, Generic, ToJSON, FromJSON)
+
+mkSQLiteConfig :: DBName -> SqlDBConfig Sqlite
+mkSQLiteConfig = SQLiteConfig

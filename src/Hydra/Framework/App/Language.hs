@@ -27,7 +27,7 @@ data AppF next where
   -- TODO: add explicit deinit.
   -- DeinitKVDB :: D.DB db => D.DBHandle db -> (D.DBResult Bool -> next) -> AppF next
 
-  InitSqlDB :: D.SqlDBConfig -> (D.DBResult D.SqlDBHandle -> next) -> AppF next
+  InitSqlDB :: D.SqlDBConfig be -> (D.DBResult (D.SqlDBHandle be) -> next) -> AppF next
 
 makeFunctorInstance ''AppF
 
@@ -84,3 +84,6 @@ initKVDB :: forall db. D.DB db => D.KVDBConfig db -> AppL (D.DBResult (D.DBHandl
 initKVDB config = do
   let dbName = D.getDBName @db
   liftF $ InitKVDB config dbName id
+
+initSqlDB :: D.SqlDBConfig be -> AppL (D.DBResult (D.SqlDBHandle be))
+initSqlDB config = liftF $ InitSqlDB config id

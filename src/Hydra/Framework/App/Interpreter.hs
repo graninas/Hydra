@@ -18,6 +18,7 @@ import qualified Hydra.Framework.Runtime  as R
 import qualified Database.RocksDB         as Rocks
 import qualified Database.Redis           as Redis
 import qualified Database.SQLite.Simple   as SQLite
+import           Database.Beam.Sqlite     (Sqlite)
 
 langRunner :: R.CoreRuntime -> Impl.LangRunner L.LangL
 langRunner coreRt = Impl.LangRunner (Impl.runLangL coreRt)
@@ -28,7 +29,7 @@ initKVDB' coreRt cfg@(D.RocksDBConfig _ _ _) dbName =
 initKVDB' coreRt cfg@(D.RedisConfig) dbName =
   R.initRedisDB' (coreRt ^. RLens.redisConns) cfg dbName
 
-initSqlDB' :: R.CoreRuntime -> D.SqlDBConfig -> IO (D.DBResult D.SqlDBHandle)
+initSqlDB' :: R.CoreRuntime -> D.SqlDBConfig Sqlite -> IO (D.DBResult (D.SqlDBHandle Sqlite))
 initSqlDB' coreRt cfg@(D.SQLiteConfig dbName) =
   R.initSQLiteDB' (coreRt ^. RLens.sqliteConns) cfg
 
