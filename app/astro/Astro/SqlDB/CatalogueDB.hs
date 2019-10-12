@@ -8,7 +8,7 @@ import Database.Beam
 import           Data.Time.Clock (UTCTime)
 
 
-data MeteorT f = Meteor
+data DBMeteorT f = DBMeteor
   { _id          :: Columnar f Int
   , _size        :: Columnar f Int
   , _mass        :: Columnar f Int
@@ -18,19 +18,19 @@ data MeteorT f = Meteor
   }
   deriving (Generic, Beamable)
 
-type Meteor = MeteorT Identity
-type MeteorId = PrimaryKey MeteorT Identity
+type DBMeteor = DBMeteorT Identity
+type DBMeteorId = PrimaryKey DBMeteorT Identity
 
 
-instance Table MeteorT where
-  data PrimaryKey MeteorT f = MeteorId (Columnar f Int)
+instance Table DBMeteorT where
+  data PrimaryKey DBMeteorT f = DBMeteorId (Columnar f Int)
     deriving (Generic, Beamable)
-  primaryKey = MeteorId . _id
+  primaryKey = DBMeteorId . _id
 
 
 data CatalogueDB f
   = CatalogueDB
-  { _meteors :: f (TableEntity MeteorT)
+  { _meteors :: f (TableEntity DBMeteorT)
   }
   deriving (Generic, Database be)
 

@@ -12,11 +12,13 @@ import           Hydra.Testing.Integrational
 import           Hydra.Testing.Wrappers
 import           Test.Hspec
 import           Database.Beam
+import qualified Database.Beam as B
+import qualified Database.Beam.Query as B
+import           Database.Beam.Sqlite (Sqlite)
 
 import           Hydra.TestData
 import           Hydra.TestData.Types.Meteor
 import qualified Hydra.TestData.Types.SqlDB.CatalogueDB as CatDB
-import           Database.Beam.Sqlite (Sqlite)
 
 -- runBeamSqliteDebug putStrLn {- for debug output -} conn $ runInsert $
 -- insert (_shoppingCartUsers shoppingCartDb) $
@@ -30,7 +32,7 @@ import           Database.Beam.Sqlite (Sqlite)
 --   users <- runSelectReturningList $ select allUsers
 --   mapM_ (liftIO . putStrLn . show) users
 
-convertMeteor :: CatDB.Meteor -> Meteor
+convertMeteor :: CatDB.DBMeteor -> Meteor
 convertMeteor m = Meteor
   { _id        = CatDB._id m
   , _size      = CatDB._size m
@@ -38,6 +40,21 @@ convertMeteor m = Meteor
   , _coords    = Coords (CatDB._azimuth m) (CatDB._altitude m)
   , _timestamp = CatDB._timestamp m
   }
+
+getMeteorsWithMass :: D.SQLiteHandle -> Int -> L.AppL [CatDB.DBMeteor]
+getMeteorsWithMass sqliteConn size = do
+  eMeteors <- L.scenario
+    $ L.evalSQLiteDB sqliteConn
+    $ L.runBeamSelect
+    $ B.select
+    $ B.filter_ (\meteor -> CatDB._size meteor ==. B.val_ size)
+    $ B.all_ (CatDB._meteors CatDB.catalogueDB)
+  case eMeteors of
+    Left err -> do
+      L.logError $ "Error occured when extracting meteors: " <> show err
+      pure []
+    Right ms -> pure ms
+
 
 dbApp :: D.SQLiteConfig -> L.AppL (Either String [Meteor])
 dbApp cfg = do
