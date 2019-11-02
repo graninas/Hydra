@@ -38,6 +38,7 @@ initRocksDB' rocksDBsVars cfg@(D.RocksDBConfig _ createIfMiss errorIfErr) dbname
         rocksDBs <- takeTMVar rocksDBsVars
         putTMVar rocksDBsVars $ Map.insert dbname dbM rocksDBs
       pure $ Right $ D.DBHandle D.RocksDB dbname
+initRocksDB' _ _ _ = error "Invalid config."
 
 -- TODO: defaultConnectInfo
 initRedisDB'

@@ -14,30 +14,8 @@ import           Database.Beam.Query (runSelectReturningList)
 import           Database.Beam.Sqlite.Connection (runBeamSqliteDebug)
 import           Database.Beam.Sqlite (Sqlite)
 
-import           Unsafe.Coerce (unsafeCoerce)
-
--- aggregate_ (\t -> ( as_ @Double @QAggregateContext $ customExpr_ (\bytes ms -> "regr_intercept(" <> bytes <> ", " <> ms <> ")") (trackBytes t) (trackMilliseconds t)
---                   , as_ @Double @QAggregateContext $ customExpr_ (\bytes ms -> "regr_slope(" <> bytes <> ", " <> ms <> ")") (trackBytes t) (trackMilliseconds t) )) $
---      all_ (track chinookDb)
-
--- SELECT regr_intercept(("t0"."Bytes"), ("t0"."Milliseconds")) AS "res0",
---        regr_slope(("t0"."Bytes"), ("t0"."Milliseconds")) AS "res1"
--- FROM "Track" AS "t0"
-
--- runSelectReturningList
-  -- :: (MonadBeam be m, BeamSqlBackend be, FromBackendRow be a)
-  -- => SqlSelect be a -> m [a]
-
--- runBeamSqliteDebug putStrLn conn $ do
---   users <- runSelectReturningList $ select allUsers
---   mapM_ (liftIO . putStrLn . show) users
-
--- data SqlDBF be next where
---   RunBeamSelect :: (BeamSqlBackend be, FromBackendRow be a) => SqlSelect be a -> (D.DBResult a -> next) -> SqlDBF next
-
--- TODO: get rid of unsafeCoerse
--- TODO: get rid of Sqlite
-
+-- TODO: transactions
+-- TODO: remove dep on HsLoggerInterpreter
 interpretSQLiteDBF :: R.CoreRuntime -> D.DBName -> L.SqlDBF Sqlite a -> IO a
 interpretSQLiteDBF coreRt dbName (L.RunBeamSelect selectQ next) = do
   let loggerHandle = coreRt ^. RLens.loggerRuntime . RLens.hsLoggerHandle

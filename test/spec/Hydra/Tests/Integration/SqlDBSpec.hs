@@ -15,6 +15,9 @@ import           Database.Beam
 import qualified Database.Beam as B
 import qualified Database.Beam.Query as B
 import           Database.Beam.Sqlite (Sqlite)
+import qualified Database.Beam.Sqlite as SQLite
+import qualified Database.SQLite.Simple as SQLite (Connection)
+import           Database.Beam.Query (runSelectReturningList)
 
 import           Hydra.TestData
 import           Hydra.TestData.Types.Meteor
@@ -41,19 +44,33 @@ convertMeteor m = Meteor
   , _timestamp = CatDB._timestamp m
   }
 
-getMeteorsWithMass :: D.SQLiteHandle -> Int -> L.AppL [CatDB.DBMeteor]
-getMeteorsWithMass sqliteConn size = do
-  eMeteors <- L.scenario
-    $ L.evalSQLiteDB sqliteConn
-    $ L.runBeamSelect
-    $ B.select
-    $ B.filter_ (\meteor -> CatDB._size meteor ==. B.val_ size)
-    $ B.all_ (CatDB._meteors CatDB.catalogueDB)
-  case eMeteors of
-    Left err -> do
-      L.logError $ "Error occured when extracting meteors: " <> show err
-      pure []
-    Right ms -> pure ms
+-- SqlSelect be0 (QExprToIdentity (CatDB.DBMeteorT (QExpr be0 QBaseScope)))
+
+-- query :: Int -> B.SqlSelect be [CatDB.DBMeteor]
+getMeteorsWithMass size
+  = B.select
+  $ B.filter_ (\meteor -> CatDB._size meteor ==. B.val_ size)
+  $ B.all_ (CatDB._meteors CatDB.catalogueDB)
+
+runGetMeteorsWithMass :: SQLite.Connection -> Int -> IO [CatDB.DBMeteor]
+runGetMeteorsWithMass conn size
+  = SQLite.runBeamSqlite conn
+  $ B.runSelectReturningList
+  $ getMeteorsWithMass size
+
+-- getMeteorsWithMass :: D.SQLiteHandle -> Int -> L.AppL [CatDB.DBMeteor]
+-- getMeteorsWithMass sqliteConn size = do
+--   eMeteors <- L.scenario
+--     $ L.evalSQLiteDB sqliteConn
+--     $ L.runBeamSelect
+--     $ B.select
+--     $ B.filter_ (\meteor -> CatDB._size meteor ==. B.val_ size)
+--     $ B.all_ (CatDB._meteors CatDB.catalogueDB)
+--   case eMeteors of
+--     Left err -> do
+--       L.logError $ "Error occurred when extracting meteors: " <> show err
+--       pure []
+--     Right ms -> pure ms
 
 
 dbApp :: D.SQLiteConfig -> L.AppL (Either String [Meteor])

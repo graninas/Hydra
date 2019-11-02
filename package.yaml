@@ -102,6 +102,7 @@ dependencies:
 - beam-sqlite
 - beam-migrate
 - sqlite-simple
+- resource-pool
 
 library:
   source-dirs:

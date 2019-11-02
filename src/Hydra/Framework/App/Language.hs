@@ -12,6 +12,8 @@ import qualified Hydra.Core.Language             as L
 
 import           Language.Haskell.TH.MakeFunctor (makeFunctorInstance)
 import           Database.Beam.Sqlite (Sqlite)
+import qualified Database.Beam as B
+import qualified Database.Beam.Backend.SQL as B
 
 -- | App language.
 data AppF next where
@@ -29,6 +31,13 @@ data AppF next where
   -- DeinitKVDB :: D.DB db => D.DBHandle db -> (D.DBResult Bool -> next) -> AppF next
 
   InitSQLiteDB :: D.SQLiteConfig -> (D.DBResult D.SQLiteHandle -> next) -> AppF next
+
+  InitSqlDB :: D.DBConfig beM -> (D.DBResult (D.SqlConn beM) -> next) -> AppF next
+
+  -- DeInitSqlDB
+  --   :: T.SqlConn beM
+  --   -> (() -> next)
+  --   -> FlowMethod next
 
 makeFunctorInstance ''AppF
 
@@ -88,3 +97,10 @@ initKVDB config = do
 
 initSQLiteDB :: D.SQLiteConfig -> AppL (D.DBResult D.SQLiteHandle)
 initSQLiteDB config = liftF $ InitSQLiteDB config id
+
+
+initSqlDB :: D.DBConfig beM -> AppL (D.DBResult (D.SqlConn beM))
+initSqlDB cfg = liftFC $ InitSqlDB cfg id
+
+-- deinitSqlDB :: T.SqlConn beM -> Flow ()
+-- deinitSqlDB conn = liftFC $ DeInitSqlDBConnection conn id

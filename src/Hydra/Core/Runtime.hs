@@ -34,6 +34,7 @@ data CoreRuntime = CoreRuntime
     , _loggerRuntime  :: LoggerRuntime
     , _stateRuntime   :: StateRuntime
     , _processRuntime :: ProcessRuntime
+    , _sqlConns       :: MVar (Map D.ConnTag D.NativeSqlConn)
     }
 
 -- | Logger that can be used in runtime via the logging subsystem.
@@ -79,6 +80,7 @@ createCoreRuntime loggerRt = CoreRuntime
   <*> pure loggerRt
   <*> createStateRuntime
   <*> createProcessRuntime
+  <*> newMVar Map.empty
 
 clearProcessRuntime :: ProcessRuntime -> IO ()
 clearProcessRuntime procRt = do

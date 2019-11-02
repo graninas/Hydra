@@ -29,6 +29,13 @@ initKVDB' coreRt cfg@(D.RocksDBConfig _ _ _) dbName =
 initKVDB' coreRt cfg@(D.RedisConfig) dbName =
   R.initRedisDB' (coreRt ^. RLens.redisConns) cfg dbName
 
+connect :: D.DBConfig beM -> IO (D.DBResult (D.SqlConn beM))
+connect cfg = do
+  eConn <- try $ R.connect' cfg
+  case eConn of
+    Left (e :: SomeException) -> pure $ Left $ D.DBError D.FailedToConnect $ show e
+    Right conn -> pure $ Right conn
+
 -- initSqlDB' :: R.CoreRuntime -> D.SqlDBConfig Sqlite -> IO (D.DBResult (D.SqlDBHandle Sqlite))
 -- initSqlDB' coreRt cfg@(D.SQLiteConfig dbName) =
 --   R.initSQLiteDB' (coreRt ^. RLens.sqliteConns) cfg
@@ -49,6 +56,27 @@ interpretAppF appRt (L.InitKVDB cfg dbName next) =
 
 interpretAppF appRt (L.InitSQLiteDB cfg next) = do
   next <$> R.initSQLiteDB' (appRt ^. RLens.coreRuntime . RLens.sqliteConns) cfg
+
+interpretAppF appRt (L.InitSqlDB cfg next) = do
+  let connTag = D.getConnTag cfg
+  let connsVar = appRt ^. RLens.coreRuntime . RLens.sqlConns
+  connMap <- takeMVar connsVar
+  case Map.lookup connTag connMap of
+    Just _ -> do
+      putMVar connsVar connMap
+      pure
+        $ next $ Left $ D.DBError D.ConnectionAlreadyExists
+        $ "Connection for " <> show connTag <> " already created."
+    Nothing -> do
+      eConn <- connect cfg
+      case eConn of
+        Right conn -> do
+          putMVar connsVar $ Map.insert connTag (R.bemToNative conn) connMap
+          pure $ next $ Right conn
+        Left err -> do
+          putMVar connsVar connMap
+          pure $ next $ Left err
+
 
 runAppL :: R.AppRuntime -> L.AppL a -> IO a
 runAppL appRt = foldFree (interpretAppF appRt)

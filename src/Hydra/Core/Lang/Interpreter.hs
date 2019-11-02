@@ -15,6 +15,7 @@ import qualified Hydra.Core.Domain                          as D
 import           Hydra.Core.State.Interpreter               (runStateL)
 import           Hydra.Core.KVDB.Interpreter                (runAsRocksDBL, runAsRedisL)
 import           Hydra.Core.SqlDB.Interpreter               (runSQLiteDBL)
+import           Hydra.Core.SqlDB.Interpreter2              (runSqlDBL2)
 import qualified Database.RocksDB                           as Rocks
 
 evalRocksKVDB'
@@ -56,13 +57,22 @@ interpretLangF coreRt (L.EvalStateAtomically action next) = do
     res <- atomically $ runStateL stateRt action
     R.flushStmLogger stateRt loggerRt
     pure $ next res
-interpretLangF coreRt (L.EvalLogger msg next) =
-    next <$> runLoggerL (coreRt ^. RLens.loggerRuntime . RLens.hsLoggerHandle) msg
+interpretLangF coreRt (L.EvalLogger loggerAct next) =
+    next <$> runLoggerL (coreRt ^. RLens.loggerRuntime . RLens.hsLoggerHandle) loggerAct
 interpretLangF _      (L.EvalRandom  s next)        = next <$> runRandomL s
 interpretLangF coreRt (L.EvalControlFlow f    next) = next <$> runControlFlowL coreRt f
 interpretLangF _      (L.EvalIO f next)             = next <$> f
 interpretLangF coreRt (L.EvalKVDB storage act next) = next <$> evalKVDB' coreRt storage act
 interpretLangF coreRt (L.EvalSQliteDB handle act next) = next <$> runSQLiteDBL coreRt handle act
+interpretLangF coreRt (L.EvalSqlDB conn sqlDbMethod next) = do
+  let dbgLogger = runLoggerL (coreRt ^. RLens.loggerRuntime . RLens.hsLoggerHandle)
+                . L.logMessage D.Debug . show
+  -- TODO: transactions
+  eRes <- try $ runSqlDBL2 conn dbgLogger sqlDbMethod
+  pure $ next $ case eRes of
+    Left (err :: SomeException) -> Left $ D.DBError D.SystemError $ show err
+    Right res -> Right res
+
 
 runLangL :: R.CoreRuntime -> L.LangL a -> IO a
 runLangL coreRt = foldFree (interpretLangF coreRt)
