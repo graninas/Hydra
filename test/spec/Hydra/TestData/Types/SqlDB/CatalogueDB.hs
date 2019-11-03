@@ -4,9 +4,8 @@ module Hydra.TestData.Types.SqlDB.CatalogueDB where
 
 import Hydra.Prelude
 
-import Database.Beam
+import           Database.Beam
 import           Data.Time.Clock (UTCTime)
-
 
 data DBMeteorT f = DBMeteor
   { _id          :: Columnar f Int

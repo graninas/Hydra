@@ -22,6 +22,7 @@ import           Database.Beam.Query (runSelectReturningList)
 import           Hydra.TestData
 import           Hydra.TestData.Types.Meteor
 import qualified Hydra.TestData.Types.SqlDB.CatalogueDB as CatDB
+import           Hydra.Tests.Integration.Common
 
 -- runBeamSqliteDebug putStrLn {- for debug output -} conn $ runInsert $
 -- insert (_shoppingCartUsers shoppingCartDb) $
@@ -35,22 +36,7 @@ import qualified Hydra.TestData.Types.SqlDB.CatalogueDB as CatDB
 --   users <- runSelectReturningList $ select allUsers
 --   mapM_ (liftIO . putStrLn . show) users
 
-convertMeteor :: CatDB.DBMeteor -> Meteor
-convertMeteor m = Meteor
-  { _id        = CatDB._id m
-  , _size      = CatDB._size m
-  , _mass      = CatDB._mass m
-  , _coords    = Coords (CatDB._azimuth m) (CatDB._altitude m)
-  , _timestamp = CatDB._timestamp m
-  }
-
 -- SqlSelect be0 (QExprToIdentity (CatDB.DBMeteorT (QExpr be0 QBaseScope)))
-
--- query :: Int -> B.SqlSelect be [CatDB.DBMeteor]
-getMeteorsWithMass size
-  = B.select
-  $ B.filter_ (\meteor -> CatDB._size meteor ==. B.val_ size)
-  $ B.all_ (CatDB._meteors CatDB.catalogueDB)
 
 runGetMeteorsWithMass :: SQLite.Connection -> Int -> IO [CatDB.DBMeteor]
 runGetMeteorsWithMass conn size
