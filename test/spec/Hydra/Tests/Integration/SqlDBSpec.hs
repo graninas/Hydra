@@ -61,7 +61,7 @@ connectOrFail cfg = L.initSqlDB cfg >>= \case
 
 
 sqliteCfg :: D.DBConfig BS.SqliteM
-sqliteCfg = D.mkSQLiteConfig2 "test.db"
+sqliteCfg = D.mkSQLiteConfig "test.db"
 
 dbApp :: L.AppL (Either String (Maybe Meteor))
 dbApp = do
@@ -77,9 +77,9 @@ dbApp = do
 spec :: Spec
 spec = do
 
-  unstableTest $ fastTest $ describe "SQLite DB tests 2" $ do
+  unstableTest $ fastTest $ describe "SQLite DB tests" $ do
 
-    describe "Some SQLite DB & Beam test 2" $ do
+    describe "Some SQLite DB & Beam test" $ do
       it "Simple queries" $ do
         eRes <- evalApp dbApp
         eRes `shouldBe` Right Nothing

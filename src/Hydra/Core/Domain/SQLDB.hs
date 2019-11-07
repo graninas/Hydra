@@ -26,14 +26,6 @@ import qualified Database.SQLite.Simple          as SQLite
 
 import           Hydra.Core.Domain.DB
 
-data SQLiteConfig = SQLiteConfig DBName
-  deriving (Show, Read, Ord, Eq, Generic, ToJSON, FromJSON)
-
-mkSQLiteConfig :: DBName -> SQLiteConfig
-mkSQLiteConfig = SQLiteConfig
-
--------------------
-
 class (B.BeamSqlBackend be, B.MonadBeam be beM) => BeamRuntime be beM
   | be -> beM, beM -> be where
   rtSelectReturningList :: B.FromBackendRow be a => B.SqlSelect be a -> beM [a]
@@ -84,8 +76,8 @@ data DBConfig beM
   | SQLitePoolConf PoolConfig DBName
   deriving (Show, Eq, Ord, Generic, ToJSON, FromJSON)
 
-mkSQLiteConfig2 :: DBName -> DBConfig BS.SqliteM
-mkSQLiteConfig2 = SQLiteConf
+mkSQLiteConfig :: DBName -> DBConfig BS.SqliteM
+mkSQLiteConfig = SQLiteConf
 
 mkSQLitePoolConfig :: PoolConfig -> DBName -> DBConfig BS.SqliteM
 mkSQLitePoolConfig = SQLitePoolConf

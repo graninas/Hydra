@@ -107,3 +107,13 @@ evalSqlDB
   -> L.SqlDBL beM a
   -> LangL (D.DBResult a)
 evalSqlDB conn dbAct = liftFC $ EvalSqlDB conn dbAct id
+
+runDB
+  ::
+    ( D.BeamRunner beM
+    , D.BeamRuntime be beM
+    )
+  => D.SqlConn beM
+  -> L.SqlDBL beM a
+  -> LangL (D.DBResult a)
+runDB = evalSqlDB

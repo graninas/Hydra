@@ -1,4 +1,5 @@
 {-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DuplicateRecordFields #-}
 
 module Astro.Domain.Meteor where
 
@@ -11,21 +12,28 @@ import           Data.Time.Clock (UTCTime)
 type DateTime = UTCTime
 
 data Coords = Coords
-  { _azimuth  :: Int
-  , _altitude :: Int
+  { azimuth  :: Int
+  , altitude :: Int
   }
   deriving (Show, Eq, Ord, Generic, ToJSON, FromJSON)
 
-data Meteor' k = Meteor'
-  { _id          :: k
-  , _size        :: Int
-  , _mass        :: Int
-  , _coords      :: Coords
-  , _timestamp   :: DateTime
+type MeteorID  = Int
+
+data Meteor = Meteor
+  { meteorId    :: MeteorID
+  , size        :: Int
+  , mass        :: Int
+  , coords      :: Coords
   }
   deriving (Show, Eq, Ord, Generic, ToJSON, FromJSON)
 
-type RawMeteor = Meteor' ()
-type Meteor    = Meteor' Int
+data MeteorTemplate = MeteorTemplate
+  { size        :: Int
+  , mass        :: Int
+  , azimuth     :: Int
+  , altitude    :: Int
+  }
+  deriving (Show, Eq, Ord, Generic, ToJSON, FromJSON)
 
--- type Meteors = D.StateVar (Set.Set Meteor)
+newtype Meteors = Meteors [Meteor]
+  deriving (Show, Eq, Ord, Generic, ToJSON, FromJSON)

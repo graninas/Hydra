@@ -35,6 +35,7 @@ default-extensions:
 - TupleSections
 - ViewPatterns
 - MultiWayIf
+- RecordWildCards
 
 dependencies:
 - base >= 4.7 && < 5
@@ -103,6 +104,13 @@ dependencies:
 - beam-migrate
 - sqlite-simple
 - resource-pool
+- servant
+- servant-server
+- servant-client
+- servant-swagger
+- servant-docs
+- wai
+- warp
 
 library:
   source-dirs:

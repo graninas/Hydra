@@ -40,7 +40,7 @@ instance D.AsKeyEntity MeteorEntity Int where
   toKeyEntity = MeteorKey
 
 instance D.AsKeyEntity MeteorEntity D.Meteor where
-  toKeyEntity = MeteorKey . D._id
+  toKeyEntity = MeteorKey . D.meteorId
 
 instance D.AsValueEntity MeteorEntity D.Meteor where
   toValueEntity = MeteorValue
