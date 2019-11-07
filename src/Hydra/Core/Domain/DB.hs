@@ -49,12 +49,6 @@ type DBName = String
 data DBHandle db = DBHandle DBType DBName
   deriving (Show, Generic)
 
-data SQLiteHandle = SQLiteHandle DBName
-
-mkSQLiteHandle :: DBName -> SQLiteHandle
-mkSQLiteHandle = SQLiteHandle
-
------------------------
 data PoolConfig = PoolConfig
   { stripes :: Int
   , keepAlive :: NominalDiffTime

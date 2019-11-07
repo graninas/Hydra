@@ -16,7 +16,6 @@ import qualified Hydra.Core.State.Class          as L
 import qualified Hydra.Core.State.Language       as L
 import qualified Hydra.Core.KVDB.Language        as L
 import qualified Hydra.Core.SqlDB.Language       as L
-import qualified Hydra.Core.SqlDB.Language2      as L
 import qualified Hydra.Core.Lang.Class           as C
 import qualified Hydra.Core.Domain               as D
 
@@ -41,10 +40,8 @@ data LangF next where
   EvalIO          :: IO a           -> (a  -> next) -> LangF next
   -- | Eval KV DB action
   EvalKVDB :: D.DB db => D.DBHandle db -> L.KVDBL db a -> (a -> next) -> LangF next
-  -- | Eval SQLite DB action
-  EvalSQliteDB :: D.SQLiteHandle -> L.SqlDBL Sqlite (D.DBResult a) -> (D.DBResult a -> next) -> LangF next
   -- | Eval SQL DB
-  EvalSqlDB :: D.SqlConn beM -> L.SqlDBL2 beM a -> (D.DBResult a -> next) -> LangF next
+  EvalSqlDB :: D.SqlConn beM -> L.SqlDBL beM a -> (D.DBResult a -> next) -> LangF next
 
 
 
@@ -101,20 +98,12 @@ evalKVDB handle script = liftF $ EvalKVDB handle script id
 withKVDB :: forall db a. D.DB db => D.DBHandle db -> L.KVDBL db a -> LangL a
 withKVDB = evalKVDB
 
-evalSQLiteDB
-  :: D.SQLiteHandle
-  -> L.SqlDBL Sqlite (D.DBResult a)
-  -> LangL (D.DBResult a)
-evalSQLiteDB handle script = liftF $ EvalSQliteDB handle script id
-
-
 evalSqlDB
   ::
     ( D.BeamRunner beM
     , D.BeamRuntime be beM
-    , B.FromBackendRow be a
     )
   => D.SqlConn beM
-  -> L.SqlDBL2 beM a
+  -> L.SqlDBL beM a
   -> LangL (D.DBResult a)
 evalSqlDB conn dbAct = liftFC $ EvalSqlDB conn dbAct id

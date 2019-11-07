@@ -30,7 +30,7 @@ data ProcessRuntime = ProcessRuntime
 data CoreRuntime = CoreRuntime
     { _rocksDBs       :: R.RocksDBHandles
     , _redisConns     :: R.RedisConnections
-    , _sqliteConns    :: R.SQLiteDBConns
+    -- , _sqliteConns    :: R.SQLiteDBConns
     , _loggerRuntime  :: LoggerRuntime
     , _stateRuntime   :: StateRuntime
     , _processRuntime :: ProcessRuntime
@@ -76,7 +76,7 @@ createCoreRuntime :: LoggerRuntime -> IO CoreRuntime
 createCoreRuntime loggerRt = CoreRuntime
   <$> newTMVarIO Map.empty
   <*> newTMVarIO Map.empty
-  <*> newTMVarIO Map.empty
+  -- <*> newTMVarIO Map.empty
   <*> pure loggerRt
   <*> createStateRuntime
   <*> createProcessRuntime
@@ -94,7 +94,8 @@ clearCoreRuntime coreRt =
   (clearProcessRuntime $ _processRuntime coreRt)
   `finally` (R.closeRocksDBs $ _rocksDBs coreRt)
   `finally` (R.closeRedisConns $ _redisConns coreRt)
-  `finally` (R.closeSQLiteConns $ _sqliteConns coreRt)
+  -- TODO: close sql conns
+  -- `finally` (R.closeSQLiteConns $ _sqliteConns coreRt)
 
 -- TODO: Church version of flusher.
 -- | Writes all stm entries into real logger.

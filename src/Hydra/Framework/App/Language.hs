@@ -30,8 +30,6 @@ data AppF next where
   -- TODO: add explicit deinit.
   -- DeinitKVDB :: D.DB db => D.DBHandle db -> (D.DBResult Bool -> next) -> AppF next
 
-  InitSQLiteDB :: D.SQLiteConfig -> (D.DBResult D.SQLiteHandle -> next) -> AppF next
-
   InitSqlDB :: D.DBConfig beM -> (D.DBResult (D.SqlConn beM) -> next) -> AppF next
 
   -- DeInitSqlDB
@@ -94,10 +92,6 @@ initKVDB :: forall db. D.DB db => D.KVDBConfig db -> AppL (D.DBResult (D.DBHandl
 initKVDB config = do
   let dbName = D.getDBName @db
   liftF $ InitKVDB config dbName id
-
-initSQLiteDB :: D.SQLiteConfig -> AppL (D.DBResult D.SQLiteHandle)
-initSQLiteDB config = liftF $ InitSQLiteDB config id
-
 
 initSqlDB :: D.DBConfig beM -> AppL (D.DBResult (D.SqlConn beM))
 initSqlDB cfg = liftFC $ InitSqlDB cfg id

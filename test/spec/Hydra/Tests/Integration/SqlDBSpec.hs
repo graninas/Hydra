@@ -14,6 +14,7 @@ import           Test.Hspec
 import           Database.Beam
 import qualified Database.Beam as B
 import qualified Database.Beam.Query as B
+import qualified Database.Beam.Sqlite as BS
 import           Database.Beam.Sqlite (Sqlite)
 import qualified Database.Beam.Sqlite as SQLite
 import qualified Database.SQLite.Simple as SQLite (Connection)
@@ -23,6 +24,11 @@ import           Hydra.TestData
 import           Hydra.TestData.Types.Meteor
 import qualified Hydra.TestData.Types.SqlDB.CatalogueDB as CatDB
 import           Hydra.Tests.Integration.Common
+
+connectOrFail :: D.DBConfig beM -> L.AppL (D.SqlConn beM)
+connectOrFail cfg = L.initSqlDB cfg >>= \case
+    Left e     -> error $ show e
+    Right conn -> pure conn
 
 -- runBeamSqliteDebug putStrLn {- for debug output -} conn $ runInsert $
 -- insert (_shoppingCartUsers shoppingCartDb) $
@@ -37,12 +43,6 @@ import           Hydra.Tests.Integration.Common
 --   mapM_ (liftIO . putStrLn . show) users
 
 -- SqlSelect be0 (QExprToIdentity (CatDB.DBMeteorT (QExpr be0 QBaseScope)))
-
-runGetMeteorsWithMass :: SQLite.Connection -> Int -> IO [CatDB.DBMeteor]
-runGetMeteorsWithMass conn size
-  = SQLite.runBeamSqlite conn
-  $ B.runSelectReturningList
-  $ getMeteorsWithMass size
 
 -- getMeteorsWithMass :: D.SQLiteHandle -> Int -> L.AppL [CatDB.DBMeteor]
 -- getMeteorsWithMass sqliteConn size = do
@@ -59,27 +59,27 @@ runGetMeteorsWithMass conn size
 --     Right ms -> pure ms
 
 
-dbApp :: D.SQLiteConfig -> L.AppL (Either String [Meteor])
-dbApp cfg = do
-  eDB <- L.initSQLiteDB cfg
-  case eDB of
-    Left err -> pure $ Left $ show err
-    Right db -> do
-      eMeteors <- L.scenario
-        $ L.evalSQLiteDB db
-        $ L.runBeamSelect
-        $ select (all_ (CatDB._meteors CatDB.catalogueDB))
-      case eMeteors of
-        Right ms -> pure $ Right $ map convertMeteor ms
+
+sqliteCfg :: D.DBConfig BS.SqliteM
+sqliteCfg = D.mkSQLiteConfig2 "test.db"
+
+dbApp :: L.AppL (Either String (Maybe Meteor))
+dbApp = do
+  conn <- connectOrFail sqliteCfg
+  eRes <- L.scenario
+        $ L.evalSqlDB conn
+        $ L.findRow
+        $ getMeteorsWithMass 100
+  case eRes of
         Left err -> pure $ Left $ show err
+        Right res -> pure $ Right $ fmap convertMeteor res
 
 spec :: Spec
 spec = do
 
-  unstableTest $ fastTest $ describe "SQLite DB tests" $ do
-    let cfg = D.mkSQLiteConfig "test.db"
+  unstableTest $ fastTest $ describe "SQLite DB tests 2" $ do
 
-    describe "Some SQLite DB & Beam test" $ do
+    describe "Some SQLite DB & Beam test 2" $ do
       it "Simple queries" $ do
-        eRes <- evalApp $ dbApp cfg
-        eRes `shouldBe` Right []
+        eRes <- evalApp dbApp
+        eRes `shouldBe` Right Nothing

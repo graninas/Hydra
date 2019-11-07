@@ -54,9 +54,6 @@ interpretAppF appRt (L.EvalProcess action next) = do
 interpretAppF appRt (L.InitKVDB cfg dbName next) =
   next <$> initKVDB' (appRt ^. RLens.coreRuntime) cfg dbName
 
-interpretAppF appRt (L.InitSQLiteDB cfg next) = do
-  next <$> R.initSQLiteDB' (appRt ^. RLens.coreRuntime . RLens.sqliteConns) cfg
-
 interpretAppF appRt (L.InitSqlDB cfg next) = do
   let connTag = D.getConnTag cfg
   let connsVar = appRt ^. RLens.coreRuntime . RLens.sqlConns
