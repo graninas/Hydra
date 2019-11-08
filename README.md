@@ -14,6 +14,8 @@ An all-in-one framework for writing Haskell apps which use the following feature
 
 - Multithreading
 - Safe STM-powered concurrency
+- KV DB functionality (Redis & RocksDB backends supported)
+- SQL DB functionality (beam incorporated, SQLite supported, PG & MySQL possible)
 - Logging
 - Random data generation
 - Many others
@@ -21,6 +23,6 @@ An all-in-one framework for writing Haskell apps which use the following feature
 With the framework, you can create complex applications that have a good maintainability, testability, simplicity, that have a good structure and are easy to read and change. The key principles in the framework:
 
 - Layered architecture
-- Separation of Business Logic, Runtime and Implementation
+- Separation of Subsystem Interfaces, Business Logic, Runtime and Implementation
 - Convenient and simple to use eDSLs for Business Logic
 - Layered structure of business application: State, Domain, Business Logic
