@@ -9,7 +9,7 @@ This project demonstrates the principles of Software Design and Architecture in 
 
 I've made a talk "Final Tagless vs Free Monad" and described the discoveries from this project.
 - [Slides (Rus)](https://docs.google.com/presentation/d/1VhS8ySgk2w5RoN_l_Ar_axcE4Dzf97zLw1uuzUJQbCo/edit?usp=sharing)
-- [Talk (Rus)](https://www.youtube.com/watch?v=u1GGqDQyGfc)
+- [Talk "Final Tagles vs Free Monad" (Rus)](https://www.youtube.com/watch?v=u1GGqDQyGfc)
 
 Hydra Framework
 ---------------
