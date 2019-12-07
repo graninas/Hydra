@@ -46,7 +46,7 @@ class AsKeyEntity entity src where
 
 class AsValueEntity entity src where
   toValueEntity   :: src -> ValueEntity entity
-  fromValueEntity :: ValueEntity entity -> src
+  fromValueEntity :: KeyEntity entity -> ValueEntity entity -> src
 
 toDBKeyJSON :: ToJSON (KeyEntity entity) => KeyEntity entity -> KVDBKey
 toDBKeyJSON = LBS.toStrict . A.encode

@@ -52,7 +52,7 @@ load key = do
   eRawVal <- load' (D.toDBKey key)
   pure $ case eRawVal of
     Left err  -> Left err
-    Right val -> maybe (decodingErr val) (Right . D.fromValueEntity) $ mbE val
+    Right val -> maybe (decodingErr val) (Right . D.fromValueEntity key) $ mbE val
   where
     mbE :: D.KVDBValue -> Maybe (D.ValueEntity entity)
     mbE = D.fromDBValue
