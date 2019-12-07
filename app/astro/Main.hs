@@ -38,7 +38,6 @@ type AstroAPI
     :> ReqBody '[JSON] MeteorTemplate
     :> Post '[JSON] MeteorID
     )
-  :<|> EmptyAPI
 
 astroAPI :: Proxy AstroAPI
 astroAPI = Proxy
@@ -70,7 +69,6 @@ astroServer' :: AppServer
 astroServer'
      = meteors
   :<|> meteor
-  :<|> emptyServer
 
 meteors :: Maybe Int -> Maybe Int -> AppHandler Meteors
 meteors mbMass mbSize = runApp
@@ -78,9 +76,9 @@ meteors mbMass mbSize = runApp
   $ getMeteors mbMass mbSize
 
 meteor :: MeteorTemplate -> AppHandler MeteorID
-meteor meteor = runApp
+meteor m = runApp
   $ withDB dbConfig
-  $ createMeteor meteor
+  $ createMeteor m
 
 loggerCfg :: D.LoggerConfig
 loggerCfg = D.LoggerConfig
