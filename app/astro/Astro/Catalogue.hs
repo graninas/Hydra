@@ -10,12 +10,19 @@ import qualified Hydra.Runtime  as R
 
 import           Astro.Types
 import           Astro.Lens
+import           Astro.Domain.Meteor
 import           Astro.KVDB.Entities.Meteor
 import           Astro.KVDB.Entities.DBs
 
-
 withCatalogueDB :: AppState -> L.KVDBL CatalogueDB a -> L.LangL a
 withCatalogueDB st = L.withKVDB (st ^. catalogueDB)
+
+loadMeteor :: D.DBHandle CatalogueDB -> L.LangL (Maybe Meteor)
+loadMeteor catalogueDB = do
+  eMeteor <- L.withKVDB catalogueDB $ L.load $ meteorKey 0
+  case eMeteor of
+    Left _ -> pure Nothing
+    Right m -> pure $ Just m
 
 loadMeteorsCount :: AppState -> L.LangL Int
 loadMeteorsCount st = do

@@ -5,8 +5,7 @@
 module Astro.Lens where
 
 import           Control.Lens       (makeFieldsNoPrefix)
-import           Astro.Types (Coords, Meteor, AppState)
+import           Astro.Types (AppState)
 
-makeFieldsNoPrefix ''Coords
-makeFieldsNoPrefix ''Meteor
+
 makeFieldsNoPrefix ''AppState

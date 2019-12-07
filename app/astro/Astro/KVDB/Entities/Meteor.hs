@@ -47,6 +47,10 @@ instance D.AsValueEntity MeteorEntity D.Meteor where
   fromValueEntity (MeteorValue v) = v
 
 
+meteorKey :: D.MeteorID -> D.KeyEntity MeteorEntity
+meteorKey = D.toKeyEntity
+
+
 data MeteorsCountEntity
 
 instance D.DBEntity CatalogueDB MeteorsCountEntity where
