@@ -1,0 +1,99 @@
+{
+	"info": {
+		"_postman_id": "5ccff0c9-4b48-4b3f-86d1-cedbf8d704a9",
+		"name": "Hydra / astro",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "meteors",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{host}}/meteors?mass=1&size=1",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"meteors"
+					],
+					"query": [
+						{
+							"key": "mass",
+							"value": "1"
+						},
+						{
+							"key": "size",
+							"value": "1"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "meteor",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "\n  { \"size\":100\n  , \"mass\":120\n  , \"azimuth\":30\n  , \"altitude\": 1500\n  }"
+				},
+				"url": {
+					"raw": "{{host}}/meteor",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"meteor"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"id": "00af3a94-a140-4cd9-bb9a-f48dd6857ae4",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"id": "43677fd4-6937-46d0-8440-6804294f2afd",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"id": "e9d4e554-3b38-48d8-96ef-51b734c0558f",
+			"key": "host",
+			"value": "localhost:8080",
+			"type": "string"
+		}
+	]
+}
