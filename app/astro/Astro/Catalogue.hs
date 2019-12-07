@@ -25,16 +25,14 @@ withAstroKVDB st = L.withKVDB (st ^. astroKVDB)
 
 loadMeteor
   :: D.DBHandle KVDB.AstroDB
-  -> L.LangL (Maybe Meteor)
-loadMeteor astroDB = do
-  eMeteor <- L.withKVDB astroDB $ L.load $ KVDB.meteorKey 0
-  case eMeteor of
-    Left err -> pure Nothing
-    Right m -> pure $ Just m
+  -> L.LangL (D.DBResult Meteor)
+loadMeteor astroDB = L.withKVDB astroDB
+  $ L.loadEntity
+  $ KVDB.mkMeteorKey 0
 
 loadMeteorsCount :: AppState -> L.LangL Int
 loadMeteorsCount st = do
-  eCount <- withAstroKVDB st $ L.load KVDB.meteorsCountKey
+  eCount <- withAstroKVDB st $ L.loadEntity KVDB.meteorsCountKey
   case eCount of
     Left err -> do
       L.logError ("Failed to get meteors count: " <> show err)
@@ -109,7 +107,7 @@ createMeteor mtp@(MeteorTemplate {..}) conn = do
 
   -- TODO: Proper time handling
   let time = Time.UTCTime (toEnum 1) (Time.secondsToDiffTime 0)
-  
+
   doOrFail
     $ L.scenario
     $ L.runDB conn

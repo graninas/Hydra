@@ -25,14 +25,14 @@ save' dbkey dbval = liftF $ Save dbkey dbval id
 load' :: D.KVDBKey -> KVDBL db (D.DBResult D.KVDBValue)
 load' dbkey = liftF $ Load dbkey id
 
-save
+saveEntity
   :: forall src entity db
    . D.DBEntity db entity
   => D.AsKeyEntity entity src
   => D.AsValueEntity entity src
   => src
   -> KVDBL db (D.DBResult ())
-save src = save' dbkey dbval
+saveEntity src = save' dbkey dbval
   where
     k :: D.KeyEntity entity
     k = D.toKeyEntity src
@@ -41,14 +41,14 @@ save src = save' dbkey dbval
     dbkey = D.toDBKey k
     dbval = D.toDBValue v
 
-load
+loadEntity
   :: forall entity dst db
    . D.DBEntity db entity
   => D.AsValueEntity entity dst
   => Show (D.KeyEntity entity)
   => D.KeyEntity entity
   -> KVDBL db (D.DBResult dst)
-load key = do
+loadEntity key = do
   eRawVal <- load' (D.toDBKey key)
   pure $ case eRawVal of
     Left err  -> Left err

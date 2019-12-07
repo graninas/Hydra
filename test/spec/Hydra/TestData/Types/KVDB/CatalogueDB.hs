@@ -46,7 +46,7 @@ instance D.AsKeyEntity MeteorEntity D.Meteor where
 
 instance D.AsValueEntity MeteorEntity D.Meteor where
   toValueEntity = MeteorValue
-  fromValueEntity (MeteorValue v) = v
+  fromValueEntity _ (MeteorValue v) = v
 
 
 data MeteorsCountEntity
@@ -65,7 +65,7 @@ instance D.AsKeyEntity MeteorsCountEntity String where
 
 instance D.AsValueEntity MeteorsCountEntity Int where
   toValueEntity = MeteorsCountValue
-  fromValueEntity (MeteorsCountValue v) = v
+  fromValueEntity _ (MeteorsCountValue v) = v
 
 
 meteorsCountKey :: D.KeyEntity MeteorsCountEntity

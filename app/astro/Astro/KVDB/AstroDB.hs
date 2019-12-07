@@ -40,7 +40,7 @@ instance D.DBEntity AstroDB MeteorEntity where
           , time  :: D.DateTime
           }
           deriving (Show, Eq, Ord, Generic, ToJSON, FromJSON)
-  toDBKey (MeteorKey idx) = show $ toMeteorEntityKey idx
+  toDBKey (MeteorKey idx) = show $ formatMeteorID idx
   toDBValue   = D.toDBValueJSON
   fromDBValue = D.fromDBValueJSON
 
@@ -54,11 +54,11 @@ instance D.AsValueEntity MeteorEntity D.Meteor where
   toValueEntity = toKVDBMeteor
   fromValueEntity (MeteorKey idx) = fromKVDBMeteor idx
 
-meteorKey :: D.MeteorID -> D.KeyEntity MeteorEntity
-meteorKey = D.toKeyEntity
+mkMeteorKey :: D.MeteorID -> D.KeyEntity MeteorEntity
+mkMeteorKey = D.toKeyEntity
 
-toMeteorEntityKey :: D.MeteorID -> String
-toMeteorEntityKey = ("0|" <>) . toIdxBase
+formatMeteorID :: D.MeteorID -> String
+formatMeteorID = ("0|" <>) . toIdxBase
 
 toKVDBMeteor :: D.Meteor -> D.ValueEntity MeteorEntity
 toKVDBMeteor (D.Meteor _ size mass (D.Coords azmt alt) time) = KVDBMeteor {..}
