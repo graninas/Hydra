@@ -21,7 +21,7 @@ data LoggerConfig = LoggerConfig
 
 type Message = Text
 
-data LogEntry = LogEntry LogLevel Message
+data LogEntry = LogEntry !LogLevel !Message
 type Log = [LogEntry]
 
 standardFormat :: String
