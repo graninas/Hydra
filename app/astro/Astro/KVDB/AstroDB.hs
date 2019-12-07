@@ -30,27 +30,47 @@ instance D.DB AstroDB where
 data MeteorEntity
 
 instance D.DBEntity AstroDB MeteorEntity where
-  data KeyEntity MeteorEntity = MeteorKey Int
+  data KeyEntity MeteorEntity = MeteorKey D.MeteorID
     deriving (Show, Eq, Ord)
-  data ValueEntity MeteorEntity = MeteorValue D.Meteor
-    deriving (Show, Eq, Ord, Generic, ToJSON, FromJSON)
+  data ValueEntity MeteorEntity = KVDBMeteor
+          { size  :: Int
+          , mass  :: Int
+          , azmt  :: Int
+          , alt   :: Int
+          , time  :: D.DateTime
+          }
+          deriving (Show, Eq, Ord, Generic, ToJSON, FromJSON)
   toDBKey (MeteorKey idx) = show $ toMeteorEntityKey idx
   toDBValue   = D.toDBValueJSON
   fromDBValue = D.fromDBValueJSON
 
-instance D.AsKeyEntity MeteorEntity Int where
+instance D.AsKeyEntity MeteorEntity D.MeteorID where
   toKeyEntity = MeteorKey
 
 instance D.AsKeyEntity MeteorEntity D.Meteor where
   toKeyEntity = MeteorKey . D.meteorId
 
 instance D.AsValueEntity MeteorEntity D.Meteor where
-  toValueEntity = MeteorValue
-  fromValueEntity (MeteorValue v) = v
-
+  toValueEntity = toKVDBMeteor
+  fromValueEntity (MeteorKey idx) = fromKVDBMeteor idx
 
 meteorKey :: D.MeteorID -> D.KeyEntity MeteorEntity
 meteorKey = D.toKeyEntity
+
+toMeteorEntityKey :: D.MeteorID -> String
+toMeteorEntityKey = ("0|" <>) . toIdxBase
+
+toKVDBMeteor :: D.Meteor -> D.ValueEntity MeteorEntity
+toKVDBMeteor (D.Meteor _ size mass (D.Coords azmt alt) time) = KVDBMeteor {..}
+
+fromKVDBMeteor :: D.MeteorID -> D.ValueEntity MeteorEntity -> D.Meteor
+fromKVDBMeteor meteorId KVDBMeteor {..} = D.Meteor
+  { D.meteorId  = meteorId
+  , D.size      = size
+  , D.mass      = mass
+  , D.coords    = D.Coords azmt alt
+  , D.timestamp = time
+  }
 
 -- ------------------------------------------------------------------
 
@@ -70,7 +90,7 @@ instance D.AsKeyEntity MeteorsCountEntity String where
 
 instance D.AsValueEntity MeteorsCountEntity Int where
   toValueEntity = MeteorsCountValue
-  fromValueEntity (MeteorsCountValue v) = v
+  fromValueEntity _ (MeteorsCountValue v) = v
 
 
 meteorsCountKey :: D.KeyEntity MeteorsCountEntity
@@ -80,6 +100,3 @@ meteorsCountKey = D.toKeyEntity ("" :: String)
 
 toIdxBase :: Int -> String
 toIdxBase = printf "%07d"
-
-toMeteorEntityKey :: Int -> String
-toMeteorEntityKey = ("0|" <>) . toIdxBase

@@ -13,11 +13,12 @@ import           Database.Beam ((==.), (&&.), (<-.), (/=.), (==?.))
 import qualified Astro.Domain.Meteor as D
 
 data MeteorT f = Meteor
-    { _meteorId   :: B.C f Int
-    , _meteorSize :: B.C f Int
-    , _meteorMass :: B.C f Int
+    { _meteorId         :: B.C f Int
+    , _meteorSize       :: B.C f Int
+    , _meteorMass       :: B.C f Int
     , _meteorAzimuth    :: B.C f Int
     , _meteorAltitude   :: B.C f Int
+    , _meteorTimestamp  :: B.C f UTCTime
     } deriving (Generic, B.Beamable)
 
 instance B.Table MeteorT where
@@ -47,3 +48,4 @@ fromDBMeteor Meteor {..} = D.Meteor
     _meteorSize
     _meteorMass
     (D.Coords _meteorAzimuth _meteorAltitude)
+    _meteorTimestamp

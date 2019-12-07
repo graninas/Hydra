@@ -24,6 +24,7 @@ data Meteor = Meteor
   , size        :: Int
   , mass        :: Int
   , coords      :: Coords
+  , timestamp   :: DateTime
   }
   deriving (Show, Eq, Ord, Generic, ToJSON, FromJSON)
 

@@ -2,6 +2,7 @@ module Astro.Catalogue where
 
 import qualified Data.Map       as Map
 import qualified Data.Set       as Set
+import qualified Data.Time.Clock as Time
 
 import qualified Hydra.Domain   as D
 import qualified Hydra.Language as L
@@ -22,7 +23,9 @@ import qualified Astro.SqlDB.AstroDB as SqlDB
 withAstroKVDB :: AppState -> L.KVDBL KVDB.AstroDB a -> L.LangL a
 withAstroKVDB st = L.withKVDB (st ^. astroKVDB)
 
-loadMeteor :: D.DBHandle KVDB.AstroDB -> L.LangL (Maybe Meteor)
+loadMeteor
+  :: D.DBHandle KVDB.AstroDB
+  -> L.LangL (Maybe Meteor)
 loadMeteor astroDB = do
   eMeteor <- L.withKVDB astroDB $ L.load $ KVDB.meteorKey 0
   case eMeteor of
@@ -103,6 +106,10 @@ getMeteors mbMass mbSize conn = do
 createMeteor :: MeteorTemplate -> D.SqlConn BS.SqliteM -> L.AppL MeteorID
 createMeteor mtp@(MeteorTemplate {..}) conn = do
   L.logInfo $ "Inserting meteor into SQL DB: " <> show mtp
+
+  -- TODO: Proper time handling
+  let time = Time.UTCTime (toEnum 1) (Time.secondsToDiffTime 0)
+  
   doOrFail
     $ L.scenario
     $ L.runDB conn
@@ -114,6 +121,7 @@ createMeteor mtp@(MeteorTemplate {..}) conn = do
             (B.val_ mass)
             (B.val_ azimuth)
             (B.val_ altitude)
+            (B.val_ time)
           ]
 
   let predicate meteorDB
