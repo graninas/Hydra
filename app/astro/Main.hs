@@ -24,8 +24,8 @@ import qualified Database.Beam.Backend.SQL as B
 import           Database.Beam ((==.), (&&.), (<-.), (/=.), (==?.))
 
 import           Astro.Domain.Meteor
-import qualified Astro.SqlDB.AstroDB as MDB
-
+import           Astro.Catalogue
+import           Astro.Types
 
 type AstroAPI
   = (  "meteors"
@@ -43,12 +43,9 @@ type AstroAPI
 astroAPI :: Proxy AstroAPI
 astroAPI = Proxy
 
-data Env = Env R.AppRuntime
+data Env = Env !R.AppRuntime !AppState
 type AppHandler = ReaderT Env (ExceptT ServerError IO)
-type AppServer = ServerT AstroAPI (ReaderT Env (ExceptT ServerError IO))
-
-astroServer' :: AppServer
-astroServer' = meteors :<|> meteor :<|> emptyServer
+type AppServer = ServerT AstroAPI AppHandler
 
 astroServer :: Env -> Server AstroAPI
 astroServer env = hoistServer astroAPI (f env) astroServer'
@@ -65,92 +62,15 @@ astroBackendApp = serve astroAPI . astroServer
 
 runApp :: L.AppL a -> AppHandler a
 runApp flow = do
-  Env rt <- ask
+  Env rt _ <- ask
   lift $ lift $ R.runAppL rt flow
 
 
-data AppException
-  = ConnectionFailedException Text
-  | OperationFailedException Text
-  deriving (Show, Eq, Ord, Generic, ToJSON, FromJSON, Exception)
-
-doOrFail' :: Show e => (Text -> AppException) -> L.AppL (Either e a) -> L.AppL a
-doOrFail' excF act = act >>= \case
-  Left e  -> error $ show e
-  Right a -> pure a
-
-doOrFail :: Show e => L.AppL (Either e a) -> L.AppL a
-doOrFail = doOrFail' OperationFailedException
-
-connectOrFail :: D.DBConfig BS.SqliteM -> L.AppL (D.SqlConn BS.SqliteM)
-connectOrFail cfg = doOrFail' ConnectionFailedException $ L.initSqlDB cfg
-
-fromDBMeteor :: MDB.Meteor -> Meteor
-fromDBMeteor MDB.Meteor {..} = Meteor
-    _meteorId
-    _meteorSize
-    _meteorMass
-    (Coords _meteorAzimuth _meteorAltitude)
-
-getMeteors :: Maybe Int -> Maybe Int -> D.SqlConn BS.SqliteM -> L.AppL Meteors
-getMeteors mbMass mbSize conn = do
-
-  let predicate meteorDB = case (mbMass, mbSize) of
-        (Just m, Just s)  -> (MDB._meteorSize meteorDB ==. B.val_ s)
-            &&. (MDB._meteorMass meteorDB ==. B.val_ m)
-        (Just m, Nothing) -> (MDB._meteorMass meteorDB ==. B.val_ m)
-        (Nothing, Just s) -> (MDB._meteorSize meteorDB ==. B.val_ s)
-        _                 -> B.val_ True
-
-  eRows <- L.scenario
-    $ L.runDB conn
-    $ L.findRows
-    $ B.select
-    $ B.filter_ predicate
-    $ B.all_ (MDB._meteors MDB.astroDb)
-  case eRows of
-    Right ms -> pure $ Meteors $ map fromDBMeteor ms
-    Left err -> pure $ Meteors []
-
-createMeteor :: MeteorTemplate -> D.SqlConn BS.SqliteM -> L.AppL MeteorID
-createMeteor MeteorTemplate {..} conn = do
-  doOrFail
-    $ L.scenario
-    $ L.runDB conn
-    $ L.insertRows
-    $ B.insert (MDB._meteors MDB.astroDb)
-    $ B.insertExpressions
-          [ MDB.Meteor B.default_
-            (B.val_ size)
-            (B.val_ mass)
-            (B.val_ azimuth)
-            (B.val_ altitude)
-          ]
-
-  let predicate meteorDB
-          = (MDB._meteorSize meteorDB     ==. B.val_ size)
-        &&. (MDB._meteorMass meteorDB     ==. B.val_ mass)
-        &&. (MDB._meteorAzimuth meteorDB  ==. B.val_ azimuth)
-        &&. (MDB._meteorAltitude meteorDB ==. B.val_ altitude)
-
-  m <- doOrFail
-    $ L.scenario
-    $ L.runDB conn
-    $ L.findRow
-    $ B.select
-    $ B.limit_ 1
-    $ B.filter_ predicate
-    $ B.all_ (MDB._meteors MDB.astroDb)
-  pure $ MDB._meteorId $ fromJust m
-
-dbConfig :: D.DBConfig BS.SqliteM
-dbConfig = D.mkSQLiteConfig "/tmp/astro.db"
-
-withDB
-  :: D.DBConfig BS.SqliteM
-  -> (D.SqlConn BS.SqliteM -> L.AppL a)
-  -> L.AppL a
-withDB cfg act = connectOrFail cfg >>= act
+astroServer' :: AppServer
+astroServer'
+     = meteors
+  :<|> meteor
+  :<|> emptyServer
 
 meteors :: Maybe Int -> Maybe Int -> AppHandler Meteors
 meteors mbMass mbSize = runApp
@@ -172,5 +92,8 @@ loggerCfg = D.LoggerConfig
   }
 
 main :: IO ()
-main = R.withAppRuntime (Just loggerCfg)
-  $ \rt -> run 8080 $ astroBackendApp $ Env rt
+main = do
+  putStrLn ("Starting Astro App Server..." :: String)
+  R.withAppRuntime (Just loggerCfg) $ \rt -> do
+    appSt <- R.runAppL rt $ initState AppConfig
+    run 8080 $ astroBackendApp $ Env rt appSt

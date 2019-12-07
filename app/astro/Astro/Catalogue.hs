@@ -8,25 +8,30 @@ import qualified Hydra.Language as L
 import           Hydra.Prelude
 import qualified Hydra.Runtime  as R
 
+import qualified Database.Beam as B
+import qualified Database.Beam.Sqlite as BS
+import qualified Database.Beam.Backend.SQL as B
+import           Database.Beam ((==.), (&&.), (<-.), (/=.), (==?.))
+
 import           Astro.Types
 import           Astro.Lens
 import           Astro.Domain.Meteor
-import           Astro.KVDB.Entities.Meteor
-import           Astro.KVDB.Entities.DBs
+import qualified Astro.KVDB.AstroDB as KVDB
+import qualified Astro.SqlDB.AstroDB as SqlDB
 
-withCatalogueDB :: AppState -> L.KVDBL CatalogueDB a -> L.LangL a
-withCatalogueDB st = L.withKVDB (st ^. catalogueDB)
+withAstroKVDB :: AppState -> L.KVDBL KVDB.AstroDB a -> L.LangL a
+withAstroKVDB st = L.withKVDB (st ^. astroKVDB)
 
-loadMeteor :: D.DBHandle CatalogueDB -> L.LangL (Maybe Meteor)
-loadMeteor catalogueDB = do
-  eMeteor <- L.withKVDB catalogueDB $ L.load $ meteorKey 0
+loadMeteor :: D.DBHandle KVDB.AstroDB -> L.LangL (Maybe Meteor)
+loadMeteor astroDB = do
+  eMeteor <- L.withKVDB astroDB $ L.load $ KVDB.meteorKey 0
   case eMeteor of
-    Left _ -> pure Nothing
+    Left err -> pure Nothing
     Right m -> pure $ Just m
 
 loadMeteorsCount :: AppState -> L.LangL Int
 loadMeteorsCount st = do
-  eCount <- withCatalogueDB st $ L.load meteorsCountKey
+  eCount <- withAstroKVDB st $ L.load KVDB.meteorsCountKey
   case eCount of
     Left err -> do
       L.logError ("Failed to get meteors count: " <> show err)
@@ -42,28 +47,96 @@ dynamicsMonitor st = do
 
 initState :: AppConfig -> L.AppL AppState
 initState cfg = do
-  eCatalogueDB <- L.initKVDB
-    $ D.RocksDBConfig @CatalogueDB "/tmp/hydra/catalogue" True False
+  L.logInfo "Initializing KV DB..."
+  eAstroKVDB <- L.initKVDB
+    $ D.RocksDBConfig @KVDB.AstroDB "/tmp/hydra/catalogue" True False
 
-  catalogueDB <- case eCatalogueDB of
-    Right db -> pure db
+  case eAstroKVDB of
     Left err -> do
       L.logError $ "Failed to init KV DB catalogue: " +|| err ||+ ""
       error $ "Failed to init KV DB catalogue: " +|| err ||+ ""    -- TODO
+    Right astroKVDB -> do
+      L.logInfo "KV DB initizlied."
+      totalMeteors <- L.newVarIO 0
+      pure $ AppState
+        { _astroKVDB = astroKVDB
+        , _totalMeteors = totalMeteors
+        , _config = cfg
+        }
 
-  totalMeteors <- L.newVarIO 0
 
-  pure $ AppState
-    { _catalogueDB = catalogueDB
-    , _totalMeteors = totalMeteors
-    , _config = cfg
-    }
+doOrFail' :: Show e => (Text -> AppException) -> L.AppL (Either e a) -> L.AppL a
+doOrFail' excF act = act >>= \case
+  Left e  -> error $ show e
+  Right a -> pure a
 
-astroCatalogue :: AppConfig -> L.AppL ()
-astroCatalogue cfg = do
-  appSt <- initState cfg
+doOrFail :: Show e => L.AppL (Either e a) -> L.AppL a
+doOrFail = doOrFail' OperationFailedException
 
-  L.process $ dynamicsMonitor appSt
+connectOrFail :: D.DBConfig BS.SqliteM -> L.AppL (D.SqlConn BS.SqliteM)
+connectOrFail cfg = doOrFail' ConnectionFailedException $ L.initSqlDB cfg
 
-  -- L.awaitAppForever
-  L.delay 10000000
+
+getMeteors :: Maybe Int -> Maybe Int -> D.SqlConn BS.SqliteM -> L.AppL Meteors
+getMeteors mbMass mbSize conn = do
+  L.logInfo $ "Lookup meteors with mbMass and mbSize: " <> show (mbMass, mbSize)
+
+  let predicate meteorDB = case (mbMass, mbSize) of
+        (Just m, Just s)  -> (SqlDB._meteorSize meteorDB ==. B.val_ s)
+            &&. (SqlDB._meteorMass meteorDB ==. B.val_ m)
+        (Just m, Nothing) -> (SqlDB._meteorMass meteorDB ==. B.val_ m)
+        (Nothing, Just s) -> (SqlDB._meteorSize meteorDB ==. B.val_ s)
+        _                 -> B.val_ True
+
+  eRows <- L.scenario
+    $ L.runDB conn
+    $ L.findRows
+    $ B.select
+    $ B.filter_ predicate
+    $ B.all_ (SqlDB._meteors SqlDB.astroDb)
+  case eRows of
+    Right ms -> pure $ Meteors $ map SqlDB.fromDBMeteor ms
+    Left err -> do
+      L.logError $ "Error occured on searching meteors: " <> show err
+      pure $ Meteors []
+
+createMeteor :: MeteorTemplate -> D.SqlConn BS.SqliteM -> L.AppL MeteorID
+createMeteor mtp@(MeteorTemplate {..}) conn = do
+  L.logInfo $ "Inserting meteor into SQL DB: " <> show mtp
+  doOrFail
+    $ L.scenario
+    $ L.runDB conn
+    $ L.insertRows
+    $ B.insert (SqlDB._meteors SqlDB.astroDb)
+    $ B.insertExpressions
+          [ SqlDB.Meteor B.default_
+            (B.val_ size)
+            (B.val_ mass)
+            (B.val_ azimuth)
+            (B.val_ altitude)
+          ]
+
+  let predicate meteorDB
+          = (SqlDB._meteorSize meteorDB     ==. B.val_ size)
+        &&. (SqlDB._meteorMass meteorDB     ==. B.val_ mass)
+        &&. (SqlDB._meteorAzimuth meteorDB  ==. B.val_ azimuth)
+        &&. (SqlDB._meteorAltitude meteorDB ==. B.val_ altitude)
+
+  m <- doOrFail
+    $ L.scenario
+    $ L.runDB conn
+    $ L.findRow
+    $ B.select
+    $ B.limit_ 1
+    $ B.filter_ predicate
+    $ B.all_ (SqlDB._meteors SqlDB.astroDb)
+  pure $ SqlDB._meteorId $ fromJust m
+
+dbConfig :: D.DBConfig BS.SqliteM
+dbConfig = D.mkSQLiteConfig "/tmp/astro.db"
+
+withDB
+  :: D.DBConfig BS.SqliteM
+  -> (D.SqlConn BS.SqliteM -> L.AppL a)
+  -> L.AppL a
+withDB cfg act = connectOrFail cfg >>= act

@@ -1,9 +1,6 @@
-{-# LANGUAGE DeriveAnyClass        #-}
-{-# LANGUAGE DuplicateRecordFields #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE TypeFamilies          #-}
+{-# LANGUAGE DeriveAnyClass #-}
 
-module Astro.KVDB.Entities.Meteor where
+module Astro.KVDB.AstroDB where
 
 import           Hydra.Prelude
 
@@ -12,9 +9,7 @@ import qualified Data.ByteString.Lazy    as LBS
 import           Text.Printf
 
 import qualified Hydra.Domain            as D
-
 import qualified Astro.Domain.Meteor     as D
-import           Astro.KVDB.Entities.DBs
 
 -- catalogue
 -- ( meteors_count_key -> int
@@ -25,9 +20,16 @@ import           Astro.KVDB.Entities.DBs
 -- 0|0000000     {...}
 -- 0|0000001     {...}
 
+data AstroDB
+
+instance D.DB AstroDB where
+  getDBName = "astro.rdb"
+
+-- ------------------------------------------------------------------
+
 data MeteorEntity
 
-instance D.DBEntity CatalogueDB MeteorEntity where
+instance D.DBEntity AstroDB MeteorEntity where
   data KeyEntity MeteorEntity = MeteorKey Int
     deriving (Show, Eq, Ord)
   data ValueEntity MeteorEntity = MeteorValue D.Meteor
@@ -50,10 +52,11 @@ instance D.AsValueEntity MeteorEntity D.Meteor where
 meteorKey :: D.MeteorID -> D.KeyEntity MeteorEntity
 meteorKey = D.toKeyEntity
 
+-- ------------------------------------------------------------------
 
 data MeteorsCountEntity
 
-instance D.DBEntity CatalogueDB MeteorsCountEntity where
+instance D.DBEntity AstroDB MeteorsCountEntity where
   data KeyEntity MeteorsCountEntity = MeteorsCountKey String
     deriving (Show, Eq, Ord)
   data ValueEntity MeteorsCountEntity = MeteorsCountValue Int
@@ -72,6 +75,8 @@ instance D.AsValueEntity MeteorsCountEntity Int where
 
 meteorsCountKey :: D.KeyEntity MeteorsCountEntity
 meteorsCountKey = D.toKeyEntity ("" :: String)
+
+-- ------------------------------------------------------------------
 
 toIdxBase :: Int -> String
 toIdxBase = printf "%07d"

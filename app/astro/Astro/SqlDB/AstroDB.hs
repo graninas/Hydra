@@ -10,6 +10,8 @@ import           Data.Time.Clock (UTCTime)
 import qualified Database.Beam as B
 import           Database.Beam ((==.), (&&.), (<-.), (/=.), (==?.))
 
+import qualified Astro.Domain.Meteor as D
+
 data MeteorT f = Meteor
     { _meteorId   :: B.C f Int
     , _meteorSize :: B.C f Int
@@ -37,3 +39,11 @@ data AstroDb f = AstroDb
 
 astroDb :: B.DatabaseSettings be AstroDb
 astroDb = B.defaultDbSettings
+
+
+fromDBMeteor :: Meteor -> D.Meteor
+fromDBMeteor Meteor {..} = D.Meteor
+    _meteorId
+    _meteorSize
+    _meteorMass
+    (D.Coords _meteorAzimuth _meteorAltitude)
