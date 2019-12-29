@@ -1,5 +1,5 @@
 Hydra Framework
----------------
+===============
 
 An all-in-one framework for writing Haskell apps which use the following features out of the box:
 
