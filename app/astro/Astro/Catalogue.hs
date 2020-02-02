@@ -43,7 +43,7 @@ dynamicsMonitor :: AppState -> L.LangL ()
 dynamicsMonitor st = do
   meteorsCount <- loadMeteorsCount st
   L.logInfo $ "Meteors count: " +|| meteorsCount ||+ ""
-  L.delay $ 1000
+  L.delay 1000
 
 
 initState :: AppConfig -> L.AppL AppState
