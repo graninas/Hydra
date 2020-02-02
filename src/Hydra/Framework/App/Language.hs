@@ -30,7 +30,13 @@ data AppF next where
   -- TODO: add explicit deinit.
   -- DeinitKVDB :: D.DB db => D.DBHandle db -> (D.DBResult Bool -> next) -> AppF next
 
+  -- | Init SQL DB connection.
+  -- If connection exists, `DBError ConnectionAlreadyExists "..."` will be returned.
   InitSqlDB :: D.DBConfig beM -> (D.DBResult (D.SqlConn beM) -> next) -> AppF next
+
+  -- | Get SQL DB connection.
+  -- If connection does not exist, DBError ConnectionDoesNotExist "..."` will be returned.
+  GetSqlDBConnection :: D.DBConfig beM -> (D.DBResult (D.SqlConn beM) -> next) -> AppF next
 
   -- DeInitSqlDB
   --   :: T.SqlConn beM
@@ -98,3 +104,7 @@ initSqlDB cfg = liftFC $ InitSqlDB cfg id
 
 -- deinitSqlDB :: T.SqlConn beM -> Flow ()
 -- deinitSqlDB conn = liftFC $ DeInitSqlDBConnection conn id
+
+-- TODO: tests on this method.
+getSqlDBConnection :: D.DBConfig beM -> AppL (D.DBResult (D.SqlConn beM))
+getSqlDBConnection cfg = liftFC $ GetSqlDBConnection cfg id

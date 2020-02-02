@@ -36,10 +36,6 @@ connect cfg = do
     Left (e :: SomeException) -> pure $ Left $ D.DBError D.FailedToConnect $ show e
     Right conn -> pure $ Right conn
 
--- initSqlDB' :: R.CoreRuntime -> D.SqlDBConfig Sqlite -> IO (D.DBResult (D.SqlDBHandle Sqlite))
--- initSqlDB' coreRt cfg@(D.SQLiteConfig dbName) =
---   R.initSQLiteDB' (coreRt ^. RLens.sqliteConns) cfg
-
 interpretAppF :: R.AppRuntime -> L.AppF a -> IO a
 interpretAppF appRt (L.EvalLang action next) = do
   let coreRt = appRt ^. RLens.coreRuntime
@@ -73,6 +69,16 @@ interpretAppF appRt (L.InitSqlDB cfg next) = do
         Left err -> do
           putMVar connsVar connMap
           pure $ next $ Left err
+
+interpretAppF appRt (L.GetSqlDBConnection cfg next) = do
+  let connTag = D.getConnTag cfg
+  let connsVar = appRt ^. RLens.coreRuntime . RLens.sqlConns
+  connMap <- readMVar connsVar
+  case Map.lookup connTag connMap of
+    Just conn -> pure $ next $ Right $ R.nativeToBem connTag conn
+    Nothing -> pure
+      $ next $ Left $ D.DBError D.ConnectionDoesNotExist
+      $ "Connection for " <> show connTag <> " not found."
 
 
 runAppL :: R.AppRuntime -> L.AppL a -> IO a

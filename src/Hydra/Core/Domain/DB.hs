@@ -28,6 +28,7 @@ data DBErrorType
   | SomeError
   | ConnectionIsDead
   | ConnectionAlreadyExists
+  | ConnectionDoesNotExist
   | FailedToConnect
   deriving (Generic, Ord, Eq, Enum, Bounded, Show, Read)
 

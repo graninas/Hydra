@@ -14,11 +14,14 @@ import qualified Hydra.Framework.ChurchL  as CL
 import qualified Hydra.Framework.Class    as C
 import qualified Hydra.Framework.Language as L
 
--- TODO: this is awful
--- class (C.Logger l, C.Random r, C.ControlFlow cf, C.State' s,
---   C.Lang l r cf s lang, C.Process lang proc, C.App l r cf s lang proc m) =>
---   ForeverApp m where
---   foreverApp :: m a -> m ()
+
+-- | Get existing SQL connection, or init a new connection.
+getOrInitSqlConn :: D.DBConfig beM -> L.AppL (D.DBResult (D.SqlConn beM))
+getOrInitSqlConn cfg = do
+  eConn <- L.getSqlDBConnection cfg
+  case eConn of
+    Left (D.DBError D.ConnectionDoesNotExist _) -> L.initSqlDB cfg
+    res                                         -> pure res
 
 -- TODO: rework it
 foreverAppFree :: L.AppL a -> L.AppL ()
