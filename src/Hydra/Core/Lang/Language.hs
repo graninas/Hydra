@@ -45,7 +45,7 @@ data LangF next where
   -- Throwing uncatchable exception
   ThrowException :: forall a e next. Exception e => e -> (a -> next) -> LangF next
 
-instance Functor FlowMethod where
+instance Functor LangF where
   fmap f (EvalStateAtomically st next) = EvalStateAtomically st (f . next)
   fmap f (EvalLogger logAct next)      = EvalLogger logAct (f . next)
   fmap f (EvalRandom rndAct next)      = EvalRandom rndAct (f . next)
@@ -53,8 +53,8 @@ instance Functor FlowMethod where
   fmap f (EvalIO ioAct next)           = EvalIO ioAct (f . next)
   fmap f (EvalKVDB h kvdbAct next)     = EvalKVDB h kvdbAct (f . next)
   fmap f (EvalSqlDB conn sqlAct next)  = EvalSqlDB conn sqlAct (f . next)
-  fmap f (ThrowException message next) = ThrowException message (f . next)
-  
+  fmap f (ThrowException exc next)     = ThrowException exc (f . next)
+
 type LangL = Free LangF
 
 class IOL m where

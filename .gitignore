@@ -7,3 +7,4 @@ log.txt
 .hspec-failures
 *.cabal
 .vscode
+stack.yaml.lock

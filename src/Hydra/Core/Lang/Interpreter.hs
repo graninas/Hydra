@@ -3,6 +3,7 @@ module Hydra.Core.Lang.Interpreter where
 import           Hydra.Prelude
 
 import qualified Data.Map as Map
+import           Control.Exception (throwIO)
 
 import           Hydra.Core.ControlFlow.Interpreter         (runControlFlowL)
 import qualified Hydra.Core.Language                        as L
@@ -61,6 +62,7 @@ interpretLangF coreRt (L.EvalLogger loggerAct next) =
 interpretLangF _      (L.EvalRandom  s next)        = next <$> runRandomL s
 interpretLangF coreRt (L.EvalControlFlow f    next) = next <$> runControlFlowL coreRt f
 interpretLangF _      (L.EvalIO f next)             = next <$> f
+interpretLangF _      (L.ThrowException exc next)   = throwIO exc
 interpretLangF coreRt (L.EvalKVDB storage act next) = next <$> evalKVDB' coreRt storage act
 interpretLangF coreRt (L.EvalSqlDB conn sqlDbMethod next) = do
   let dbgLogger = runLoggerL (coreRt ^. RLens.loggerRuntime . RLens.hsLoggerHandle)
