@@ -75,7 +75,7 @@ doOrFail :: Show e => L.AppL (Either e a) -> L.AppL a
 doOrFail = doOrFail' OperationFailedException
 
 connectOrFail :: D.DBConfig BS.SqliteM -> L.AppL (D.SqlConn BS.SqliteM)
-connectOrFail cfg = doOrFail' ConnectionFailedException $ L.initSqlDB cfg
+connectOrFail cfg = doOrFail' ConnectionFailedException $ L.getOrInitSqlConn cfg
 
 
 getMeteors :: Maybe Int -> Maybe Int -> D.SqlConn BS.SqliteM -> L.AppL Meteors
@@ -138,10 +138,7 @@ createMeteor mtp@(MeteorTemplate {..}) conn = do
     $ B.all_ (SqlDB._meteors SqlDB.astroDb)
   pure $ SqlDB._meteorId $ fromJust m
 
-dbConfig :: D.DBConfig BS.SqliteM
--- dbConfig = D.mkSQLiteConfig "/tmp/astro.db"
-dbConfig = D.mkSQLiteConfig "./astro.db"
-
+-- TODO: move into the framework.
 withDB
   :: D.DBConfig BS.SqliteM
   -> (D.SqlConn BS.SqliteM -> L.AppL a)

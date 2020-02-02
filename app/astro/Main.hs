@@ -6,12 +6,7 @@
 module Main where
 
 import           Control.Monad
-import           Hydra.Prelude
-import qualified Hydra.Domain  as D
-import qualified Hydra.Runtime as R
-import qualified Hydra.Interpreters as R
-import qualified Hydra.Language     as L
-
+import           System.Process (readCreateProcess, shell)
 import           Network.Wai.Handler.Warp (run)
 import           Servant
 import           Data.Time
@@ -22,6 +17,12 @@ import qualified Database.Beam as B
 import qualified Database.Beam.Sqlite as BS
 import qualified Database.Beam.Backend.SQL as B
 import           Database.Beam ((==.), (&&.), (<-.), (/=.), (==?.))
+
+import           Hydra.Prelude
+import qualified Hydra.Domain  as D
+import qualified Hydra.Runtime as R
+import qualified Hydra.Interpreters as R
+import qualified Hydra.Language     as L
 
 import           Astro.Domain.Meteor
 import           Astro.Catalogue
@@ -62,13 +63,22 @@ astroBackendApp = serve astroAPI . astroServer
 runApp :: L.AppL a -> AppHandler a
 runApp flow = do
   Env rt _ <- ask
-  lift $ lift $ R.runAppL rt flow
+  eRes <- lift $ lift $ try $ R.runAppL rt flow
+  case eRes of
+    Left (err :: SomeException) -> do
+      liftIO $ putStrLn @String $ "Exception handled: " <> show err
+      throwError err500
+    Right res -> pure res
 
 
 astroServer' :: AppServer
 astroServer'
      = meteors
   :<|> meteor
+
+-- TODO: configs from the command line
+dbConfig :: D.DBConfig BS.SqliteM
+dbConfig = D.mkSQLiteConfig "/tmp/astro.db"
 
 meteors :: Maybe Int -> Maybe Int -> AppHandler Meteors
 meteors mbMass mbSize = runApp
@@ -89,9 +99,20 @@ loggerCfg = D.LoggerConfig
   , D._logToFile    = False
   }
 
+prepareSQLiteDB :: IO ()
+prepareSQLiteDB = do
+  putStrLn @String "Copying astro_template.db to /tmp/astro.db..."
+  eRes <- try $ void $ readCreateProcess (shell "cp ./app/astro/astro_template.db /tmp/astro.db") ""
+  case eRes of
+    Left (err :: SomeException) -> do
+      putStrLn @String $ "Exception got: " <> show err
+      error $ "Exception got: " <> show err
+    Right _ -> pure ()
+
 main :: IO ()
 main = do
-  putStrLn ("Starting Astro App Server..." :: String)
+  prepareSQLiteDB
+  putStrLn @String "Starting Astro App Server..."
   R.withAppRuntime (Just loggerCfg) $ \rt -> do
     appSt <- R.runAppL rt $ initState AppConfig
     run 8080 $ astroBackendApp $ Env rt appSt
