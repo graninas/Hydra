@@ -139,7 +139,8 @@ createMeteor mtp@(MeteorTemplate {..}) conn = do
   pure $ SqlDB._meteorId $ fromJust m
 
 dbConfig :: D.DBConfig BS.SqliteM
-dbConfig = D.mkSQLiteConfig "/tmp/astro.db"
+-- dbConfig = D.mkSQLiteConfig "/tmp/astro.db"
+dbConfig = D.mkSQLiteConfig "./astro.db"
 
 withDB
   :: D.DBConfig BS.SqliteM

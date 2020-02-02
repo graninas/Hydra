@@ -42,11 +42,19 @@ data LangF next where
   EvalKVDB :: D.DB db => D.DBHandle db -> L.KVDBL db a -> (a -> next) -> LangF next
   -- | Eval SQL DB
   EvalSqlDB :: D.SqlConn beM -> L.SqlDBL beM a -> (D.DBResult a -> next) -> LangF next
+  -- Throwing uncatchable exception
+  ThrowException :: forall a e next. Exception e => e -> (a -> next) -> LangF next
 
-
-
-makeFunctorInstance ''LangF
-
+instance Functor FlowMethod where
+  fmap f (EvalStateAtomically st next) = EvalStateAtomically st (f . next)
+  fmap f (EvalLogger logAct next)      = EvalLogger logAct (f . next)
+  fmap f (EvalRandom rndAct next)      = EvalRandom rndAct (f . next)
+  fmap f (EvalControlFlow cfAct next)  = EvalControlFlow cfAct (f . next)
+  fmap f (EvalIO ioAct next)           = EvalIO ioAct (f . next)
+  fmap f (EvalKVDB h kvdbAct next)     = EvalKVDB h kvdbAct (f . next)
+  fmap f (EvalSqlDB conn sqlAct next)  = EvalSqlDB conn sqlAct (f . next)
+  fmap f (ThrowException message next) = ThrowException message (f . next)
+  
 type LangL = Free LangF
 
 class IOL m where
