@@ -10,62 +10,62 @@ module Astro.Client
 import           Hydra.Prelude
 import qualified Data.ByteString.Lazy as BSL
 import           Data.Aeson (decode)
+import           Data.Either (rights)
 
 import qualified Hydra.Domain  as D
 import qualified Hydra.Runtime as R
 import qualified Hydra.Interpreters as R
 import qualified Hydra.Language     as L
 
+import           Astro.Common (loggerCfg)
 import           Astro.Domain.Meteor
 import           Astro.Domain.Asteroid
-import           Astro.API.Meteor
-import           Astro.API.Asteroid
 import           Astro.Types
+import qualified Astro.API as API
 
 
-reportAsteroid :: API.AsteroidTemplate -> Flow ()
+reportAsteroid :: API.AsteroidTemplate -> L.AppL ()
 reportAsteroid asteroid = undefined
 
-reportMeteor :: API.MeteorTemplate -> Flow ()
+reportMeteor :: API.MeteorTemplate -> L.AppL ()
 reportMeteor meteor = undefined
 
-tryParseCmd :: BSL.BytetString -> Either BSL.BytetString obj
+tryParseCmd
+  :: FromJSON obj
+  => BSL.ByteString
+  -> Either BSL.ByteString obj
 tryParseCmd str = case decode str of
   Nothing -> Left "Decoding failed."
   Just obj -> Right obj
 
+asteroidReporter = undefined
+meteorReporter = undefined
 
-
-reportObject :: (obj -> Flow ()) -> obj -> Flow (Either BS.ByteString ())
+reportObject
+  :: FromJSON obj
+  => (obj -> L.AppL ())
+  -> (Either BSL.ByteString obj)
+  -> L.AppL (Either BSL.ByteString ())
 reportObject reporter obj = undefined
 
-consoleFlow :: Flow ()
-consoleFlow = do
-  line <- L.runIO $ BSL.putStr "> " >> BSL.getLine
+consoleApp :: L.AppL ()
+consoleApp = do
+  line <- L.evalIO $ BSL.putStr "> " >> BSL.getContents
 
   let runners =
-        [ reportObject asteroidReporter $ tryParseCmd @AsteroidTemplate line
-        , reportObject meteorReporter   $ tryParseCmd @MeteorTemplate   line
+        [ reportObject asteroidReporter $ tryParseCmd @(API.AsteroidTemplate) line
+        , reportObject meteorReporter   $ tryParseCmd @(API.MeteorTemplate)   line
         ]
 
   eResult <- sequence runners
-  case eResult of
-    Left err -> L.runIO $ BSL.putStrLn $ "Command failed: " <> err
-    Right _ -> pure ()
+  case rights eResult of
+    [] -> L.evalIO $ BSL.putStrLn "Command is not recognized."
+    [()] -> pure ()
+    (_) -> L.evalIO $ BSL.putStrLn "Multiple commands evaluated unexpectedly"
 
-  consoleFlow
-
-  case parseCmd line of
-    Nothing -> do
-      L.runIO $ BSL.putStrLn "Command not recognized."
-      consoleFlow
-    Just asteroid@(API.AsteroidTemplate {}) -> reportAsteroid asteroid
-    Just meteor@(API.MeteorTemplate {})     -> reportMeteor meteor
+  consoleApp
 
 
 runAstroClient :: IO ()
-runAstroClient = do
-
-    R.withAppRuntime (Just loggerCfg) $ \rt -> do
-      appSt <- R.runAppL rt $ initState AppConfig
-      run 8080 $ astroBackendApp $ Env rt appSt
+runAstroClient = R.withAppRuntime (Just loggerCfg)
+    $ \rt -> R.runAppL rt consoleApp

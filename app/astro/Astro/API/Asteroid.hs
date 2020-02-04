@@ -13,6 +13,3 @@ data AsteroidTemplate = AsteroidTemplate
   , physical    :: Physical
   }
   deriving (Show, Eq, Ord, Generic, ToJSON, FromJSON)
-
-
-type Asteroids = [Asteroid]

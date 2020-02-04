@@ -7,6 +7,7 @@ module Astro.Common where
 
 import           Hydra.Prelude
 import qualified Hydra.Domain  as D
+import qualified Database.Beam.Sqlite as BS
 
 -- TODO: configs from the command line
 dbConfig :: D.DBConfig BS.SqliteM

@@ -20,23 +20,29 @@ data Coords = Coords
 type AstronomicalUnit = Double
 
 data Orbital = Orbital
-  { epoch                 :: UTCTime
-  , apoapsis              :: AstronomicalUnit
+  { apoapsis              :: AstronomicalUnit
   , periapsis             :: AstronomicalUnit
-  , semiMajorAxis         :: AstronomicalUnit
-  , Eccentrity            :: Double
-  , Inclination           :: Double
-  , Longitude             :: Double
-  , ArgumentOfPeriapsis   :: Double
-  , OrbitalPeriod         :: Double
-  , AvgOrbitalSpeed       :: Double
+
+  -- Enough fields for demo.
+
+  -- , epoch                 :: UTCTime
+  -- , semiMajorAxis         :: AstronomicalUnit
+  -- , eccentrity            :: Double
+  -- , inclination           :: Double
+  -- , longitude             :: Double
+  -- , argumentOfPeriapsis   :: Double
+  -- , orbitalPeriod         :: Double
+  -- , avgOrbitalSpeed       :: Double
   }
   deriving (Show, Eq, Ord, Generic, ToJSON, FromJSON)
 
 data Physical = Physical
   { meanDiameter    :: Double
   , rotationPeriod  :: Double
-  , albedo          :: Double
+
+
+  -- Enough fields for demo.
+  -- , albedo          :: Double
   }
   deriving (Show, Eq, Ord, Generic, ToJSON, FromJSON)
 

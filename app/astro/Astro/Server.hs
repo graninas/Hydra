@@ -26,6 +26,7 @@ import qualified Hydra.Runtime as R
 import qualified Hydra.Interpreters as R
 import qualified Hydra.Language     as L
 
+import           Astro.Common (loggerCfg, dbConfig)
 import           Astro.API.Meteor
 import           Astro.Domain.Meteor
 import           Astro.Catalogue
@@ -79,10 +80,6 @@ astroServer'
      = meteors
   :<|> meteor
 
--- TODO: configs from the command line
-dbConfig :: D.DBConfig BS.SqliteM
-dbConfig = D.mkSQLiteConfig "/tmp/astro.db"
-
 meteors :: Maybe Int -> Maybe Int -> AppHandler Meteors
 meteors mbMass mbSize = runApp
   $ withDB dbConfig
@@ -92,15 +89,6 @@ meteor :: MeteorTemplate -> AppHandler MeteorID
 meteor m = runApp
   $ withDB dbConfig
   $ createMeteor m
-
-loggerCfg :: D.LoggerConfig
-loggerCfg = D.LoggerConfig
-  { D._format       = "$prio $loggername: $msg"
-  , D._level        = D.Debug
-  , D._logFilePath  = ""
-  , D._logToConsole = True
-  , D._logToFile    = False
-  }
 
 prepareSQLiteDB :: IO ()
 prepareSQLiteDB = do
