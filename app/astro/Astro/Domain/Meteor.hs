@@ -28,13 +28,5 @@ data Meteor = Meteor
   }
   deriving (Show, Eq, Ord, Generic, ToJSON, FromJSON)
 
-data MeteorTemplate = MeteorTemplate
-  { size        :: Int
-  , mass        :: Int
-  , azimuth     :: Int
-  , altitude    :: Int
-  }
-  deriving (Show, Eq, Ord, Generic, ToJSON, FromJSON)
-
 newtype Meteors = Meteors [Meteor]
   deriving (Show, Eq, Ord, Generic, ToJSON, FromJSON)

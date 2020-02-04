@@ -17,6 +17,7 @@ import           Database.Beam ((==.), (&&.), (<-.), (/=.), (==?.))
 import           Astro.Types
 import           Astro.Lens
 import           Astro.Domain.Meteor
+import           Astro.API.Meteor
 import qualified Astro.KVDB.AstroDB as KVDB
 import qualified Astro.SqlDB.AstroDB as SqlDB
 
