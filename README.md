@@ -31,6 +31,6 @@ The project is a showcase for my book [Functional Design and Architecture](https
 
 **Additional materials describing these ideas:**
 
-- [Hierarchical Free Monads and Software Design in Functional Programming (Talk, Eng)](https://docs.google.com/presentation/d/1SYMIZ-LOI8Ylykz0PTxwiPuHN_02gIWh9AjJDO6xbvM/edit?usp=sharing) | [Slides (Eng)](https://docs.google.com/presentation/d/1SYMIZ-LOI8Ylykz0PTxwiPuHN_02gIWh9AjJDO6xbvM/edit?usp=sharing)
+- [Hierarchical Free Monads and Software Design in Functional Programming (Talk, Eng)](https://www.youtube.com/watch?v=3GKQ4ni2pS0) | [Slides (Eng)](https://docs.google.com/presentation/d/1SYMIZ-LOI8Ylykz0PTxwiPuHN_02gIWh9AjJDO6xbvM/edit?usp=sharing)
 - [Final Tagless vs Free Monad (Talk, Rus)](https://www.youtube.com/watch?v=u1GGqDQyGfc) | [Slides (Eng)](https://docs.google.com/presentation/d/1VhS8ySgk2w5RoN_l_Ar_axcE4Dzf97zLw1uuzUJQbCo/edit?usp=sharing)
 - [Automatic whitebox testing with Free Moands (Showcase, Article)](https://github.com/graninas/automatic-whitebox-testing-showcase)
