@@ -27,7 +27,7 @@ import qualified Hydra.Interpreters as R
 import qualified Hydra.Language     as L
 
 import           Astro.Common (loggerCfg, dbConfig)
-import           Astro.API.Meteor
+import qualified Astro.API as API
 import           Astro.Domain.Meteor
 import           Astro.Catalogue
 import           Astro.Types
@@ -40,8 +40,13 @@ type AstroAPI
     )
   :<|>
     (  "meteor"
-    :> ReqBody '[JSON] MeteorTemplate
-    :> Post '[JSON] MeteorID
+    :> ReqBody '[JSON] API.MeteorTemplate
+    :> Post '[JSON] MeteorId
+    )
+  :<|>
+    (  "asteroid"
+    :> ReqBody '[JSON] API.AsteroidTemplate
+    :> Post '[JSON] AsteroidId
     )
 
 astroAPI :: Proxy AstroAPI
@@ -85,10 +90,13 @@ meteors mbMass mbSize = runApp
   $ withDB dbConfig
   $ getMeteors mbMass mbSize
 
-meteor :: MeteorTemplate -> AppHandler MeteorID
+meteor :: API.MeteorTemplate -> AppHandler MeteorId
 meteor m = runApp
   $ withDB dbConfig
   $ createMeteor m
+
+asteroid :: API.AsteroidTemplate -> AppHandler AsteroidId
+asteroid a = error "Not implemented yet."
 
 prepareSQLiteDB :: IO ()
 prepareSQLiteDB = do

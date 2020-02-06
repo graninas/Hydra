@@ -30,7 +30,7 @@ instance D.DB AstroDB where
 data MeteorEntity
 
 instance D.DBEntity AstroDB MeteorEntity where
-  data KeyEntity MeteorEntity = MeteorKey D.MeteorID
+  data KeyEntity MeteorEntity = MeteorKey D.MeteorId
     deriving (Show, Eq, Ord)
   data ValueEntity MeteorEntity = KVDBMeteor
           { size  :: Int
@@ -40,11 +40,11 @@ instance D.DBEntity AstroDB MeteorEntity where
           , time  :: D.DateTime
           }
           deriving (Show, Eq, Ord, Generic, ToJSON, FromJSON)
-  toDBKey (MeteorKey idx) = show $ formatMeteorID idx
+  toDBKey (MeteorKey idx) = show $ formatMeteorId idx
   toDBValue   = D.toDBValueJSON
   fromDBValue = D.fromDBValueJSON
 
-instance D.AsKeyEntity MeteorEntity D.MeteorID where
+instance D.AsKeyEntity MeteorEntity D.MeteorId where
   toKeyEntity = MeteorKey
 
 instance D.AsKeyEntity MeteorEntity D.Meteor where
@@ -54,16 +54,16 @@ instance D.AsValueEntity MeteorEntity D.Meteor where
   toValueEntity = toKVDBMeteor
   fromValueEntity (MeteorKey idx) = fromKVDBMeteor idx
 
-mkMeteorKey :: D.MeteorID -> D.KeyEntity MeteorEntity
+mkMeteorKey :: D.MeteorId -> D.KeyEntity MeteorEntity
 mkMeteorKey = D.toKeyEntity
 
-formatMeteorID :: D.MeteorID -> String
-formatMeteorID = ("0|" <>) . toIdxBase
+formatMeteorId :: D.MeteorId -> String
+formatMeteorId = ("0|" <>) . toIdxBase
 
 toKVDBMeteor :: D.Meteor -> D.ValueEntity MeteorEntity
 toKVDBMeteor (D.Meteor _ size mass (D.Coords azmt alt) time) = KVDBMeteor {..}
 
-fromKVDBMeteor :: D.MeteorID -> D.ValueEntity MeteorEntity -> D.Meteor
+fromKVDBMeteor :: D.MeteorId -> D.ValueEntity MeteorEntity -> D.Meteor
 fromKVDBMeteor meteorId KVDBMeteor {..} = D.Meteor
   { D.meteorId  = meteorId
   , D.size      = size

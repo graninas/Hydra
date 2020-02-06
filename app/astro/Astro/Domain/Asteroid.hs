@@ -11,10 +11,10 @@ import           Data.Time.Clock (UTCTime)
 
 import           Astro.Domain.Types
 
-type AsteroidID  = Int
+type AsteroidId  = Int
 
 data Asteroid = Asteroid
-  { asteroidId  :: AsteroidID
+  { asteroidId  :: AsteroidId
   , name        :: Maybe Text
   , orbital     :: Orbital
   , physical    :: Physical

@@ -102,7 +102,7 @@ getMeteors mbMass mbSize conn = do
       L.logError $ "Error occured on searching meteors: " <> show err
       pure $ Meteors []
 
-createMeteor :: MeteorTemplate -> D.SqlConn BS.SqliteM -> L.AppL MeteorID
+createMeteor :: MeteorTemplate -> D.SqlConn BS.SqliteM -> L.AppL MeteorId
 createMeteor mtp@(MeteorTemplate {..}) conn = do
   L.logInfo $ "Inserting meteor into SQL DB: " <> show mtp
 

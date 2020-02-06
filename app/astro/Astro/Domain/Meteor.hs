@@ -17,10 +17,10 @@ data Coords = Coords
   }
   deriving (Show, Eq, Ord, Generic, ToJSON, FromJSON)
 
-type MeteorID  = Int
+type MeteorId  = Int
 
 data Meteor = Meteor
-  { meteorId    :: MeteorID
+  { meteorId    :: MeteorId
   , size        :: Int
   , mass        :: Int
   , coords      :: Coords
