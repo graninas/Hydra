@@ -25,6 +25,7 @@ import           Database.Beam (FromBackendRow, SqlSelect)
 import           Database.Beam.Sqlite (Sqlite)
 import qualified Database.Beam as B
 import qualified Database.Beam.Backend.SQL as B
+import           Servant.Client (ClientM, ClientError, BaseUrl)
 
 -- | Core effects container language.
 data LangF next where
@@ -42,18 +43,22 @@ data LangF next where
   EvalKVDB :: D.DB db => D.DBHandle db -> L.KVDBL db a -> (a -> next) -> LangF next
   -- | Eval SQL DB
   EvalSqlDB :: D.SqlConn beM -> L.SqlDBL beM a -> (D.DBResult a -> next) -> LangF next
-  -- Throwing uncatchable exception
+  -- | Throwing uncatchable exception
   ThrowException :: forall a e next. Exception e => e -> (a -> next) -> LangF next
+  -- | Making an HTTP request using Servant Client
+  CallServantAPI
+    :: BaseUrl -> ClientM a -> (Either ClientError a -> next) -> LangF next
 
 instance Functor LangF where
-  fmap f (EvalStateAtomically st next) = EvalStateAtomically st (f . next)
-  fmap f (EvalLogger logAct next)      = EvalLogger logAct (f . next)
-  fmap f (EvalRandom rndAct next)      = EvalRandom rndAct (f . next)
-  fmap f (EvalControlFlow cfAct next)  = EvalControlFlow cfAct (f . next)
-  fmap f (EvalIO ioAct next)           = EvalIO ioAct (f . next)
-  fmap f (EvalKVDB h kvdbAct next)     = EvalKVDB h kvdbAct (f . next)
-  fmap f (EvalSqlDB conn sqlAct next)  = EvalSqlDB conn sqlAct (f . next)
-  fmap f (ThrowException exc next)     = ThrowException exc (f . next)
+  fmap f (EvalStateAtomically st next)   = EvalStateAtomically st (f . next)
+  fmap f (EvalLogger logAct next)        = EvalLogger logAct (f . next)
+  fmap f (EvalRandom rndAct next)        = EvalRandom rndAct (f . next)
+  fmap f (EvalControlFlow cfAct next)    = EvalControlFlow cfAct (f . next)
+  fmap f (EvalIO ioAct next)             = EvalIO ioAct (f . next)
+  fmap f (EvalKVDB h kvdbAct next)       = EvalKVDB h kvdbAct (f . next)
+  fmap f (EvalSqlDB conn sqlAct next)    = EvalSqlDB conn sqlAct (f . next)
+  fmap f (ThrowException exc next)       = ThrowException exc (f . next)
+  fmap f (CallServantAPI url clM next) = CallServantAPI url clM (f . next)
 
 type LangL = Free LangF
 
@@ -125,3 +130,18 @@ runDB
   -> L.SqlDBL beM a
   -> LangL (D.DBResult a)
 runDB = evalSqlDB
+
+throwException :: forall a e. Exception e => e -> Flow a
+throwException ex = liftFC $ ThrowException ex id
+
+callServantAPI
+  :: BaseUrl
+  -> ClientM a
+  -> LangL (Either ClientError a)
+callServantAPI url cl = liftFC $ CallServantAPI url cl id
+
+callAPI
+  :: BaseUrl
+  -> ClientM a
+  -> LangL (Either ClientError a)
+callAPI = callServantAPI

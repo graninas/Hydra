@@ -15,6 +15,10 @@ import qualified Database.RocksDB as Rocks
 import qualified Database.Redis as Redis
 import qualified Database.SQLite.Simple as SQLite
 
+import           Network.HTTP.Client     (Manager, newManager)
+import           Network.HTTP.Client.TLS (tlsManagerSettings)
+import qualified System.Mem             as SYSM (performGC)
+
 -- | Runtime data for the concrete logger impl.
 newtype LoggerRuntime = LoggerRuntime
     { _hsLoggerHandle :: Maybe Impl.HsLoggerHandle
@@ -23,18 +27,18 @@ newtype LoggerRuntime = LoggerRuntime
 -- | Runtime for processes.
 data ProcessRuntime = ProcessRuntime
     { _idCounter :: IORef Int
-    , _processes :: TVar (Map D.ProcessId ThreadId)   -- TODO: FIXME: should be TMVar
+    , _processes :: TVar (Map D.ProcessId ThreadId)
     }
 
 -- | Runtime data for core subsystems.
 data CoreRuntime = CoreRuntime
-    { _rocksDBs       :: R.RocksDBHandles
-    , _redisConns     :: R.RedisConnections
-    -- , _sqliteConns    :: R.SQLiteDBConns
-    , _loggerRuntime  :: LoggerRuntime
-    , _stateRuntime   :: StateRuntime
-    , _processRuntime :: ProcessRuntime
-    , _sqlConns       :: MVar (Map D.ConnTag D.NativeSqlConn)
+    { _rocksDBs          :: R.RocksDBHandles
+    , _redisConns        :: R.RedisConnections
+    , _loggerRuntime     :: LoggerRuntime
+    , _stateRuntime      :: StateRuntime
+    , _processRuntime    :: ProcessRuntime
+    , _sqlConns          :: MVar (Map D.ConnTag D.NativeSqlConn)
+    , _httpClientManager :: Manager
     }
 
 -- | Logger that can be used in runtime via the logging subsystem.
@@ -76,11 +80,11 @@ createCoreRuntime :: LoggerRuntime -> IO CoreRuntime
 createCoreRuntime loggerRt = CoreRuntime
   <$> newTMVarIO Map.empty
   <*> newTMVarIO Map.empty
-  -- <*> newTMVarIO Map.empty
   <*> pure loggerRt
   <*> createStateRuntime
   <*> createProcessRuntime
   <*> newMVar Map.empty
+  <*> newManager tlsManagerSettings
 
 clearProcessRuntime :: ProcessRuntime -> IO ()
 clearProcessRuntime procRt = do
@@ -96,6 +100,7 @@ clearCoreRuntime coreRt =
   `finally` (R.closeRedisConns $ _redisConns coreRt)
   -- TODO: close sql conns
   -- `finally` (R.closeSQLiteConns $ _sqliteConns coreRt)
+  `finally` SYSM.performGC
 
 -- TODO: Church version of flusher.
 -- | Writes all stm entries into real logger.

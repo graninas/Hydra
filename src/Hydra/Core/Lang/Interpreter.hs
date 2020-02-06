@@ -17,6 +17,7 @@ import           Hydra.Core.State.Interpreter               (runStateL)
 import           Hydra.Core.KVDB.Interpreter                (runAsRocksDBL, runAsRedisL)
 import           Hydra.Core.SqlDB.Interpreter               (runSqlDBL)
 import qualified Database.RocksDB                           as Rocks
+import qualified Servant.Client                             as S
 
 evalRocksKVDB'
   :: R.CoreRuntime
@@ -62,7 +63,6 @@ interpretLangF coreRt (L.EvalLogger loggerAct next) =
 interpretLangF _      (L.EvalRandom  s next)        = next <$> runRandomL s
 interpretLangF coreRt (L.EvalControlFlow f    next) = next <$> runControlFlowL coreRt f
 interpretLangF _      (L.EvalIO f next)             = next <$> f
-interpretLangF _      (L.ThrowException exc next)   = throwIO exc
 interpretLangF coreRt (L.EvalKVDB storage act next) = next <$> evalKVDB' coreRt storage act
 interpretLangF coreRt (L.EvalSqlDB conn sqlDbMethod next) = do
   let dbgLogger = runLoggerL (coreRt ^. RLens.loggerRuntime . RLens.hsLoggerHandle)
@@ -72,7 +72,11 @@ interpretLangF coreRt (L.EvalSqlDB conn sqlDbMethod next) = do
   pure $ next $ case eRes of
     Left (err :: SomeException) -> Left $ D.DBError D.SystemError $ show err
     Right res -> Right res
-
+interpretLangF _      (L.ThrowException exc next) = throwIO exc
+interpretFlowF coreRt (L.CallServantAPI bUrl clientAct next)
+  = next <$> catchAny
+      (S.runClientM clientAct (S.mkClientEnv (coreRt ^. RLens.httpClientManager) bUrl))
+      (pure . Left . S.ConnectionError)
 
 runLangL :: R.CoreRuntime -> L.LangL a -> IO a
 runLangL coreRt = foldFree (interpretLangF coreRt)
