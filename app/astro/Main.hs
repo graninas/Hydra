@@ -9,11 +9,12 @@ import           Hydra.Prelude
 import           System.Environment (getArgs)
 
 import           Astro.Server (runAstroServer)
-import           Astro.Client (runAstroClient)
+import           Astro.Client (ReportChannel(..), runAstroClient)
 
 main :: IO ()
 main = do
   args <- getArgs
   case args of
-    ("client":_) -> runAstroClient
+    ("http_client":_) -> runAstroClient HttpChannel
+    ("tcp_client":_)  -> runAstroClient TcpChannel
     _ -> runAstroServer

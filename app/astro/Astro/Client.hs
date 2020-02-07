@@ -4,14 +4,16 @@
 {-# LANGUAGE DeriveAnyClass #-}
 
 module Astro.Client
-  ( runAstroClient
+  ( ReportChannel (..)
+  , runAstroClient
   ) where
 
 import           Hydra.Prelude
 import qualified Data.ByteString.Lazy as BSL
 import           Data.Aeson (decode)
 import           Data.Either (rights)
-import           Servant.Client (ClientM, ClientError, BaseUrl)
+import           Servant
+import           Servant.Client (ClientM, ClientError, BaseUrl(..), Scheme(..), client)
 
 import qualified Hydra.Domain  as D
 import qualified Hydra.Runtime as R
@@ -27,47 +29,46 @@ import qualified Astro.API as API
 
 data TcpConn = DummyTcpConn
 
+
+data ReportChannel = TcpChannel | HttpChannel
+
+data AstroServerHandle = AstroServerHandle
+  { meteorReporter     :: API.MeteorTemplate   -> L.AppL (Either BSL.ByteString MeteorId)
+  , asteroidReporter   :: API.AsteroidTemplate -> L.AppL (Either BSL.ByteString AsteroidId)
+  }
+
+
 meteors :: Maybe Int -> Maybe Int -> ClientM Meteors
 meteor :: API.MeteorTemplate -> ClientM MeteorId
 asteroid :: API.AsteroidTemplate -> ClientM AsteroidId
 (meteors :<|> meteor :<|> asteroid) = client Server.astroAPI
 
-meteorHttpReporter :: BaseUrl -> API.MeteorTemplate -> L.AppL (Either String MeteorId)
-meteorHttpReporter url m = do
-  eMId <- L.callAPI url $ meteor m
+reportMeteorHttp :: BaseUrl -> API.MeteorTemplate -> L.AppL (Either BSL.ByteString MeteorId)
+reportMeteorHttp url m = do
+  eMId <- L.scenario $ L.callAPI url $ meteor m
   pure $ case eMId of
     Left err -> Left $ show err
     Right r -> Right r
 
-asteroidHttpReporter :: BaseUrl -> API.AsteroidTemplate -> L.AppL (Either String AsteroidId)
-asteroidHttpReporter url a = do
-  eAId <- L.callAPI url $ asteroid a
+reportAsteroidHttp :: BaseUrl -> API.AsteroidTemplate -> L.AppL (Either  BSL.ByteString AsteroidId)
+reportAsteroidHttp url a = do
+  eAId <- L.scenario $ L.callAPI url $ asteroid a
   pure $ case eAId of
     Left err -> Left $ show err
     Right r -> Right r
 
-
-meteorTcpReporter :: TcpConn -> API.MeteorTemplate -> L.AppL (Either String MeteorId)
-meteorTcpReporter _ m = do
+reportMeteorTcp :: TcpConn -> API.MeteorTemplate -> L.AppL (Either BSL.ByteString MeteorId)
+reportMeteorTcp _ m = do
   L.evalIO $ pure ()    -- send via tcp here
   L.logInfo "Meteor sent via TCP (dummy)."
-  pure 0
+  pure $ Right 0
 
-asteroidTcpReporter :: TcpConn -> API.AsteroidTemplate -> L.AppL (Either String AsteroidId)
-asteroidTcpReporter _ a = do
+reportAsteroidTcp :: TcpConn -> API.AsteroidTemplate -> L.AppL (Either BSL.ByteString AsteroidId)
+reportAsteroidTcp _ a = do
   L.evalIO $ pure ()    -- send via tcp here
   L.logInfo "Asteroid sent via TCP (dummy)."
-  pure 0
+  pure $ Right 0
 
-
-
-
-
-reportAsteroid :: API.AsteroidTemplate -> L.AppL ()
-reportAsteroid asteroid = undefined
-
-reportMeteor :: API.MeteorTemplate -> L.AppL ()
-reportMeteor meteor = undefined
 
 tryParseCmd
   :: FromJSON obj
@@ -77,32 +78,42 @@ tryParseCmd str = case decode str of
   Nothing -> Left "Decoding failed."
   Just obj -> Right obj
 
-reportObject
+reportWith
   :: FromJSON obj
-  => (obj -> L.AppL ())
+  => (obj -> L.AppL (Either BSL.ByteString res))
   -> (Either BSL.ByteString obj)
   -> L.AppL (Either BSL.ByteString ())
-reportObject reporter obj = undefined
+reportWith reporter (Left err) = pure $ Left err
+reportWith reporter (Right obj) = reporter obj >> pure (Right ())
 
-consoleApp :: L.AppL ()
-consoleApp = do
+consoleApp :: AstroServerHandle -> L.AppL ()
+consoleApp handle@(AstroServerHandle{..}) = do
   line <- L.evalIO $ BSL.putStr "> " >> BSL.getContents
 
   let runners =
-        [ reportObject asteroidReporter $ tryParseCmd @(API.AsteroidTemplate) line
-        , reportObject meteorReporter   $ tryParseCmd @(API.MeteorTemplate)   line
+        [ reportWith meteorReporter   $ tryParseCmd @(API.MeteorTemplate)   line
+        , reportWith asteroidReporter $ tryParseCmd @(API.AsteroidTemplate) line
         ]
 
-  eResult <- sequence runners
-  case rights eResult of
+  eResults <- sequence runners
+  case rights eResults of
     [] -> L.evalIO $ BSL.putStrLn "Command is not recognized."
     [()] -> pure ()
     (_) -> L.evalIO $ BSL.putStrLn "Multiple commands evaluated unexpectedly"
 
-  consoleApp
+  consoleApp handle
 
+makeReporters :: ReportChannel -> AstroServerHandle
+makeReporters TcpChannel  = AstroServerHandle
+  (reportMeteorTcp    DummyTcpConn)
+  (reportAsteroidTcp  DummyTcpConn)
+makeReporters HttpChannel = AstroServerHandle
+  (reportMeteorHttp   localhostAstro)
+  (reportAsteroidHttp localhostAstro)
+  where
+    localhostAstro = BaseUrl Http "localhost" 8081 ""
 
-runAstroClient :: IO ()
-runAstroClient =
+runAstroClient :: ReportChannel -> IO ()
+runAstroClient ch =
   R.withAppRuntime (Just loggerCfg)
-    $ \rt -> R.runAppL rt consoleApp
+    $ \rt -> R.runAppL rt $ consoleApp $ makeReporters ch

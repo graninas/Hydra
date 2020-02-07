@@ -5,6 +5,7 @@
 
 module Astro.Server
   ( runAstroServer
+  , astroAPI
   ) where
 
 import           Control.Monad
@@ -29,6 +30,7 @@ import qualified Hydra.Language     as L
 import           Astro.Common (loggerCfg, dbConfig)
 import qualified Astro.API as API
 import           Astro.Domain.Meteor
+import           Astro.Domain.Asteroid
 import           Astro.Catalogue
 import           Astro.Types
 
@@ -84,6 +86,7 @@ astroServer' :: AppServer
 astroServer'
      = meteors
   :<|> meteor
+  :<|> asteroid
 
 meteors :: Maybe Int -> Maybe Int -> AppHandler Meteors
 meteors mbMass mbSize = runApp
