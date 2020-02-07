@@ -131,7 +131,7 @@ runDB
   -> LangL (D.DBResult a)
 runDB = evalSqlDB
 
-throwException :: forall a e. Exception e => e -> Flow a
+throwException :: forall a e. Exception e => e -> LangL a
 throwException ex = liftFC $ ThrowException ex id
 
 callServantAPI

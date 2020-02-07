@@ -111,6 +111,8 @@ dependencies:
 - servant-docs
 - wai
 - warp
+- http-client
+- http-client-tls
 
 library:
   source-dirs:
