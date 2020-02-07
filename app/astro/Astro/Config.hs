@@ -3,7 +3,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE DeriveAnyClass #-}
 
-module Astro.Common where
+module Astro.Config where
 
 import           Hydra.Prelude
 import qualified Hydra.Domain  as D

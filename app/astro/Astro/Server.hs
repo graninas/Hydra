@@ -27,7 +27,7 @@ import qualified Hydra.Runtime as R
 import qualified Hydra.Interpreters as R
 import qualified Hydra.Language     as L
 
-import           Astro.Common (loggerCfg, dbConfig)
+import           Astro.Config (loggerCfg, dbConfig)
 import qualified Astro.API as API
 import           Astro.Domain.Meteor
 import           Astro.Domain.Asteroid
