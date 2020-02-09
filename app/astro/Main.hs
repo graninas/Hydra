@@ -15,16 +15,18 @@ import           Astro.Server               (runAstroServer)
 import           Astro.Client.Common        (ReportChannel(..), Approach(..))
 import qualified Astro.Client.ServiceHandle as SH
 import qualified Astro.Client.ReaderT       as RT
+import qualified Astro.Client.FreeMonad     as FM
 
 
 runAstroClient :: Approach -> ReportChannel -> IO ()
 runAstroClient appr ch = R.withAppRuntime (Just loggerCfg) (\rt -> R.runAppL rt app')
   where
     app' = app'' appr
-    
-    app'' SH = SH.consoleApp $ SH.makeServiceHandle ch
-    app'' RT = runReaderT RT.consoleApp (RT.makeAppEnv ch)
-    app'' _  = error $ "Approach not yet implemented: " <> show appr
+
+    app'' SH   = SH.consoleApp $ SH.makeServiceHandle ch
+    app'' RT   = runReaderT RT.consoleApp $ RT.makeAppEnv ch
+    app'' FM   = FM.consoleApp $ FM.getAstroServiceRunner ch
+    app'' _    = error $ "Approach not yet implemented: " <> show appr
 
 getChannel :: String -> ReportChannel
 getChannel "http" = HttpChannel

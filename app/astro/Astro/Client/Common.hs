@@ -30,7 +30,6 @@ data Approach
   | RT    -- ^ ReaderT
   | FM    -- ^ Free Monad
   | CEFM  -- ^ Church Encoded Free Monad
-  | BIO   -- ^ Bare IO
   deriving (Show, Read)
 
 meteors  :: Maybe Int -> Maybe Int -> ClientM Meteors
@@ -74,6 +73,9 @@ tryParseCmd str = case decode str of
 
 localhostAstro :: BaseUrl
 localhostAstro = BaseUrl Http "localhost" 8081 ""
+
+tcpConn :: TcpConn
+tcpConn = DummyTcpConn
 
 printResults :: [Either BSL.ByteString ()] -> L.AppL ()
 printResults eResults = printResults' (rights eResults)
