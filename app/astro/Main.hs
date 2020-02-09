@@ -41,7 +41,7 @@ getChannel ch     = error $ show $ "Channel not supported: " <> ch <> " Supporte
 getApproach :: String -> Approach
 getApproach apprStr = case readMaybe apprStr of
   Just appr -> appr
-  Nothing   -> error $ show $ "Approach not supported: " <> apprStr <> " Supported: SH RT FM GADT"
+  Nothing   -> error $ show $ "Approach not supported: " <> apprStr <> " Supported: SH RT FM FT GADT"
 
 main :: IO ()
 main = do
