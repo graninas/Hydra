@@ -31,8 +31,6 @@ instance Functor AstroServiceF where
 
 type AstroService a = Free AstroServiceF a
 
--- type AstroServiceRunner a = AstroServiceF a -> L.AppL a
-
 reportMeteor :: API.MeteorTemplate -> AstroService (Either BSL.ByteString MeteorId)
 reportMeteor m = liftF $ ReportMeteor m id
 

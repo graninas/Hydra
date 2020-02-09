@@ -30,6 +30,7 @@ data Approach
   | RT    -- ^ ReaderT
   | FM    -- ^ Free Monad
   | CEFM  -- ^ Church Encoded Free Monad
+  | GADT  -- ^ GADT
   deriving (Show, Read)
 
 meteors  :: Maybe Int -> Maybe Int -> ClientM Meteors
