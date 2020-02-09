@@ -29,6 +29,7 @@ data Approach
   = SH    -- ^ ServiceHandle
   | RT    -- ^ ReaderT
   | FM    -- ^ Free Monad
+  | FT    -- ^ Final Tagless (mtl-style)
   | CEFM  -- ^ Church Encoded Free Monad
   | GADT  -- ^ GADT
   deriving (Show, Read)

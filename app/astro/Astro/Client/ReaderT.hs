@@ -4,9 +4,7 @@
 {-# LANGUAGE DeriveAnyClass #-}
 
 module Astro.Client.ReaderT
-  ( AppRT
-  , AppEnv (..)
-  , consoleApp
+  ( consoleApp
   , makeAppEnv
   ) where
 
@@ -20,9 +18,9 @@ import qualified Hydra.Language        as L
 import qualified Astro.API             as API
 import           Astro.Domain.Meteor   (MeteorId, Meteors)
 import           Astro.Domain.Asteroid (AsteroidId)
-import           Astro.Client.Common   (TcpConn(..), ReportChannel(..),
+import           Astro.Client.Common   (ReportChannel(..),
   tryParseCmd, reportMeteorTcp, reportAsteroidTcp, reportMeteorHttp,
-  reportAsteroidHttp, localhostAstro, printResults)
+  reportAsteroidHttp, localhostAstro, printResults, tcpConn)
 
 data AppEnv = AppEnv
   { meteorReporter     :: API.MeteorTemplate   -> L.AppL (Either BSL.ByteString MeteorId)
@@ -41,8 +39,8 @@ reportWith reporter (Right obj) = lift (reporter obj) >> pure (Right ())
 
 makeAppEnv :: ReportChannel -> AppEnv
 makeAppEnv TcpChannel  = AppEnv
-  (reportMeteorTcp    DummyTcpConn)
-  (reportAsteroidTcp  DummyTcpConn)
+  (reportMeteorTcp    tcpConn)
+  (reportAsteroidTcp  tcpConn)
 makeAppEnv HttpChannel = AppEnv
   (reportMeteorHttp   localhostAstro)
   (reportAsteroidHttp localhostAstro)

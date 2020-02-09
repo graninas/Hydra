@@ -4,8 +4,7 @@
 {-# LANGUAGE DeriveAnyClass #-}
 
 module Astro.Client.ServiceHandle
-  ( AstroServiceHandle (..)
-  , consoleApp
+  ( consoleApp
   , makeServiceHandle
   ) where
 
@@ -18,9 +17,9 @@ import qualified Hydra.Language        as L
 import qualified Astro.API             as API
 import           Astro.Domain.Meteor   (MeteorId, Meteors)
 import           Astro.Domain.Asteroid (AsteroidId)
-import           Astro.Client.Common   (TcpConn(..), ReportChannel(..),
+import           Astro.Client.Common   (ReportChannel(..),
   tryParseCmd, reportMeteorTcp, reportAsteroidTcp, reportMeteorHttp,
-  reportAsteroidHttp, localhostAstro, printResults)
+  reportAsteroidHttp, localhostAstro, printResults, tcpConn)
 
 data AstroServiceHandle = AstroServiceHandle
   { meteorReporter     :: API.MeteorTemplate   -> L.AppL (Either BSL.ByteString MeteorId)
@@ -38,8 +37,8 @@ reportWith reporter (Right obj) = reporter obj >> pure (Right ())
 
 makeServiceHandle :: ReportChannel -> AstroServiceHandle
 makeServiceHandle TcpChannel  = AstroServiceHandle
-  (reportMeteorTcp    DummyTcpConn)
-  (reportAsteroidTcp  DummyTcpConn)
+  (reportMeteorTcp    tcpConn)
+  (reportAsteroidTcp  tcpConn)
 makeServiceHandle HttpChannel = AstroServiceHandle
   (reportMeteorHttp   localhostAstro)
   (reportAsteroidHttp localhostAstro)
