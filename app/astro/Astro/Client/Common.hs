@@ -30,6 +30,7 @@ data Approach
   | RT    -- ^ ReaderT
   | FM    -- ^ Free Monad
   | FT    -- ^ Final Tagless (mtl-style)
+  | FT2   -- ^ Final Tagless 2 (mtl-style)
   | CEFM  -- ^ Church Encoded Free Monad
   | GADT  -- ^ GADT
   deriving (Show, Read)
