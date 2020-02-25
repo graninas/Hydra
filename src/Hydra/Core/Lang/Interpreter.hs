@@ -1,3 +1,5 @@
+{-# LANGUAGE BangPatterns #-}
+
 module Hydra.Core.Lang.Interpreter where
 
 import           Hydra.Prelude
@@ -62,7 +64,9 @@ interpretLangF coreRt (L.EvalLogger loggerAct next) =
     next <$> runLoggerL (coreRt ^. RLens.loggerRuntime . RLens.hsLoggerHandle) loggerAct
 interpretLangF _      (L.EvalRandom  s next)        = next <$> runRandomL s
 interpretLangF coreRt (L.EvalControlFlow f    next) = next <$> runControlFlowL coreRt f
-interpretLangF _      (L.EvalIO f next)             = next <$> f
+interpretLangF _      (L.EvalIO f next)             = do
+  !r <- f
+  pure $ next r
 interpretLangF coreRt (L.EvalKVDB storage act next) = next <$> evalKVDB' coreRt storage act
 interpretLangF coreRt (L.EvalSqlDB conn sqlDbMethod next) = do
   let dbgLogger = runLoggerL (coreRt ^. RLens.loggerRuntime . RLens.hsLoggerHandle)
@@ -73,7 +77,7 @@ interpretLangF coreRt (L.EvalSqlDB conn sqlDbMethod next) = do
     Left (err :: SomeException) -> Left $ D.DBError D.SystemError $ show err
     Right res -> Right res
 interpretLangF _      (L.ThrowException exc next) = throwIO exc
-interpretFlowF coreRt (L.CallServantAPI bUrl clientAct next)
+interpretLangF coreRt (L.CallServantAPI bUrl clientAct next)
   = next <$> catchAny
       (S.runClientM clientAct (S.mkClientEnv (coreRt ^. RLens.httpClientManager) bUrl))
       (pure . Left . S.ConnectionError)
