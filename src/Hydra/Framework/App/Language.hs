@@ -15,6 +15,7 @@ import           Language.Haskell.TH.MakeFunctor (makeFunctorInstance)
 import           Database.Beam.Sqlite (Sqlite)
 import qualified Database.Beam as B
 import qualified Database.Beam.Backend.SQL as B
+import qualified System.Console.Haskeline as HS
 
 -- | App language.
 data AppF next where
@@ -40,7 +41,7 @@ data AppF next where
   --   -> (() -> next)
   --   -> FlowMethod next
 
-  Std :: L.CmdHandlerL () -> (() -> next) -> AppF  next
+  StdF :: (String -> [HS.Completion]) -> L.CmdHandlerL () -> (() -> next) -> AppF  next
 
 makeFunctorInstance ''AppF
 
@@ -59,8 +60,10 @@ evalProcess' :: L.ProcessL L.LangL a -> AppL a
 evalProcess' action = liftF $ EvalProcess action id
 
 std :: L.CmdHandlerL () -> AppL ()
-std handlers = liftF $ Std handlers id
+std handlers = liftF $ StdF (\_ -> []) handlers id
 
+stdF :: (String -> [HS.Completion]) -> L.CmdHandlerL () -> AppL ()
+stdF completionFunc handlers = liftF $ StdF completionFunc handlers id
 
 instance C.Process L.LangL AppL where
   forkProcess  = evalProcess' . L.forkProcess'

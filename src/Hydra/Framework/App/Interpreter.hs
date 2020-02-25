@@ -85,7 +85,7 @@ interpretAppF appRt (L.InitSqlDB cfg next) = do
           pure $ next $ Left err
 
 
-interpretAppF appRt (L.Std handlers next) = do
+interpretAppF appRt (L.StdF completeFunc handlers next) = do
     methodsMVar <- newMVar Map.empty
     _ <- Impl.runCmdHandlerL methodsMVar handlers
     -- TODO: rework. Consider masking the exceptions.
@@ -98,7 +98,8 @@ interpretAppF appRt (L.Std handlers next) = do
                     res <- liftIO $ callHandler appRt methods line
                     HS.outputStrLn $ T.unpack res
                     loop
-        HS.runInputT HS.defaultSettings loop
+        let cf = HS.completeWord Nothing " \t" $ pure . completeFunc
+        HS.runInputT (HS.setComplete cf HS.defaultSettings) loop
     pure $ next ()
 
 runAppL :: R.AppRuntime -> L.AppL a -> IO a
