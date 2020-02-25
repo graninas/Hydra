@@ -17,6 +17,7 @@ import qualified Astro.Client.ServiceHandle as SH
 import qualified Astro.Client.ReaderT       as RT
 import qualified Astro.Client.FreeMonad     as FM
 import qualified Astro.Client.FinalTagless  as FT
+import qualified Astro.Client.FinalTagless2 as FT2
 import qualified Astro.Client.GADT          as GADT
 
 
@@ -31,6 +32,8 @@ runAstroClient appr ch = R.withAppRuntime (Just loggerCfg) (\rt -> R.runAppL rt 
     app'' GADT _ = GADT.consoleApp $ GADT.getAstroServiceRunner ch
     app'' FT   HttpChannel = FT.consoleApp FT.httpAstroService
     app'' FT   TcpChannel  = FT.consoleApp FT.tcpAstroService
+    app'' FT2  HttpChannel = FT2.consoleApp @(FT2.HttpAstroService)
+    app'' FT2  TcpChannel  = FT2.consoleApp @(FT2.TcpAstroService)
     app'' _ _    = error $ "Approach not yet implemented: " <> show appr
 
 getChannel :: String -> ReportChannel
@@ -41,7 +44,7 @@ getChannel ch     = error $ show $ "Channel not supported: " <> ch <> " Supporte
 getApproach :: String -> Approach
 getApproach apprStr = case readMaybe apprStr of
   Just appr -> appr
-  Nothing   -> error $ show $ "Approach not supported: " <> apprStr <> " Supported: SH RT FM FT GADT"
+  Nothing   -> error $ show $ "Approach not supported: " <> apprStr <> " Supported: SH RT FM FT FT2 GADT"
 
 main :: IO ()
 main = do
