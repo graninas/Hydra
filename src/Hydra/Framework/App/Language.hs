@@ -9,6 +9,7 @@ import           Hydra.Prelude
 import qualified Hydra.Core.Class                as C
 import qualified Hydra.Core.Domain               as D
 import qualified Hydra.Core.Language             as L
+import qualified Hydra.Framework.Cmd.Language    as L
 
 import           Language.Haskell.TH.MakeFunctor (makeFunctorInstance)
 import           Database.Beam.Sqlite (Sqlite)
@@ -39,6 +40,8 @@ data AppF next where
   --   -> (() -> next)
   --   -> FlowMethod next
 
+  Std :: L.CmdHandlerL () -> (() -> next) -> AppF  next
+
 makeFunctorInstance ''AppF
 
 type AppL = Free AppF
@@ -54,6 +57,10 @@ scenario = evalLang'
 -- | Eval process.
 evalProcess' :: L.ProcessL L.LangL a -> AppL a
 evalProcess' action = liftF $ EvalProcess action id
+
+std :: L.CmdHandlerL () -> AppL ()
+std handlers = liftF $ Std handlers id
+
 
 instance C.Process L.LangL AppL where
   forkProcess  = evalProcess' . L.forkProcess'

@@ -3,6 +3,7 @@ module Hydra.Framework.App.Interpreter where
 import           Hydra.Prelude
 
 import qualified Data.Map as Map
+import qualified Data.Text as T
 
 import qualified Hydra.Core.Domain        as D
 import qualified Hydra.Core.Interpreters  as Impl
@@ -14,11 +15,14 @@ import qualified Hydra.Core.SqlDBRuntime  as R
 import qualified Hydra.Framework.Language as L
 import qualified Hydra.Framework.RLens    as RLens
 import qualified Hydra.Framework.Runtime  as R
+import qualified Hydra.Framework.Cmd.Interpreter as Impl
 
 import qualified Database.RocksDB         as Rocks
 import qualified Database.Redis           as Redis
 import qualified Database.SQLite.Simple   as SQLite
 import           Database.Beam.Sqlite     (Sqlite)
+import qualified System.Console.Haskeline         as HS
+import qualified System.Console.Haskeline.History as HS
 
 langRunner :: R.CoreRuntime -> Impl.LangRunner L.LangL
 langRunner coreRt = Impl.LangRunner (Impl.runLangL coreRt)
@@ -28,6 +32,16 @@ initKVDB' coreRt cfg@(D.RocksDBConfig _ _ _) dbName =
   R.initRocksDB' (coreRt ^. RLens.rocksDBs) cfg dbName
 initKVDB' coreRt cfg@(D.RedisConfig) dbName =
   R.initRedisDB' (coreRt ^. RLens.redisConns) cfg dbName
+
+-- TODO: rework
+callHandler :: R.AppRuntime -> Map Text (String -> L.LangL Text) -> String -> IO Text
+callHandler appRt methods msg = do
+  let tag = T.pack $ takeWhile (/= ' ') msg
+  let coreRt = appRt ^. RLens.coreRuntime
+  case methods ^. at tag of
+    Just method -> Impl.runLangL coreRt $ method msg
+    Nothing     -> pure $ "The method " <> tag <> " isn't supported."
+
 
 connect :: D.DBConfig beM -> IO (D.DBResult (D.SqlConn beM))
 connect cfg = do
@@ -71,6 +85,21 @@ interpretAppF appRt (L.InitSqlDB cfg next) = do
           pure $ next $ Left err
 
 
+interpretAppF appRt (L.Std handlers next) = do
+    methodsMVar <- newMVar Map.empty
+    _ <- Impl.runCmdHandlerL methodsMVar handlers
+    -- TODO: rework. Consider masking the exceptions.
+    -- TODO: add history.
+    void $ forkIO $ do
+        methods <- readMVar methodsMVar
+        let loop = HS.getInputLine "> " >>= \case
+                Nothing   -> pure ()
+                Just line -> do
+                    res <- liftIO $ callHandler appRt methods line
+                    HS.outputStrLn $ T.unpack res
+                    loop
+        HS.runInputT HS.defaultSettings loop
+    pure $ next ()
 
 runAppL :: R.AppRuntime -> L.AppL a -> IO a
 runAppL appRt = foldFree (interpretAppF appRt)

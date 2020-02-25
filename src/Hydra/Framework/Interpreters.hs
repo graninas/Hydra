@@ -3,3 +3,4 @@ module Hydra.Framework.Interpreters
   ) where
 
 import           Hydra.Framework.App.Interpreter as X
+import           Hydra.Framework.Cmd.Interpreter as X
