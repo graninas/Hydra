@@ -33,16 +33,6 @@ initKVDB' coreRt cfg@(D.RocksDBConfig _ _ _) dbName =
 initKVDB' coreRt cfg@(D.RedisConfig) dbName =
   R.initRedisDB' (coreRt ^. RLens.redisConns) cfg dbName
 
--- TODO: rework
-callHandler :: R.AppRuntime -> Map Text (String -> L.LangL Text) -> String -> IO Text
-callHandler appRt methods msg = do
-  let tag = T.pack $ takeWhile (/= ' ') msg
-  let coreRt = appRt ^. RLens.coreRuntime
-  case methods ^. at tag of
-    Just method -> Impl.runLangL coreRt $ method msg
-    Nothing     -> pure $ "The method " <> tag <> " isn't supported."
-
-
 connect :: D.DBConfig beM -> IO (D.DBResult (D.SqlConn beM))
 connect cfg = do
   eConn <- try $ R.connect' cfg
@@ -85,22 +75,19 @@ interpretAppF appRt (L.InitSqlDB cfg next) = do
           pure $ next $ Left err
 
 
-interpretAppF appRt (L.StdF completeFunc handlers next) = do
-    methodsMVar <- newMVar Map.empty
-    _ <- Impl.runCmdHandlerL methodsMVar handlers
-    -- TODO: rework. Consider masking the exceptions.
-    -- TODO: add history.
-    void $ forkIO $ do
-        methods <- readMVar methodsMVar
-        let loop = HS.getInputLine "> " >>= \case
-                Nothing   -> pure ()
-                Just line -> do
-                    res <- liftIO $ callHandler appRt methods line
-                    HS.outputStrLn $ T.unpack res
-                    loop
-        let cf = HS.completeWord Nothing " \t" $ pure . completeFunc
-        HS.runInputT (HS.setComplete cf HS.defaultSettings) loop
-    pure $ next ()
+interpretAppF appRt (L.StdF completeFunc stdDef next) = do
+  let coreRt = appRt ^. RLens.coreRuntime
+  -- TODO: add history.
+  void $ forkIO $ do
+    let loop = HS.getInputLine "> " >>= \case
+          Nothing   -> pure ()
+          Just line -> do
+            liftIO $ Impl.runCmdHandlerL coreRt (toText line) stdDef
+            -- HS.outputStrLn $ T.unpack res
+            loop
+    let cf = HS.completeWord Nothing " \t" $ pure . completeFunc
+    HS.runInputT (HS.setComplete cf HS.defaultSettings) loop
+  pure $ next ()
 
 runAppL :: R.AppRuntime -> L.AppL a -> IO a
 runAppL appRt = foldFree (interpretAppF appRt)

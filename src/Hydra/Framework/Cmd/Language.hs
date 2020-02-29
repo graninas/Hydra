@@ -1,37 +1,40 @@
+{-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE GADTs           #-}
 
 -- TODO: rework.
 module Hydra.Framework.Cmd.Language
   ( CmdHandlerF (..)
-  , CmdHandler
   , CmdHandlerL
-  , stdHandler
-  , toTag
+  , userCmd
   ) where
 
 import           Hydra.Prelude
 import qualified Data.Text          as T
 import           Data.Typeable
+import           Data.Data
+import           Data.Default
 
 import qualified Hydra.Core.Language as L
 
-toTag :: Typeable a => a -> Text
-toTag = T.pack . takeWhile (/= ' ') . show . typeOf
-
-data CmdHandlerF a where
-    CmdHandler :: Text -> CmdHandler -> (() -> a)  -> CmdHandlerF a
+data CmdHandlerF next where
+  UserCmd :: (Text -> Maybe a) -> (a -> L.LangL ()) -> (() -> next) -> CmdHandlerF next
 
 instance Functor CmdHandlerF where
-    fmap g (CmdHandler text f next) = CmdHandler text f (g . next)
+    fmap g (UserCmd parser cont next) = UserCmd parser cont (g . next)
 
-type CmdHandler    = String -> L.LangL Text
 type CmdHandlerL a = Free CmdHandlerF a
 
-stdHandler :: (Typeable a, Read a) => (a -> L.LangL Text) -> CmdHandlerL ()
-stdHandler f = liftF $ CmdHandler (toTag f) (makeStdHandler f) id
+userCmd
+  :: forall a
+   . (Read a, Data a, Default a)
+  => Text
+  -> (a -> L.LangL ())
+  -> CmdHandlerL ()
+userCmd cmd handler = liftF $ UserCmd fParse handler id
   where
-    makeStdHandler :: Read a => (a -> L.LangL Text) -> String -> L.LangL Text
-    makeStdHandler f raw = case readMaybe raw of
-      Just req -> f req
-      Nothing  -> pure "Error of request parsing"
+    cName = T.toLower $ toText $ show @String $ toConstr $ def @a
+    fParse :: Text -> Maybe a
+    fParse line = do
+            t <- T.stripPrefix cmd $ T.stripStart line
+            readMaybe $ toString $ T.concat [toText cName, " ", t]
