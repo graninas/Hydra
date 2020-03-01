@@ -22,18 +22,18 @@ import           Astro.Client.Common   (ReportChannel(..))
 import qualified Astro.Client.Common   as C
 
 
-class AstroService k where
-  reportMeteor     :: API.MeteorTemplate   -> L.AppL (Either BSL.ByteString MeteorId)
-  reportAsteroid   :: API.AsteroidTemplate -> L.AppL (Either BSL.ByteString AsteroidId)
+class AstroService k m where
+  reportMeteor     :: API.MeteorTemplate   -> m (Either BSL.ByteString MeteorId)
+  reportAsteroid   :: API.AsteroidTemplate -> m (Either BSL.ByteString AsteroidId)
 
 data HttpAstroService
 data TcpAstroService
 
-instance AstroService HttpAstroService where
+instance AstroService HttpAstroService L.AppL where
   reportMeteor   = C.reportMeteorHttp C.localhostAstro
   reportAsteroid = C.reportAsteroidHttp C.localhostAstro
 
-instance AstroService TcpAstroService where
+instance AstroService TcpAstroService L.AppL where
   reportMeteor   = C.reportMeteorTcp C.tcpConn
   reportAsteroid = C.reportAsteroidTcp C.tcpConn
 
@@ -47,14 +47,14 @@ reportWith reporter (Right obj) = reporter obj >> pure (Right ())
 
 consoleApp
   :: forall k
-   . AstroService k
+   . AstroService k L.AppL
   => L.AppL ()
 consoleApp = do
   line <- L.evalIO $ BSL.putStr "> " >> BSL.getContents
 
   let runners =
-        [ reportWith (reportMeteor @k)   $ C.tryParseCmd line
-        , reportWith (reportAsteroid @k) $ C.tryParseCmd line
+        [ reportWith (reportMeteor @k)   $ C.tryParseCmd @(API.MeteorTemplate)   line
+        , reportWith (reportAsteroid @k) $ C.tryParseCmd @(API.AsteroidTemplate) line
         ]
 
   eResults <- sequence runners
