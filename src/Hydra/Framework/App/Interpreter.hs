@@ -82,7 +82,7 @@ interpretAppF appRt (L.StdF completeFunc stdDef next) = do
     let loop = HS.getInputLine "> " >>= \case
           Nothing   -> pure ()
           Just line -> do
-            liftIO $ Impl.runCmdHandlerL coreRt (toText line) stdDef
+            liftIO $ Impl.runCmdHandlerL coreRt line stdDef
             -- HS.outputStrLn $ T.unpack res
             loop
     let cf = HS.completeWord Nothing " \t" $ pure . completeFunc

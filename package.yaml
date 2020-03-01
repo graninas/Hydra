@@ -114,6 +114,7 @@ dependencies:
 - http-client
 - http-client-tls
 - data-default
+- generic-lens
 
 library:
   source-dirs:
@@ -153,6 +154,17 @@ executables:
     - -with-rtsopts=-N
     - -Wall
     - -O2
+    dependencies:
+    - Hydra
+  ys-test:
+    main:                Main.hs
+    source-dirs:         app/ys-test
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    - -Wall
+    # - -O2
     dependencies:
     - Hydra
 
