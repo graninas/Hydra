@@ -19,7 +19,7 @@ import           Data.List
 import           Data.Default
 
 import           GHC.Generics
-import qualified GHC.Generics               as GS
+import qualified GHC.Generics as GS
 
 import qualified Hydra.Core.Language as L
 
@@ -84,13 +84,7 @@ type CmdHandlerL a = Free CmdHandlerF a
 --
 
 
-
-
-
-
-
-
-
+-- | Experimental. Works with only ADT types without field selectors.
 
 userCmd
   :: forall a
