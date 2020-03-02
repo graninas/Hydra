@@ -105,41 +105,24 @@ data ShowTemplates = ShowTemplates
 data ShowPlayers = ShowPlayers
   deriving (Generic, Show, Read, Eq)
 
-addLocation :: St -> Location -> L.LangL ()
-addLocation st loc = error "test!"
+addLocation :: St -> Location -> L.LangL (Maybe String)
+addLocation st loc = pure $ Just "addLocation called."
 
+addCharacter :: St -> Character -> L.LangL (Maybe String)
+addCharacter st ch = pure $ Just "addCharacter called."
 
-addCharacter :: St -> Character -> L.LangL ()
-addCharacter st ch = pure ()
-
-data Test = TeSt Int
+type Name = String
+data Location = Location Name
   deriving (Generic, Typeable, Data, Default, Show, Read, Eq)
 
-data Location = Location
-  { name :: String
-  }
+type Age = Int
+data Character = Character Name Int
   deriving (Generic, Typeable, Data, Default, Show, Read, Eq)
-
-data Character = Character
-  { name :: String
-  , age :: Int
-  }
-  deriving (Generic, Typeable, Data, Default, Show, Read, Eq)
-
-
-
-showTemplatesH :: St -> ShowTemplates -> L.LangL String
-showTemplatesH st _ = showTemplates st
-
 
 mainLoop :: St -> AppL ()
 mainLoop st = L.std $ do
-  L.stdHandler (showTemplatesH st)
-  -- L.userCmd_ "show templates" $ showTemplates st
   L.userCmd "add location" $ addLocation st
-  -- L.userCmd "add location" $ addLocation st
-  -- L.userCmd "add character" @Character $ addCharacter st
-  -- L.userCmd "add character" $ addCharacter st
+  L.userCmd "add character" $ addCharacter st
 
 app :: AppL ()
 app = do

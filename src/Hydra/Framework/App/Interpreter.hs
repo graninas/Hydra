@@ -77,13 +77,20 @@ interpretAppF appRt (L.InitSqlDB cfg next) = do
 
 interpretAppF appRt (L.StdF completeFunc stdDef next) = do
   let coreRt = appRt ^. RLens.coreRuntime
+  msgsRef    <- newIORef []
+  successRef <- newIORef False
   -- TODO: add history.
   void $ forkIO $ do
     let loop = HS.getInputLine "> " >>= \case
           Nothing   -> pure ()
           Just line -> do
-            liftIO $ Impl.runCmdHandlerL coreRt line stdDef
-            -- HS.outputStrLn $ T.unpack res
+            liftIO $ writeIORef msgsRef []
+            liftIO $ writeIORef successRef False
+            liftIO $ Impl.runCmdHandlerL coreRt msgsRef successRef line stdDef
+            msgs    <- readIORef msgsRef
+            success <- readIORef successRef
+            mapM_ HS.outputStrLn $ reverse msgs
+            when (null msgs && not success) $ HS.outputStrLn "Unknown command."
             loop
     let cf = HS.completeWord Nothing " \t" $ pure . completeFunc
     HS.runInputT (HS.setComplete cf HS.defaultSettings) loop

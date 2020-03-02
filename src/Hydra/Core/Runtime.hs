@@ -30,6 +30,12 @@ data ProcessRuntime = ProcessRuntime
     , _processes :: TVar (Map D.ProcessId ThreadId)
     }
 
+data CmdVerbosity
+  = MessagesOnly
+  | WithArgErrors
+  | WithSkipErrors
+  deriving (Show, Eq)
+
 -- | Runtime data for core subsystems.
 data CoreRuntime = CoreRuntime
     { _rocksDBs          :: R.RocksDBHandles
@@ -39,6 +45,7 @@ data CoreRuntime = CoreRuntime
     , _processRuntime    :: ProcessRuntime
     , _sqlConns          :: MVar (Map D.ConnTag D.NativeSqlConn)
     , _httpClientManager :: Manager
+    , _cmdVerbosity      :: CmdVerbosity
     }
 
 -- | Logger that can be used in runtime via the logging subsystem.
@@ -76,8 +83,8 @@ createProcessRuntime = ProcessRuntime
   <$> newIORef 0
   <*> newTVarIO Map.empty
 
-createCoreRuntime :: LoggerRuntime -> IO CoreRuntime
-createCoreRuntime loggerRt = CoreRuntime
+createCoreRuntime' :: LoggerRuntime -> CmdVerbosity -> IO CoreRuntime
+createCoreRuntime' loggerRt verbosity = CoreRuntime
   <$> newTMVarIO Map.empty
   <*> newTMVarIO Map.empty
   <*> pure loggerRt
@@ -85,6 +92,10 @@ createCoreRuntime loggerRt = CoreRuntime
   <*> createProcessRuntime
   <*> newMVar Map.empty
   <*> newManager tlsManagerSettings
+  <*> pure verbosity
+
+createCoreRuntime :: LoggerRuntime -> IO CoreRuntime
+createCoreRuntime loggerRt = createCoreRuntime' loggerRt WithArgErrors
 
 clearProcessRuntime :: ProcessRuntime -> IO ()
 clearProcessRuntime procRt = do

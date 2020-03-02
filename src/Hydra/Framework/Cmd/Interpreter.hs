@@ -6,24 +6,34 @@ import qualified Data.Map as M
 import qualified Data.Text as T
 
 import qualified Hydra.Framework.Cmd.Language as L
-import qualified Hydra.Core.Runtime  as R
-import qualified Hydra.Core.Interpreters  as Impl
+import qualified Hydra.Core.Runtime           as R
+import qualified Hydra.Core.Interpreters      as Impl
+import qualified Hydra.Core.RLens             as RLens
 
-interpretCmdHandlerL :: R.CoreRuntime -> String -> L.CmdHandlerF a -> IO a
+putMsg :: IORef [String] -> Maybe String -> IO ()
+putMsg msgsRef Nothing = pure ()
+putMsg msgsRef (Just msg) = modifyIORef' msgsRef (msg:)
 
-interpretCmdHandlerL coreRt line (L.CmdHandler tag method next) = do
+interpretCmdHandlerL :: R.CoreRuntime -> IORef [String] -> IORef Bool -> String -> L.CmdHandlerF a -> IO a
+
+interpretCmdHandlerL coreRt msgsRef successRef line (L.CmdHandler tag method next) = do
   let tag' = takeWhile (/= ' ') line
-  next <$> if tag == tag'
-    then do
-      r <- Impl.runLangL coreRt $ method line
-      print r
-    else pure ()
+  when (tag == tag') $ do
+    mbMsg <- Impl.runLangL coreRt $ method line
+    putMsg msgsRef mbMsg
+  pure $ next ()
 
-interpretCmdHandlerL coreRt line (L.UserCmd parser cont next) = do
-  print $ "Parsing a line: " ++ line
-  next <$> case parser line of
-    Left err -> print err $> ()
-    Right a  -> Impl.runLangL coreRt $ cont a
+interpretCmdHandlerL coreRt msgsRef successRef line (L.UserCmd parser cont next) = do
+  let verb = coreRt ^. RLens.cmdVerbosity
+  next <$> case (parser line, verb) of
+    (Left (L.ArgsNotParsed msg), R.WithArgErrors)  -> putMsg msgsRef $ Just msg
+    (Left (L.ArgsNotParsed msg), R.WithSkipErrors) -> putMsg msgsRef $ Just msg
+    (Left (L.SkipCmd       msg), R.WithSkipErrors) -> putMsg msgsRef $ Just msg
+    (Left _, _)                                    -> pure ()
+    (Right a, _) -> do
+      mbMsg <- Impl.runLangL coreRt $ cont a
+      putMsg msgsRef mbMsg
+      writeIORef successRef True
 
-runCmdHandlerL :: R.CoreRuntime -> String -> L.CmdHandlerL a -> IO a
-runCmdHandlerL coreRt line = foldFree (interpretCmdHandlerL coreRt line)
+runCmdHandlerL :: R.CoreRuntime -> IORef [String] -> IORef Bool -> String -> L.CmdHandlerL () -> IO ()
+runCmdHandlerL coreRt msgsRef successRef line = foldFree (interpretCmdHandlerL coreRt msgsRef successRef line)
