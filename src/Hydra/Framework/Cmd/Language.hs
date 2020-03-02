@@ -7,6 +7,7 @@ module Hydra.Framework.Cmd.Language
   ( CmdHandlerF (..)
   , CmdHandlerL
   , stdHandler
+  , simpleCmd
   , userCmd
   ) where
 
@@ -83,6 +84,17 @@ type CmdHandlerL a = Free CmdHandlerF a
 -- defaultToFieldDef _ = toFieldDef1 (Proxy :: Proxy (Rep a))
 --
 
+
+simpleCmd
+  :: String
+  -> L.LangL ()
+  -> CmdHandlerL ()
+simpleCmd cmd handler = liftF $ UserCmd fParse (const handler) id
+  where
+    fParse :: String -> Either String ()
+    fParse line = case stripPrefix cmd $ dropWhile (== ' ') line of
+      Nothing       -> Left $ "Cmd not parsed: " +|| (cmd, line) ||+ ""
+      Just stripped -> Right ()
 
 -- | Experimental. Works with only ADT types without field selectors.
 
