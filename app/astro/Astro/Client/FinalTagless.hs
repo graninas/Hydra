@@ -5,8 +5,8 @@
 
 module Astro.Client.FinalTagless
   ( consoleApp
-  , httpAstroService
-  , tcpAstroService
+  , HttpAstroService
+  , TcpAstroService
   ) where
 
 import           Hydra.Prelude
@@ -22,26 +22,20 @@ import           Astro.Client.Common   (ReportChannel(..))
 import qualified Astro.Client.Common   as C
 
 
-class AstroService k m where
-  reportMeteor     :: Proxy k -> API.MeteorTemplate   -> m (Either BSL.ByteString MeteorId)
-  reportAsteroid   :: Proxy k -> API.AsteroidTemplate -> m (Either BSL.ByteString AsteroidId)
+class AstroService k where
+  reportMeteor     :: API.MeteorTemplate   -> L.AppL (Either BSL.ByteString MeteorId)
+  reportAsteroid   :: API.AsteroidTemplate -> L.AppL (Either BSL.ByteString AsteroidId)
 
 data HttpAstroService
 data TcpAstroService
 
-instance AstroService HttpAstroService L.AppL where
-  reportMeteor   _ = C.reportMeteorHttp C.localhostAstro
-  reportAsteroid _ = C.reportAsteroidHttp C.localhostAstro
+instance AstroService HttpAstroService where
+  reportMeteor   = C.reportMeteorHttp C.localhostAstro
+  reportAsteroid = C.reportAsteroidHttp C.localhostAstro
 
-instance AstroService TcpAstroService L.AppL where
-  reportMeteor   _ = C.reportMeteorTcp C.tcpConn
-  reportAsteroid _ = C.reportAsteroidTcp C.tcpConn
-
-httpAstroService :: Proxy HttpAstroService
-httpAstroService = Proxy
-
-tcpAstroService :: Proxy TcpAstroService
-tcpAstroService = Proxy
+instance AstroService TcpAstroService where
+  reportMeteor   = C.reportMeteorTcp C.tcpConn
+  reportAsteroid = C.reportAsteroidTcp C.tcpConn
 
 reportWith
   :: FromJSON obj
@@ -53,18 +47,17 @@ reportWith reporter (Right obj) = reporter obj >> pure (Right ())
 
 consoleApp
   :: forall k
-   . AstroService k L.AppL
-  => Proxy k
-  -> L.AppL ()
-consoleApp p = do
+   . AstroService k
+  => L.AppL ()
+consoleApp = do
   line <- L.evalIO $ BSL.putStr "> " >> BSL.getContents
 
   let runners =
-        [ reportWith (reportMeteor p)   $ C.tryParseCmd @(API.MeteorTemplate)   line
-        , reportWith (reportAsteroid p) $ C.tryParseCmd @(API.AsteroidTemplate) line
+        [ reportWith (reportMeteor @k)   $ C.tryParseCmd line
+        , reportWith (reportAsteroid @k) $ C.tryParseCmd line
         ]
 
   eResults <- sequence runners
   C.printResults eResults
 
-  consoleApp p
+  consoleApp @k

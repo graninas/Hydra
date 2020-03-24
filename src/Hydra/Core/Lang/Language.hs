@@ -119,7 +119,7 @@ evalSqlDB
   => D.SqlConn beM
   -> L.SqlDBL beM a
   -> LangL (D.DBResult a)
-evalSqlDB conn dbAct = liftFC $ EvalSqlDB conn dbAct id
+evalSqlDB conn dbAct = liftF $ EvalSqlDB conn dbAct id
 
 runDB
   ::
@@ -132,13 +132,13 @@ runDB
 runDB = evalSqlDB
 
 throwException :: forall a e. Exception e => e -> LangL a
-throwException ex = liftFC $ ThrowException ex id
+throwException ex = liftF $ ThrowException ex id
 
 callServantAPI
   :: BaseUrl
   -> ClientM a
   -> LangL (Either ClientError a)
-callServantAPI url cl = liftFC $ CallServantAPI url cl id
+callServantAPI url cl = liftF $ CallServantAPI url cl id
 
 callAPI
   :: BaseUrl
