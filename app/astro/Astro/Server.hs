@@ -31,11 +31,14 @@ import           Astro.Config (loggerCfg, dbConfig)
 import qualified Astro.API as API
 import           Astro.Domain.Meteor
 import           Astro.Domain.Asteroid
+import           Astro.Domain.Types
+import           Astro.Domain.AstroObject
 import           Astro.Catalogue
 import           Astro.Types
 
-type AstroAPI
-  = (  "meteors"
+
+type AstroAPI =
+  (  "meteors"
     :> QueryParam "mass" Int
     :> QueryParam "size" Int
     :> Get '[JSON] Meteors
@@ -50,6 +53,31 @@ type AstroAPI
     :> ReqBody '[JSON] API.AsteroidTemplate
     :> Post '[JSON] AsteroidId
     )
+  :<|>
+    (  "object_template"                                  -- route POST "/object_template"
+    :> ReqBody '[JSON] API.AstroObjectTemplate
+    :> Post '[JSON] AstroObjectId
+    )
+  :<|>
+    "object" :>
+    (
+       ( Capture "object_id" AstroObjectId                -- route GET "/object"
+       :> Get '[JSON] (Maybe AstroObject)
+       )
+     :<|>
+       ( "orbital"                                        -- route POST "/object/orbital"
+       :> Capture "object_id" AstroObjectId
+       :> ReqBody '[JSON] Orbital
+       :> Post '[JSON] AstroObjectId
+       )
+     :<|>
+       ( "physical"                                       -- route POST "/object/physical
+       :> Capture "object_id" AstroObjectId
+       :> ReqBody '[JSON] Physical
+       :> Post '[JSON] AstroObjectId
+       )
+    )
+
 
 astroAPI :: Proxy AstroAPI
 astroAPI = Proxy
@@ -87,6 +115,24 @@ astroServer'
      = meteors
   :<|> meteor
   :<|> asteroid
+  :<|> setObjectTemplate
+  :<|>
+    ( getObject
+    :<|> setOrbital
+    :<|> setPhysical
+    )
+
+setObjectTemplate :: API.AstroObjectTemplate -> AppHandler AstroObjectId
+setObjectTemplate = undefined
+
+getObject :: AstroObjectId -> AppHandler (Maybe AstroObject)
+getObject = undefined
+
+setPhysical :: AstroObjectId -> Physical -> AppHandler AstroObjectId
+setPhysical = undefined
+
+setOrbital :: AstroObjectId -> Orbital -> AppHandler AstroObjectId
+setOrbital = undefined
 
 meteors :: Maybe Int -> Maybe Int -> AppHandler Meteors
 meteors mbMass mbSize = runApp

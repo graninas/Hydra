@@ -5,3 +5,4 @@ module Astro.API
 
 import Astro.API.Asteroid as X
 import Astro.API.Meteor as X
+import Astro.API.AstroObject as X

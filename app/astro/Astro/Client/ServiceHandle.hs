@@ -47,12 +47,12 @@ consoleApp :: AstroServiceHandle -> L.AppL ()
 consoleApp handle@(AstroServiceHandle{..}) = do
   line <- L.evalIO $ BSL.putStr "> " >> BSL.getContents
 
-  let runners =
-        [ reportWith meteorReporter   $ tryParseCmd @(API.MeteorTemplate)   line
-        , reportWith asteroidReporter $ tryParseCmd @(API.AsteroidTemplate) line
+  let objects =
+        [ reportWith meteorReporter   $ tryParseCmd line
+        , reportWith asteroidReporter $ tryParseCmd line
         ]
 
-  eResults <- sequence runners
+  eResults <- sequence objects
   printResults eResults
 
   consoleApp handle

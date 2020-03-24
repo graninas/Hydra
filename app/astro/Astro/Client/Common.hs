@@ -38,7 +38,16 @@ data Approach
 meteors  :: Maybe Int -> Maybe Int -> ClientM Meteors
 meteor   :: API.MeteorTemplate     -> ClientM MeteorId
 asteroid :: API.AsteroidTemplate   -> ClientM AsteroidId
-(meteors :<|> meteor :<|> asteroid) = client Server.astroAPI
+( meteors
+ :<|> meteor
+ :<|> asteroid
+ :<|> setObjectTemplate
+ :<|>
+  ( getObject
+  :<|> setOrbital
+  :<|> setPhysical
+  )
+ ) = client Server.astroAPI
 
 reportMeteorHttp :: BaseUrl -> API.MeteorTemplate -> L.AppL (Either BSL.ByteString MeteorId)
 reportMeteorHttp url m = do
