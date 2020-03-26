@@ -87,11 +87,11 @@ type AppHandler = ReaderT Env (ExceptT ServerError IO)
 type AppServer = ServerT AstroAPI AppHandler
 
 astroServer :: Env -> Server AstroAPI
-astroServer env = hoistServer astroAPI (f env) astroServer'
+astroServer env = hoistServer astroAPI f astroServer'
   where
-    f :: Env -> ReaderT Env (ExceptT ServerError IO) a -> Handler a
-    f env r = do
-      eResult <- liftIO $ (runExceptT $ runReaderT r env )
+    f :: ReaderT Env (ExceptT ServerError IO) a -> Handler a
+    f r = do
+      eResult <- liftIO $ runExceptT $ runReaderT r env
       case eResult of
         Left err  -> throwError err
         Right res -> pure res
@@ -115,24 +115,24 @@ astroServer'
      = meteors
   :<|> meteor
   :<|> asteroid
-  :<|> setObjectTemplate
+  :<|> submitObjectTemplate
   :<|>
     ( getObject
-    :<|> setOrbital
-    :<|> setPhysical
+    :<|> submitObjectOrbital
+    :<|> submitObjectPhysical
     )
 
-setObjectTemplate :: API.AstroObjectTemplate -> AppHandler AstroObjectId
-setObjectTemplate = undefined
+submitObjectTemplate :: API.AstroObjectTemplate -> AppHandler AstroObjectId
+submitObjectTemplate = undefined
 
 getObject :: AstroObjectId -> AppHandler (Maybe AstroObject)
 getObject = undefined
 
-setPhysical :: AstroObjectId -> Physical -> AppHandler AstroObjectId
-setPhysical = undefined
+submitObjectPhysical :: AstroObjectId -> Physical -> AppHandler AstroObjectId
+submitObjectPhysical = undefined
 
-setOrbital :: AstroObjectId -> Orbital -> AppHandler AstroObjectId
-setOrbital = undefined
+submitObjectOrbital :: AstroObjectId -> Orbital -> AppHandler AstroObjectId
+submitObjectOrbital = undefined
 
 meteors :: Maybe Int -> Maybe Int -> AppHandler Meteors
 meteors mbMass mbSize = runApp
