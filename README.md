@@ -27,7 +27,7 @@ This project demonstrates the principles of Software Design and Architecture in 
 - Free Monad
 - Church Encoded Free Monad
 
-The project is a showcase for my book [Functional Design and Architecture](https://graninas.com/functional-design-and-architecture-book/)
+The project is a showcase for my book [Functional Design and Architecture](https://graninas.com/functional-design-and-architecture-book/). The approaches presented in Hydra are well-described and rationalized in the book, so you may obtain even more info about best practices and ideas of how to write a good Haskell code.
 
 **Additional materials describing these ideas:**
 
