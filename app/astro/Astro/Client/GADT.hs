@@ -51,8 +51,8 @@ consoleApp runner = do
   line <- L.evalIO $ BSL.putStr "> " >> BSL.getContents
 
   let runners =
-        [ reportWith runner ReportMeteor   $ C.tryParseCmd @(API.MeteorTemplate)   line
-        , reportWith runner ReportAsteroid $ C.tryParseCmd @(API.AsteroidTemplate) line
+        [ reportWith runner ReportMeteor   $ C.tryParseCmd line
+        , reportWith runner ReportAsteroid $ C.tryParseCmd line
         ]
 
   eResults <- sequence runners
