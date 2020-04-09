@@ -29,6 +29,14 @@ This project demonstrates the principles of Software Design and Architecture in 
 
 The project is a showcase for my book [Functional Design and Architecture](https://graninas.com/functional-design-and-architecture-book/). The approaches presented in Hydra are well-described and rationalized in the book, so you may obtain even more info about best practices and ideas of how to write a good Haskell code.
 
+Sample applications
+===================
+
+There are 3 sample applications:
+* [Astro app](app/astro): web server (with servant) and CLI client tool which allows to track meteors (tool for astronomers).
+* [PerfTestApp](app/PerfTestApp): an application you can run to measure the performance of the three engines.
+* [MeteorCounter](app/MeteorCounter): application which demonstrates the usage of STM and multithreading using three engines.
+
 **Additional materials describing these ideas:**
 
 - [Hierarchical Free Monads and Software Design in Functional Programming (Talk, Eng)](https://www.youtube.com/watch?v=3GKQ4ni2pS0) | [Slides (Eng)](https://docs.google.com/presentation/d/1SYMIZ-LOI8Ylykz0PTxwiPuHN_02gIWh9AjJDO6xbvM/edit?usp=sharing)
