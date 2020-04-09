@@ -37,6 +37,47 @@ There are 3 sample applications:
 * [PerfTestApp](app/PerfTestApp): an application you can run to measure the performance of the three engines.
 * [MeteorCounter](app/MeteorCounter): application which demonstrates the usage of STM and multithreading using three engines.
 
+Sample SQL-related code
+=======================
+
+```haskell
+createMeteor :: MeteorTemplate -> D.SqlConn BS.SqliteM -> L.AppL MeteorId
+createMeteor mtp@(MeteorTemplate {..}) conn = do
+  L.logInfo $ "Inserting meteor into SQL DB: " <> show mtp
+
+  let time = Time.UTCTime (toEnum 1) (Time.secondsToDiffTime 0)
+
+  doOrFail
+    $ L.scenario
+    $ L.runDB conn
+    $ L.insertRows
+    $ B.insert (SqlDB._meteors SqlDB.astroDb)
+    $ B.insertExpressions
+          [ SqlDB.Meteor B.default_
+            (B.val_ size)
+            (B.val_ mass)
+            (B.val_ azimuth)
+            (B.val_ altitude)
+            (B.val_ time)
+          ]
+
+  let predicate meteorDB
+          = (SqlDB._meteorSize meteorDB     ==. B.val_ size)
+        &&. (SqlDB._meteorMass meteorDB     ==. B.val_ mass)
+        &&. (SqlDB._meteorAzimuth meteorDB  ==. B.val_ azimuth)
+        &&. (SqlDB._meteorAltitude meteorDB ==. B.val_ altitude)
+
+  m <- doOrFail
+    $ L.scenario
+    $ L.runDB conn
+    $ L.findRow
+    $ B.select
+    $ B.limit_ 1
+    $ B.filter_ predicate
+    $ B.all_ (SqlDB._meteors SqlDB.astroDb)
+  pure $ SqlDB._meteorId $ fromJust m
+```
+
 **Additional materials describing these ideas:**
 
 - [Hierarchical Free Monads and Software Design in Functional Programming (Talk, Eng)](https://www.youtube.com/watch?v=3GKQ4ni2pS0) | [Slides (Eng)](https://docs.google.com/presentation/d/1SYMIZ-LOI8Ylykz0PTxwiPuHN_02gIWh9AjJDO6xbvM/edit?usp=sharing)
