@@ -33,6 +33,10 @@ asHttpAstroService :: AstroService a -> L.AppL a
 asHttpAstroService (ReportMeteor m)   = C.reportMeteorHttp C.localhostAstro m
 asHttpAstroService (ReportAsteroid a) = C.reportAsteroidHttp C.localhostAstro a
 
+getAstroServiceRunner :: ReportChannel -> (AstroService a -> L.AppL a)
+getAstroServiceRunner TcpChannel  = asTcpAstroService
+getAstroServiceRunner HttpChannel = asHttpAstroService
+
 reportWith
   :: FromJSON obj
   => (forall x. AstroService x -> L.AppL x)
@@ -41,10 +45,6 @@ reportWith
   -> L.AppL (Either BSL.ByteString ())
 reportWith runner _        (Left err)  = pure $ Left err
 reportWith runner reporter (Right obj) = (runner $ reporter obj) >> pure (Right ())
-
-getAstroServiceRunner :: ReportChannel -> (AstroService a -> L.AppL a)
-getAstroServiceRunner TcpChannel  = asTcpAstroService
-getAstroServiceRunner HttpChannel = asHttpAstroService
 
 consoleApp :: (forall x. AstroService x -> L.AppL x) -> L.AppL ()
 consoleApp runner = do
