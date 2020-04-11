@@ -1,7 +1,8 @@
 {-# LANGUAGE AllowAmbiguousTypes #-}
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DeriveAnyClass      #-}
+{-# LANGUAGE MultiWayIf          #-}
 
 module Astro.Server
   ( runAstroServer
@@ -122,8 +123,34 @@ astroServer'
     :<|> submitObjectPhysical
     )
 
+-- -- Sample of how to do straighforward validation:
+-- submitObjectTemplate :: API.AstroObjectTemplate -> AppHandler AstroObjectId
+-- submitObjectTemplate template@(API.AstroObjectTemplate {..}) = do
+--
+--   if | name == Just ""   -> throwError $ err400 {errBody = "Name should not be empty if specified."}
+--      | objectClass == "" -> throwError $ err400 {errBody = "Object class should not be empty."}
+--      | code == ""        -> throwError $ err400 {errBody = "Object code should not be empty."}
+--      | otherwise         -> pure ()
+--
+--   runApp $ createObjectTemplate template
+
 submitObjectTemplate :: API.AstroObjectTemplate -> AppHandler AstroObjectId
-submitObjectTemplate = undefined
+submitObjectTemplate template = runApp $ submitObjectTemplate' template
+
+submitObjectTemplate' :: API.AstroObjectTemplate -> L.AppL AstroObjectId
+submitObjectTemplate' template@(API.AstroObjectTemplate {..}) = do
+
+  if | name == Just ""   -> failWith $ err400 {errBody = "Name should not be empty if specified."}
+     | objectClass == "" -> failWith $ err400 {errBody = "Object class should not be empty."}
+     | code == ""        -> failWith $ err400 {errBody = "Object code should not be empty."}
+     | otherwise         -> pure ()
+
+  createObjectTemplate template
+  where
+    failWith err = do
+      L.logError $ show err
+      L.scenario $ L.throwException err
+
 
 getObject :: AstroObjectId -> AppHandler (Maybe AstroObject)
 getObject = undefined

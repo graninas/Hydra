@@ -17,7 +17,10 @@ import           Database.Beam ((==.), (&&.), (<-.), (/=.), (==?.))
 import           Astro.Types
 import           Astro.Lens
 import           Astro.Domain.Meteor
-import           Astro.API.Meteor
+import           Astro.Domain.AstroObject
+
+import qualified Astro.API.Meteor as API
+import qualified Astro.API.AstroObject as API
 import qualified Astro.KVDB.AstroDB as KVDB
 import qualified Astro.SqlDB.AstroDB as SqlDB
 
@@ -102,8 +105,8 @@ getMeteors mbMass mbSize conn = do
       L.logError $ "Error occured on searching meteors: " <> show err
       pure $ Meteors []
 
-createMeteor :: MeteorTemplate -> D.SqlConn BS.SqliteM -> L.AppL MeteorId
-createMeteor mtp@(MeteorTemplate {..}) conn = do
+createMeteor :: API.MeteorTemplate -> D.SqlConn BS.SqliteM -> L.AppL MeteorId
+createMeteor mtp@(API.MeteorTemplate {..}) conn = do
   L.logInfo $ "Inserting meteor into SQL DB: " <> show mtp
 
   -- TODO: Proper time handling
@@ -145,3 +148,8 @@ withDB
   -> (D.SqlConn BS.SqliteM -> L.AppL a)
   -> L.AppL a
 withDB cfg act = connectOrFail cfg >>= act
+
+
+
+createObjectTemplate :: API.AstroObjectTemplate -> L.AppL AstroObjectId
+createObjectTemplate template = error "Not implemented yet"
