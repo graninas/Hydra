@@ -8,7 +8,7 @@ import Labyrinth.Prelude as L
 data Wall
   = NoWall
   | Wall
-  | Monolith
+  | Monolith Bool     -- ^ On True, then it's an exit
   deriving (Show, Read, Eq)
 
 data Cell = Cell
@@ -26,3 +26,9 @@ data Content
   deriving (Show, Read, Eq)
 
 type Labyrinth = Map.Map (Int, Int) (Cell, Content)
+
+
+data Inventory = Inventory
+  { _treasure :: StateVar Bool
+
+  }
