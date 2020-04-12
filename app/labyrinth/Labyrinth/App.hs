@@ -1,17 +1,19 @@
 module Labyrinth.App where
 
-import           Hydra.Prelude
-import qualified Data.Text                  as T
-import qualified Data.Map                   as Map
+import qualified Data.Text     as T
+import qualified Data.Map      as Map
 
-import qualified Hydra.Domain               as D
-import qualified Hydra.Language             as L
+import Labyrinth.Prelude       as L
+import Labyrinth.Domain
+import Labyrinth.Types
 
+goUp :: GameState -> LangL (Maybe String)
+goUp st = throwException $ NotImplemented "Go up command"
 
-mainLoop :: AppL ()
-mainLoop st = L.std $ do
-  L.userCmd "go up" $ goUp st
+mainLoop :: GameState -> AppL ()
+mainLoop st = std $ do
+  simpleCmd_ "go up" $ goUp st
 
-app :: AppL ()
-app = do
-  L.scenario $ putStrLn "Labyrinth (aka Terra Incognita) game"
+app :: GameState -> AppL ()
+app st = do
+  scenario $ putStrLn "Labyrinth (aka Terra Incognita) game"

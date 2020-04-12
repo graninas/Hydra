@@ -167,6 +167,17 @@ executables:
     # - -O2
     dependencies:
     - Hydra
+  labyrinth:
+    main:                Main.hs
+    source-dirs:         app/labyrinth
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    - -Wall
+    # - -O2
+    dependencies:
+    - Hydra
 
 
 tests:

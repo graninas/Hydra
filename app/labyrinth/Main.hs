@@ -25,14 +25,13 @@ loggerCfg = D.LoggerConfig
   }
 
 
-initGameState :: IO GameState
-initGameState = do
+initGameState :: L.AppL GameState
+initGameState = pure $ GameState Map.empty
 
-  pure $ GameState Map.empty
-
+startApp :: L.AppL ()
+startApp = do
+  st <- initGameState
+  app st
 
 main :: IO ()
-main = do
-  gameState <- initGameState
-
-  R.withAppRuntime (Just loggerCfg) (\rt -> runReaderT (R.runAppL rt app) gameState)
+main = R.withAppRuntime (Just loggerCfg) (\rt -> R.runAppL rt startApp)
