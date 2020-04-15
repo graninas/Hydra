@@ -26,7 +26,14 @@ loggerCfg = D.LoggerConfig
 
 
 initGameState :: L.AppL GameState
-initGameState = pure $ GameState Map.empty
+initGameState = do
+  lab <- L.newVarIO Map.empty
+  pos <- L.newVarIO (0, 0)
+  inv <- Inventory <$> L.newVarIO False
+  treasure <- L.newVarIO Nothing
+  pure $ GameState lab Map.empty pos inv treasure
+   
+
 
 startApp :: L.AppL ()
 startApp = do

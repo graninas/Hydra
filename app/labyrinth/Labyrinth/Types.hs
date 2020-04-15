@@ -8,15 +8,19 @@ import qualified Data.Map                   as Map
 import           Labyrinth.Prelude          as L
 import           Labyrinth.Domain
 
-type HasATreasure = Bool
+type HasTreasure = Bool
+
+data Inventory = Inventory
+  { _treasure :: StateVar Bool
+  }
 
 data GameState = GameState
   { _labyrinth            :: StateVar Labyrinth
-  , _playerPos            :: StateVar (Int, Int)
+  , _wormholes            :: Map Int (Int, Int)
+  , _playerPos            :: StateVar Pos
   , _playerInventory      :: Inventory
-  , _playerIsAboutLeaving :: StateVar (Bool, HasATreasure)
+  , _playerIsAboutLeaving :: StateVar (Maybe HasTreasure)
   }
-
 
 data AppException
   = NotImplemented Text

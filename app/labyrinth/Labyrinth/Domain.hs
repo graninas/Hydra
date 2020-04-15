@@ -5,6 +5,8 @@ import qualified Data.Map as Map
 
 import Labyrinth.Prelude as L
 
+type Pos = (Int, Int)
+
 data Wall
   = NoWall
   | Wall
@@ -25,10 +27,4 @@ data Content
   | Wormhole Int
   deriving (Show, Read, Eq)
 
-type Labyrinth = Map.Map (Int, Int) (Cell, Content)
-
-
-data Inventory = Inventory
-  { _treasure :: StateVar Bool
-
-  }
+type Labyrinth = Map.Map Pos (Cell, Content)
