@@ -18,6 +18,7 @@ import qualified Hydra.Core.Domain                          as D
 import           Hydra.Core.State.Interpreter               (runStateL)
 import           Hydra.Core.KVDB.Interpreter                (runAsRocksDBL, runAsRedisL)
 import           Hydra.Core.SqlDB.Interpreter               (runSqlDBL)
+import qualified Hydra.Core.SqlDBRuntime                    as R
 import qualified Database.RocksDB                           as Rocks
 import qualified Servant.Client                             as S
 
@@ -76,7 +77,25 @@ interpretLangF coreRt (L.EvalSqlDB conn sqlDbMethod next) = do
   pure $ next $ case eRes of
     Left (err :: SomeException) -> Left $ D.DBError D.SystemError $ show err
     Right res -> Right res
+
+interpretLangF coreRt (L.GetSqlDBConnection cfg next) = do
+  let connTag = D.getConnTag cfg
+  let connsVar = coreRt ^. RLens.sqlConns
+  connMap <- readMVar connsVar
+  case Map.lookup connTag connMap of
+    Just conn -> pure $ next $ Right $ R.nativeToBem connTag conn
+    Nothing -> pure
+      $ next $ Left $ D.DBError D.ConnectionDoesNotExist
+      $ "Connection for " <> show connTag <> " not found."
+
 interpretLangF _      (L.ThrowException exc next) = throwIO exc
+
+interpretLangF coreRt (L.RunSafely act next) = do
+  eResult <- try $ runLangL coreRt act
+  pure $ next $ case eResult of
+    Left (err :: SomeException) -> Left $ show err
+    Right r  -> Right r
+
 interpretLangF coreRt (L.CallServantAPI bUrl clientAct next)
   = next <$> catchAny
       (S.runClientM clientAct (S.mkClientEnv (coreRt ^. RLens.httpClientManager) bUrl))

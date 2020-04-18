@@ -34,10 +34,6 @@ data AppF next where
   -- If connection exists, `DBError ConnectionAlreadyExists "..."` will be returned.
   InitSqlDB :: D.DBConfig beM -> (D.DBResult (D.SqlConn beM) -> next) -> AppF next
 
-  -- | Get SQL DB connection.
-  -- If connection does not exist, DBError ConnectionDoesNotExist "..."` will be returned.
-  GetSqlDBConnection :: D.DBConfig beM -> (D.DBResult (D.SqlConn beM) -> next) -> AppF next
-
   -- DeInitSqlDB
   --   :: T.SqlConn beM
   --   -> (() -> next)
@@ -100,11 +96,7 @@ initKVDB config = do
   liftF $ InitKVDB config dbName id
 
 initSqlDB :: D.DBConfig beM -> AppL (D.DBResult (D.SqlConn beM))
-initSqlDB cfg = liftFC $ InitSqlDB cfg id
+initSqlDB cfg = liftF $ InitSqlDB cfg id
 
 -- deinitSqlDB :: T.SqlConn beM -> Flow ()
 -- deinitSqlDB conn = liftFC $ DeInitSqlDBConnection conn id
-
--- TODO: tests on this method.
-getSqlDBConnection :: D.DBConfig beM -> AppL (D.DBResult (D.SqlConn beM))
-getSqlDBConnection cfg = liftFC $ GetSqlDBConnection cfg id

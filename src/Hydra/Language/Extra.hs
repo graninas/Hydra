@@ -18,7 +18,7 @@ import qualified Hydra.Framework.Language as L
 -- | Get existing SQL connection, or init a new connection.
 getOrInitSqlConn :: D.DBConfig beM -> L.AppL (D.DBResult (D.SqlConn beM))
 getOrInitSqlConn cfg = do
-  eConn <- L.getSqlDBConnection cfg
+  eConn <- L.scenario $ L.getSqlDBConnection cfg
   case eConn of
     Left (D.DBError D.ConnectionDoesNotExist _) -> L.initSqlDB cfg
     res                                         -> pure res

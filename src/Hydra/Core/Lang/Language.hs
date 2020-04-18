@@ -43,22 +43,28 @@ data LangF next where
   EvalKVDB :: D.DB db => D.DBHandle db -> L.KVDBL db a -> (a -> next) -> LangF next
   -- | Eval SQL DB
   EvalSqlDB :: D.SqlConn beM -> L.SqlDBL beM a -> (D.DBResult a -> next) -> LangF next
+  -- | Get SQL DB connection.
+  -- If connection does not exist, DBError ConnectionDoesNotExist "..."` will be returned.
+  GetSqlDBConnection :: D.DBConfig beM -> (D.DBResult (D.SqlConn beM) -> next) -> LangF next
   -- | Throwing uncatchable exception
   ThrowException :: forall a e next. Exception e => e -> (a -> next) -> LangF next
+  -- | Running a scenario safely catching its exceptions
+  RunSafely :: LangL a -> (Either Text a -> next) -> LangF next
   -- | Making an HTTP request using Servant Client
-  CallServantAPI
-    :: BaseUrl -> ClientM a -> (Either ClientError a -> next) -> LangF next
+  CallServantAPI :: BaseUrl -> ClientM a -> (Either ClientError a -> next) -> LangF next
 
 instance Functor LangF where
-  fmap f (EvalStateAtomically st next)   = EvalStateAtomically st (f . next)
-  fmap f (EvalLogger logAct next)        = EvalLogger logAct (f . next)
-  fmap f (EvalRandom rndAct next)        = EvalRandom rndAct (f . next)
-  fmap f (EvalControlFlow cfAct next)    = EvalControlFlow cfAct (f . next)
-  fmap f (EvalIO ioAct next)             = EvalIO ioAct (f . next)
-  fmap f (EvalKVDB h kvdbAct next)       = EvalKVDB h kvdbAct (f . next)
-  fmap f (EvalSqlDB conn sqlAct next)    = EvalSqlDB conn sqlAct (f . next)
-  fmap f (ThrowException exc next)       = ThrowException exc (f . next)
-  fmap f (CallServantAPI url clM next) = CallServantAPI url clM (f . next)
+  fmap f (EvalStateAtomically st next)    = EvalStateAtomically st (f . next)
+  fmap f (EvalLogger logAct next)         = EvalLogger logAct (f . next)
+  fmap f (EvalRandom rndAct next)         = EvalRandom rndAct (f . next)
+  fmap f (EvalControlFlow cfAct next)     = EvalControlFlow cfAct (f . next)
+  fmap f (EvalIO ioAct next)              = EvalIO ioAct (f . next)
+  fmap f (EvalKVDB h kvdbAct next)        = EvalKVDB h kvdbAct (f . next)
+  fmap f (EvalSqlDB conn sqlAct next)     = EvalSqlDB conn sqlAct (f . next)
+  fmap f (GetSqlDBConnection sqlCfg next) = GetSqlDBConnection sqlCfg  (f . next)
+  fmap f (ThrowException exc next)        = ThrowException exc (f . next)
+  fmap f (RunSafely act next)             = RunSafely act (f . next)
+  fmap f (CallServantAPI url clM next)    = CallServantAPI url clM (f . next)
 
 type LangL = Free LangF
 
@@ -121,6 +127,10 @@ evalSqlDB
   -> LangL (D.DBResult a)
 evalSqlDB conn dbAct = liftF $ EvalSqlDB conn dbAct id
 
+-- TODO: tests on this method.
+getSqlDBConnection :: D.DBConfig beM -> LangL (D.DBResult (D.SqlConn beM))
+getSqlDBConnection cfg = liftF $ GetSqlDBConnection cfg id
+
 runDB
   ::
     ( D.BeamRunner beM
@@ -133,6 +143,9 @@ runDB = evalSqlDB
 
 throwException :: forall a e. Exception e => e -> LangL a
 throwException ex = liftF $ ThrowException ex id
+
+runSafely :: LangL a -> LangL (Either Text a)
+runSafely act = liftF $ RunSafely act id
 
 callServantAPI
   :: BaseUrl

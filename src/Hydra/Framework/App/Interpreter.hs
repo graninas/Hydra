@@ -70,15 +70,6 @@ interpretAppF appRt (L.InitSqlDB cfg next) = do
           putMVar connsVar connMap
           pure $ next $ Left err
 
-interpretAppF appRt (L.GetSqlDBConnection cfg next) = do
-  let connTag = D.getConnTag cfg
-  let connsVar = appRt ^. RLens.coreRuntime . RLens.sqlConns
-  connMap <- readMVar connsVar
-  case Map.lookup connTag connMap of
-    Just conn -> pure $ next $ Right $ R.nativeToBem connTag conn
-    Nothing -> pure
-      $ next $ Left $ D.DBError D.ConnectionDoesNotExist
-      $ "Connection for " <> show connTag <> " not found."
 
 
 runAppL :: R.AppRuntime -> L.AppL a -> IO a

@@ -25,7 +25,7 @@ clearAppRuntime _ = pure ()
 withAppRuntime :: Maybe D.LoggerConfig -> (AppRuntime -> IO a) -> IO a
 withAppRuntime mbLoggerCfg appF =
   bracket createLogger' R.clearLoggerRuntime $ \loggerRt ->
-  bracket (R.createCoreRuntime loggerRt) R.clearCoreRuntime $ \coreRt   ->
+  bracket (R.createCoreRuntime loggerRt) R.clearCoreRuntime $ \coreRt ->
   bracket (createAppRuntime coreRt) clearAppRuntime appF
   where
     createLogger' = case mbLoggerCfg of
