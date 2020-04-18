@@ -116,28 +116,25 @@ makeMove st dir = do
   moveResult <- testMove st dir
   case moveResult of
     InvalidMove msg     -> throwException $ InvalidOperation msg
-    ImpossibleMove msg  -> putStrLn msg >> pure Nothing
-    EndMove hasTreasure -> playerLeaving st hasTreasure >> pure Nothing
+    ImpossibleMove msg  -> putStrLn msg
+    EndMove hasTreasure -> playerLeaving st hasTreasure
     SuccessfullMove (newPos, (_, content)) -> do
       putStrLn "step executed."
       setPlayerPos st newPos
       performContentEvent st newPos content
-      pure Nothing
 
 
-quit :: GameState -> LangL (Maybe String)
+quit :: GameState -> LangL ()
 quit st = do
   -- Do something
   throwException $ Finished False
 
 
-data Event = Event
-
-eventsHandler :: GameState -> Maybe Event -> AppL ()
-eventsHandler st Event = pure ()
+onStep :: GameState -> () -> AppL ()
+onStep st _ = pure ()
 
 mainLoop :: GameState -> AppL ()
-mainLoop st = tea std (eventsHandler st) $ do
+mainLoop st = tea (onStep st) $ do
   cmd "go up"    $ makeMove st DirUp
   cmd "go down"  $ makeMove st DirDown
   cmd "go left"  $ makeMove st DirLeft

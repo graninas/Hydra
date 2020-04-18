@@ -16,6 +16,7 @@ import qualified Hydra.Framework.Language as L
 import qualified Hydra.Framework.RLens    as RLens
 import qualified Hydra.Framework.Runtime  as R
 import qualified Hydra.Framework.Cmd.Interpreter as Impl
+import qualified Hydra.Framework.Tea.Interpreter as Impl
 
 import qualified Database.RocksDB         as Rocks
 import qualified Database.Redis           as Redis
@@ -94,6 +95,33 @@ interpretAppF appRt (L.StdF completeFunc stdDef next) = do
             loop
     let cf = HS.completeWord Nothing " \t" $ pure . completeFunc
     HS.runInputT (HS.setComplete cf HS.defaultSettings) loop
+  pure $ next ()
+
+
+interpretAppF appRt (L.TeaF completeFunc onStep handlers next) = do
+  let coreRt = appRt ^. RLens.coreRuntime
+
+  handlersRef <- newIORef Map.empty
+  Impl.runTeaHandlerL handlersRef handlers
+  handlers <- readIORef handlersRef
+
+  void $ forkIO $ do
+    let loop = forever $ do
+          mbLine <- HS.getInputLine "> "
+          let mbAction = do
+                line <- mbLine
+                Map.lookup line handlers
+
+          case mbAction of
+            Nothing     -> pure ()
+            Just action -> do
+              result <- liftIO $ Impl.runLangL coreRt action
+              liftIO $ runAppL appRt $ onStep result
+--              HS.outputStrLn
+--            when (null msgs && not success) $ HS.outputStrLn "Unknown command."
+    let cf = HS.completeWord Nothing " \t" $ pure . completeFunc
+    HS.runInputT (HS.setComplete cf HS.defaultSettings) loop
+
   pure $ next ()
 
 runAppL :: R.AppRuntime -> L.AppL a -> IO a

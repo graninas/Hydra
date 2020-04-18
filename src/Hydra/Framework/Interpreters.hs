@@ -4,3 +4,4 @@ module Hydra.Framework.Interpreters
 
 import           Hydra.Framework.App.Interpreter as X
 import           Hydra.Framework.Cmd.Interpreter as X
+import           Hydra.Framework.Tea.Interpreter as X

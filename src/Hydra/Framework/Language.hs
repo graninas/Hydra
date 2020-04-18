@@ -4,3 +4,4 @@ module Hydra.Framework.Language
 
 import           Hydra.Framework.App.Language as X
 import           Hydra.Framework.Cmd.Language as X
+import           Hydra.Framework.Tea.Language as X
