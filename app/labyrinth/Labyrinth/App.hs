@@ -111,7 +111,7 @@ performContentEvent st _ (Wormhole n) = do
   putStrLn $"you found a wormhole " +|| n ||+ ". You have been moved to the next wormhole."
   executeWormhole st n
 
-makeMove :: GameState -> Direction -> LangL (Maybe String)
+makeMove :: GameState -> Direction -> LangL ()
 makeMove st dir = do
   moveResult <- testMove st dir
   case moveResult of
@@ -130,11 +130,25 @@ quit st = do
   -- Do something
   throwException $ Finished False
 
-mainLoop :: GameState -> AppL ()
-mainLoop st = std $ do
-  simpleCmd_ "go up" $ makeMove st DirUp
 
-  simpleCmd_ "quit" $ quit st
+data Event = Event
+
+eventsHandler :: GameState -> Maybe Event -> AppL ()
+eventsHandler st Event = pure ()
+
+mainLoop :: GameState -> AppL ()
+mainLoop st = tea std (eventsHandler st) $ do
+  cmd "go up"    $ makeMove st DirUp
+  cmd "go down"  $ makeMove st DirDown
+  cmd "go left"  $ makeMove st DirLeft
+  cmd "go right" $ makeMove st DirRight
+
+  cmd "up"       $ makeMove st DirUp
+  cmd "down"     $ makeMove st DirDown
+  cmd "left"     $ makeMove st DirLeft
+  cmd "right"    $ makeMove st DirRight
+
+  cmd "quit" $ quit st
 
 app :: GameState -> AppL ()
 app st = do
