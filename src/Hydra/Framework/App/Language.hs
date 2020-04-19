@@ -9,7 +9,6 @@ import           Hydra.Prelude
 import qualified Hydra.Core.Class                as C
 import qualified Hydra.Core.Domain               as D
 import qualified Hydra.Core.Language             as L
-import qualified Hydra.Framework.Cmd.Language    as L
 
 import           Language.Haskell.TH.MakeFunctor (makeFunctorInstance)
 import           Database.Beam.Sqlite (Sqlite)
@@ -41,13 +40,11 @@ data AppF next where
   --   -> (() -> next)
   --   -> FlowMethod next
 
-  StdF :: (String -> [HS.Completion]) -> L.CmdHandlerL () -> (() -> next) -> AppF  next
-
-  TeaF :: (String -> [HS.Completion])
-       -> (a -> AppL D.TeaAction)
-       -> (String -> AppL D.TeaAction)
-       -> L.TeaHandlerL a ()
-       -> D.TeaToken
+  CliF :: (String -> [HS.Completion])
+       -> (a -> AppL D.CliAction)
+       -> (String -> AppL D.CliAction)
+       -> L.CliHandlerL a ()
+       -> D.CliToken
        -> (() -> next)
        -> AppF  next
 
@@ -57,9 +54,8 @@ instance Functor AppF where
   fmap g (EvalLang act next)                      = EvalLang act                      (g . next)
   fmap g (InitKVDB cfg name next)                 = InitKVDB cfg name                 (g . next)
   fmap g (InitSqlDB cfg next)                     = InitSqlDB cfg                     (g . next)
-  fmap g (StdF completeFunc handlers next)        = StdF completeFunc handlers        (g . next)
-  fmap g (TeaF completeFunc onStep onUnknownCommand handlers teaToken next)
-    = TeaF completeFunc onStep onUnknownCommand handlers teaToken (g . next)
+  fmap g (CliF completeFunc onStep onUnknownCommand handlers cliToken next)
+    = CliF completeFunc onStep onUnknownCommand handlers cliToken (g . next)
 
 type AppL = Free AppF
 
@@ -75,30 +71,24 @@ scenario = evalLang'
 evalProcess' :: L.ProcessL L.LangL a -> AppL a
 evalProcess' action = liftF $ EvalProcess action id
 
-std :: L.CmdHandlerL () -> AppL ()
-std handlers = liftF $ StdF (\_ -> []) handlers id
-
-stdF :: (String -> [HS.Completion]) -> L.CmdHandlerL () -> AppL ()
-stdF completionFunc handlers = liftF $ StdF completionFunc handlers id
-
 -- | Do not make it evaluating many times.
-teaF
+cliF
   :: (String -> [HS.Completion])
-  -> (a -> AppL D.TeaAction)
-  -> (String -> AppL D.TeaAction)
-  -> L.TeaHandlerL a ()
-  -> AppL D.TeaToken
-teaF completionFunc onStep onUnknownCommand handlers = do
-  token <- D.TeaToken <$> (scenario $ L.newVarIO False)
-  liftF $ TeaF completionFunc onStep onUnknownCommand handlers token id
+  -> (a -> AppL D.CliAction)
+  -> (String -> AppL D.CliAction)
+  -> L.CliHandlerL a ()
+  -> AppL D.CliToken
+cliF completionFunc onStep onUnknownCommand handlers = do
+  token <- D.CliToken <$> (scenario $ L.newVarIO False)
+  liftF $ CliF completionFunc onStep onUnknownCommand handlers token id
   pure token
 
-tea
-  :: (a -> AppL D.TeaAction)
-  -> (String -> AppL D.TeaAction)
-  -> L.TeaHandlerL a ()
-  -> AppL D.TeaToken
-tea = teaF (\_ -> [])
+cli
+  :: (a -> AppL D.CliAction)
+  -> (String -> AppL D.CliAction)
+  -> L.CliHandlerL a ()
+  -> AppL D.CliToken
+cli = cliF (\_ -> [])
 
 instance C.Process L.LangL AppL where
   forkProcess  = evalProcess' . L.forkProcess'

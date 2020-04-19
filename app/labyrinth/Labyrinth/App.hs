@@ -130,22 +130,22 @@ quit st = do
   writeVarIO (st ^. gameFinished) True
 
 
-onStep :: GameState -> () -> AppL D.TeaAction
+onStep :: GameState -> () -> AppL D.CliAction
 onStep st _ = do
   finished <- readVarIO (st ^. gameFinished)
   case finished of
-    True  -> pure $ D.TeaFinish $ Just "Bye-bye"
-    False -> pure $ D.TeaLoop
+    True  -> pure $ D.CliFinish $ Just "Bye-bye"
+    False -> pure $ D.CliLoop
 
-onUnknownCommand :: String -> AppL D.TeaAction
-onUnknownCommand cmd = pure $ D.TeaOutputMsg $ "Unknown command: " <> cmd
+onUnknownCommand :: String -> AppL D.CliAction
+onUnknownCommand cmd = pure $ D.CliOutputMsg $ "Unknown command: " <> cmd
 
 
 app :: GameState -> AppL ()
 app st = do
   scenario $ putStrLn "Labyrinth (aka Terra Incognita) game"
 
-  teaToken <- tea (onStep st) onUnknownCommand $ do
+  cliToken <- cli (onStep st) onUnknownCommand $ do
     cmd "go up"    $ makeMove st DirUp
     cmd "go down"  $ makeMove st DirDown
     cmd "go left"  $ makeMove st DirLeft
@@ -159,5 +159,5 @@ app st = do
     cmd "quit" $ quit st
 
   atomically $ do
-    finished <- readVar $ D.teaFinishedToken teaToken
+    finished <- readVar $ D.cliFinishedToken cliToken
     when (not finished) retry

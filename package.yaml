@@ -134,6 +134,7 @@ executables:
     - -O2
     dependencies:
     - Hydra
+
   meteor-counter-app:
     main:                Main.hs
     source-dirs:         app/MeteorCounter
@@ -145,6 +146,7 @@ executables:
     - -O2
     dependencies:
     - Hydra
+
   astro-app:
     main:                Main.hs
     source-dirs:         app/astro
@@ -156,17 +158,7 @@ executables:
     - -O2
     dependencies:
     - Hydra
-  ys-test:
-    main:                Main.hs
-    source-dirs:         app/ys-test
-    ghc-options:
-    - -threaded
-    - -rtsopts
-    - -with-rtsopts=-N
-    - -Wall
-    # - -O2
-    dependencies:
-    - Hydra
+
   labyrinth:
     main:                Main.hs
     source-dirs:         app/labyrinth
@@ -183,12 +175,11 @@ executables:
 tests:
   functional-tests:
     main: Spec.hs
-
-    dependencies:
-    - Hydra
     source-dirs:
     - test/spec
     ghc-options:
     - -threaded
     - -rtsopts
     - -with-rtsopts=-N
+    dependencies:
+    - Hydra

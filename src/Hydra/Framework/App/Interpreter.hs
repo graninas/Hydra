@@ -15,7 +15,6 @@ import qualified Hydra.Core.SqlDBRuntime  as R
 import qualified Hydra.Framework.Language as L
 import qualified Hydra.Framework.RLens    as RLens
 import qualified Hydra.Framework.Runtime  as R
-import qualified Hydra.Framework.Cmd.Interpreter as Impl
 
 import qualified Database.RocksDB         as Rocks
 import qualified Database.Redis           as Redis
@@ -40,13 +39,13 @@ connect cfg = do
     Left (e :: SomeException) -> pure $ Left $ D.DBError D.FailedToConnect $ show e
     Right conn -> pure $ Right conn
 
-evalTeaAction :: R.CoreRuntime -> D.TeaToken -> D.TeaAction -> HS.InputT IO Bool
-evalTeaAction coreRt teaToken (D.TeaFinish mbMsg) = do
+evalCliAction :: R.CoreRuntime -> D.CliToken -> D.CliAction -> HS.InputT IO Bool
+evalCliAction coreRt cliToken (D.CliFinish mbMsg) = do
       whenJust mbMsg HS.outputStrLn
-      liftIO $ Impl.runLangL coreRt $ L.writeVarIO (D.teaFinishedToken teaToken) True
+      liftIO $ Impl.runLangL coreRt $ L.writeVarIO (D.cliFinishedToken cliToken) True
       pure True
-evalTeaAction _ teaToken D.TeaLoop            = pure True
-evalTeaAction _ teaToken (D.TeaOutputMsg msg) = HS.outputStrLn msg >> pure True
+evalCliAction _ cliToken D.CliLoop            = pure True
+evalCliAction _ cliToken (D.CliOutputMsg msg) = HS.outputStrLn msg >> pure True
 
 interpretAppF :: R.AppRuntime -> L.AppF a -> IO a
 interpretAppF appRt (L.EvalLang action next) = do
@@ -82,34 +81,11 @@ interpretAppF appRt (L.InitSqlDB cfg next) = do
           putMVar connsVar connMap
           pure $ next $ Left err
 
-
-interpretAppF appRt (L.StdF completeFunc stdDef next) = do
-  let coreRt = appRt ^. RLens.coreRuntime
-  msgsRef    <- newIORef []
-  successRef <- newIORef False
-  -- TODO: add history.
-  void $ forkIO $ do
-    let loop = HS.getInputLine "> " >>= \case
-          Nothing   -> pure ()
-          Just line -> do
-            liftIO $ writeIORef msgsRef []
-            liftIO $ writeIORef successRef False
-            liftIO $ Impl.runCmdHandlerL coreRt msgsRef successRef line stdDef
-            msgs    <- readIORef msgsRef
-            success <- readIORef successRef
-            mapM_ HS.outputStrLn $ reverse msgs
-            when (null msgs && not success) $ HS.outputStrLn "Unknown command."
-            loop
-    let cf = HS.completeWord Nothing " \t" $ pure . completeFunc
-    HS.runInputT (HS.setComplete cf HS.defaultSettings) loop
-  pure $ next ()
-
-
-interpretAppF appRt (L.TeaF completeFunc onStep onUnknownCommand handlers teaToken next) = do
+interpretAppF appRt (L.CliF completeFunc onStep onUnknownCommand handlers cliToken next) = do
   let coreRt = appRt ^. RLens.coreRuntime
 
   handlersRef <- newIORef Map.empty
-  Impl.runTeaHandlerL handlersRef handlers
+  Impl.runCliHandlerL handlersRef handlers
   handlers <- readIORef handlersRef
 
   void $ forkIO $ do
@@ -124,12 +100,12 @@ interpretAppF appRt (L.TeaF completeFunc onStep onUnknownCommand handlers teaTok
           doLoop <- case eAct of
             Left Nothing    -> pure True
             Left (Just cmd) -> do
-              teaAction <- liftIO $ runAppL appRt $ onUnknownCommand cmd
-              evalTeaAction coreRt teaToken teaAction
+              cliAction <- liftIO $ runAppL appRt $ onUnknownCommand cmd
+              evalCliAction coreRt cliToken cliAction
             Right action    -> do
               result    <- liftIO $ Impl.runLangL coreRt action
-              teaAction <- liftIO $ runAppL appRt $ onStep result
-              evalTeaAction coreRt teaToken teaAction
+              cliAction <- liftIO $ runAppL appRt $ onStep result
+              evalCliAction coreRt cliToken cliAction
 
           when doLoop loop
 
