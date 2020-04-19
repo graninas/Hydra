@@ -24,15 +24,20 @@ loggerCfg = D.LoggerConfig
   , D._logToFile    = False
   }
 
+testLabyrinth = Map.fromList
+  [ ((0, 0), (Cell Wall Wall Wall Wall, Treasure))
+  ]
+
 
 initGameState :: L.AppL GameState
 initGameState = do
-  lab       <- L.newVarIO Map.empty
+  lab       <- L.newVarIO testLabyrinth
+  labSize   <- L.newVarIO (1, 1)
   pos       <- L.newVarIO (0, 0)
   inv       <- Inventory <$> L.newVarIO False
   treasure  <- L.newVarIO Nothing
   fiinished <- L.newVarIO False
-  pure $ GameState lab Map.empty pos inv treasure fiinished
+  pure $ GameState lab labSize Map.empty pos inv treasure fiinished
 
 
 

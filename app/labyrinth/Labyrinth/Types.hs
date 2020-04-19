@@ -16,11 +16,12 @@ data Inventory = Inventory
 
 data GameState = GameState
   { _labyrinth            :: StateVar Labyrinth
+  , _labyrinthSize        :: StateVar (Int, Int)
   , _wormholes            :: Map Int (Int, Int)
   , _playerPos            :: StateVar Pos
   , _playerInventory      :: Inventory
   , _playerIsAboutLeaving :: StateVar (Maybe HasTreasure)
-  , _gameFinished         :: StateVar Bool
+  , _gameFinished         :: SignalVar    -- StateVar Bool
   }
 
 data AppException
