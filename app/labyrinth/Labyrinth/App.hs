@@ -144,7 +144,7 @@ printLabyrinth st = do
 
   let printedRows = foldr printAndMergeRows [] [0..maxY-1]
 
-  let outputRows (t, m, b) = putStrLn $ T.pack $ t <> "\n" <> m <> "\n" <> b <> "\n"
+  let outputRows (t, m, b) = putStrLn $ T.pack $ t <> "\n" <> m <> "\n" <> b
   mapM_ outputRows printedRows
 
 
@@ -193,7 +193,7 @@ onStep st _ = do
     True  -> pure $ D.CliFinish $ Just "Bye-bye"
     False -> pure D.CliLoop
 
-onUnknownCommand :: String -> AppL D.CliAction
+onUnknownCommand :: String -> AppL CliAction
 onUnknownCommand cmd = pure $ D.CliOutputMsg $ "Unknown command: " <> cmd
 
 app :: GameState -> AppL ()
