@@ -112,7 +112,7 @@ interpretAppF appRt (L.TeaF completeFunc onStep handlers teaToken next) = do
                 Map.lookup line handlers
 
           case mbAction of
-            Nothing     -> pure ()
+            Nothing     -> loop
             Just action -> do
               result    <- liftIO $ Impl.runLangL coreRt action
               teaAction <- liftIO $ runAppL appRt $ onStep result
