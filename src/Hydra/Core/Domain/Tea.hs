@@ -10,9 +10,9 @@ data TeaToken = TeaToken
 
 
 data TeaAction
-  = FinishTea
-  | LoopTea
-  | OutputMsg String
+  = TeaFinish (Maybe String)
+  | TeaLoop
+  | TeaOutputMsg String
 
 teaFinishedToken :: TeaToken -> SignalVar
 teaFinishedToken token = _finished token

@@ -45,6 +45,7 @@ data AppF next where
 
   TeaF :: (String -> [HS.Completion])
        -> (a -> AppL D.TeaAction)
+       -> (String -> AppL D.TeaAction)
        -> L.TeaHandlerL a ()
        -> D.TeaToken
        -> (() -> next)
@@ -57,7 +58,8 @@ instance Functor AppF where
   fmap g (InitKVDB cfg name next)                 = InitKVDB cfg name                 (g . next)
   fmap g (InitSqlDB cfg next)                     = InitSqlDB cfg                     (g . next)
   fmap g (StdF completeFunc handlers next)        = StdF completeFunc handlers        (g . next)
-  fmap g (TeaF completeFunc onStep handlers teaToken next) = TeaF completeFunc onStep handlers teaToken (g . next)
+  fmap g (TeaF completeFunc onStep onUnknownCommand handlers teaToken next)
+    = TeaF completeFunc onStep onUnknownCommand handlers teaToken (g . next)
 
 type AppL = Free AppF
 
@@ -83,18 +85,20 @@ stdF completionFunc handlers = liftF $ StdF completionFunc handlers id
 teaF
   :: (String -> [HS.Completion])
   -> (a -> AppL D.TeaAction)
+  -> (String -> AppL D.TeaAction)
   -> L.TeaHandlerL a ()
   -> AppL D.TeaToken
-teaF completionFunc onStep handlers = do
+teaF completionFunc onStep onUnknownCommand handlers = do
   token <- D.TeaToken <$> (scenario $ L.newVarIO False)
-  liftF $ TeaF completionFunc onStep handlers token id
+  liftF $ TeaF completionFunc onStep onUnknownCommand handlers token id
   pure token
 
 tea
   :: (a -> AppL D.TeaAction)
+  -> (String -> AppL D.TeaAction)
   -> L.TeaHandlerL a ()
   -> AppL D.TeaToken
-tea onStep handlers = teaF (\_ -> []) onStep handlers
+tea = teaF (\_ -> [])
 
 instance C.Process L.LangL AppL where
   forkProcess  = evalProcess' . L.forkProcess'

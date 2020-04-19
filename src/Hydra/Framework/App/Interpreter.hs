@@ -40,6 +40,14 @@ connect cfg = do
     Left (e :: SomeException) -> pure $ Left $ D.DBError D.FailedToConnect $ show e
     Right conn -> pure $ Right conn
 
+evalTeaAction :: R.CoreRuntime -> D.TeaToken -> D.TeaAction -> HS.InputT IO Bool
+evalTeaAction coreRt teaToken (D.TeaFinish mbMsg) = do
+      whenJust mbMsg HS.outputStrLn
+      liftIO $ Impl.runLangL coreRt $ L.writeVarIO (D.teaFinishedToken teaToken) True
+      pure True
+evalTeaAction _ teaToken D.TeaLoop            = pure True
+evalTeaAction _ teaToken (D.TeaOutputMsg msg) = HS.outputStrLn msg >> pure True
+
 interpretAppF :: R.AppRuntime -> L.AppF a -> IO a
 interpretAppF appRt (L.EvalLang action next) = do
   let coreRt = appRt ^. RLens.coreRuntime
@@ -97,7 +105,7 @@ interpretAppF appRt (L.StdF completeFunc stdDef next) = do
   pure $ next ()
 
 
-interpretAppF appRt (L.TeaF completeFunc onStep handlers teaToken next) = do
+interpretAppF appRt (L.TeaF completeFunc onStep onUnknownCommand handlers teaToken next) = do
   let coreRt = appRt ^. RLens.coreRuntime
 
   handlersRef <- newIORef Map.empty
@@ -107,19 +115,23 @@ interpretAppF appRt (L.TeaF completeFunc onStep handlers teaToken next) = do
   void $ forkIO $ do
     let loop = do
           mbLine <- HS.getInputLine "> "
-          let mbAction = do
-                line <- mbLine
-                Map.lookup line handlers
+          let eAct = case mbLine of
+                Nothing -> Left Nothing
+                Just line -> case Map.lookup line handlers of
+                  Nothing -> Left (Just line)
+                  Just act -> Right act
 
-          case mbAction of
-            Nothing     -> loop
-            Just action -> do
+          doLoop <- case eAct of
+            Left Nothing    -> pure True
+            Left (Just cmd) -> do
+              teaAction <- liftIO $ runAppL appRt $ onUnknownCommand cmd
+              evalTeaAction coreRt teaToken teaAction
+            Right action    -> do
               result    <- liftIO $ Impl.runLangL coreRt action
               teaAction <- liftIO $ runAppL appRt $ onStep result
-              case teaAction of
-                D.FinishTea     -> liftIO $ Impl.runLangL coreRt $ L.writeVarIO (D.teaFinishedToken teaToken) True
-                D.LoopTea       -> loop
-                D.OutputMsg msg -> HS.outputStrLn msg
+              evalTeaAction coreRt teaToken teaAction
+
+          when doLoop loop
 
     let cf = HS.completeWord Nothing " \t" $ pure . completeFunc
     HS.runInputT (HS.setComplete cf HS.defaultSettings) loop

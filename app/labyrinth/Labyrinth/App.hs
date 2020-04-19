@@ -127,22 +127,25 @@ makeMove st dir = do
 
 quit :: GameState -> LangL ()
 quit st = do
-  -- Do something
---  throwException $ Finished False
-  pure ()
+  writeVarIO (st ^. gameFinished) True
 
 
 onStep :: GameState -> () -> AppL D.TeaAction
 onStep st _ = do
-  atomically $ writeVar (st ^. gameFinished) True
-  pure D.LoopTea
+  finished <- readVarIO (st ^. gameFinished)
+  case finished of
+    True  -> pure $ D.TeaFinish $ Just "Bye-bye"
+    False -> pure $ D.TeaLoop
+
+onUnknownCommand :: String -> AppL D.TeaAction
+onUnknownCommand cmd = pure $ D.TeaOutputMsg $ "Unknown command: " <> cmd
 
 
 app :: GameState -> AppL ()
 app st = do
   scenario $ putStrLn "Labyrinth (aka Terra Incognita) game"
 
-  teaToken <- tea (onStep st) $ do
+  teaToken <- tea (onStep st) onUnknownCommand $ do
     cmd "go up"    $ makeMove st DirUp
     cmd "go down"  $ makeMove st DirDown
     cmd "go left"  $ makeMove st DirLeft
