@@ -24,15 +24,26 @@ loggerCfg = D.LoggerConfig
   , D._logToFile    = False
   }
 
+-- l r u d
 testLabyrinth = Map.fromList
-  [ ((0, 0), (Cell Wall Wall Wall Wall, Treasure))
+  [ ((0, 0), (Cell Wall Wall Wall Wall, NoContent))
+  , ((1, 0), (Cell Wall Wall NoWall Wall, Treasure))
+  , ((2, 0), (Cell Wall Wall Wall Wall, NoContent))
+
+  , ((0, 1), (Cell NoWall Wall Wall Wall, NoContent))
+  , ((1, 1), (Cell NoWall NoWall NoWall NoWall, NoContent))
+  , ((2, 1), (Cell Wall NoWall Wall Wall, NoContent))
+
+  , ((0, 2), (Cell Wall Wall Wall Wall, NoContent))
+  , ((1, 2), (Cell Wall Wall Wall NoWall, NoContent))
+  , ((2, 2), (Cell Wall Wall Wall Wall, NoContent))
   ]
 
 
 initGameState :: L.AppL GameState
 initGameState = do
   lab       <- L.newVarIO testLabyrinth
-  labSize   <- L.newVarIO (1, 1)
+  labSize   <- L.newVarIO (3, 3)
   pos       <- L.newVarIO (0, 0)
   inv       <- Inventory <$> L.newVarIO False
   treasure  <- L.newVarIO Nothing
