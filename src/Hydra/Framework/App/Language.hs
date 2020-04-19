@@ -10,7 +10,6 @@ import qualified Hydra.Core.Class                as C
 import qualified Hydra.Core.Domain               as D
 import qualified Hydra.Core.Language             as L
 import qualified Hydra.Framework.Cmd.Language    as L
-import qualified Hydra.Framework.Tea.Language    as L
 
 import           Language.Haskell.TH.MakeFunctor (makeFunctorInstance)
 import           Database.Beam.Sqlite (Sqlite)
@@ -44,7 +43,13 @@ data AppF next where
 
   StdF :: (String -> [HS.Completion]) -> L.CmdHandlerL () -> (() -> next) -> AppF  next
 
-  TeaF :: (String -> [HS.Completion]) -> (a -> AppL ()) -> L.TeaHandlerL a () -> (() -> next) -> AppF  next
+  TeaF :: (String -> [HS.Completion])
+       -> (a -> AppL D.TeaAction)
+       -> L.TeaHandlerL a ()
+       -> D.TeaToken
+       -> (() -> next)
+       -> AppF  next
+
 
 instance Functor AppF where
   fmap g (EvalProcess p next)                     = EvalProcess p                     (g . next)
@@ -52,7 +57,7 @@ instance Functor AppF where
   fmap g (InitKVDB cfg name next)                 = InitKVDB cfg name                 (g . next)
   fmap g (InitSqlDB cfg next)                     = InitSqlDB cfg                     (g . next)
   fmap g (StdF completeFunc handlers next)        = StdF completeFunc handlers        (g . next)
-  fmap g (TeaF completeFunc onStep handlers next) = TeaF completeFunc onStep handlers (g . next)
+  fmap g (TeaF completeFunc onStep handlers teaToken next) = TeaF completeFunc onStep handlers teaToken (g . next)
 
 type AppL = Free AppF
 
@@ -74,18 +79,22 @@ std handlers = liftF $ StdF (\_ -> []) handlers id
 stdF :: (String -> [HS.Completion]) -> L.CmdHandlerL () -> AppL ()
 stdF completionFunc handlers = liftF $ StdF completionFunc handlers id
 
+-- | Do not make it evaluating many times.
 teaF
   :: (String -> [HS.Completion])
-  -> (a -> AppL ())
+  -> (a -> AppL D.TeaAction)
   -> L.TeaHandlerL a ()
-  -> AppL ()
-teaF completionFunc onStep handlers = liftF $ TeaF completionFunc onStep handlers id
+  -> AppL D.TeaToken
+teaF completionFunc onStep handlers = do
+  token <- D.TeaToken <$> (scenario $ L.newVarIO False)
+  liftF $ TeaF completionFunc onStep handlers token id
+  pure token
 
 tea
-  :: (a -> AppL ())
+  :: (a -> AppL D.TeaAction)
   -> L.TeaHandlerL a ()
-  -> AppL ()
-tea onStep handlers = liftF $ TeaF (\_ -> []) onStep handlers id
+  -> AppL D.TeaToken
+tea onStep handlers = teaF (\_ -> []) onStep handlers
 
 instance C.Process L.LangL AppL where
   forkProcess  = evalProcess' . L.forkProcess'

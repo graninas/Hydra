@@ -20,6 +20,7 @@ data GameState = GameState
   , _playerPos            :: StateVar Pos
   , _playerInventory      :: Inventory
   , _playerIsAboutLeaving :: StateVar (Maybe HasTreasure)
+  , _gameFinished         :: StateVar Bool
   }
 
 data AppException

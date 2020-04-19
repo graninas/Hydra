@@ -16,7 +16,6 @@ import qualified Hydra.Framework.Language as L
 import qualified Hydra.Framework.RLens    as RLens
 import qualified Hydra.Framework.Runtime  as R
 import qualified Hydra.Framework.Cmd.Interpreter as Impl
-import qualified Hydra.Framework.Tea.Interpreter as Impl
 
 import qualified Database.RocksDB         as Rocks
 import qualified Database.Redis           as Redis
@@ -98,7 +97,7 @@ interpretAppF appRt (L.StdF completeFunc stdDef next) = do
   pure $ next ()
 
 
-interpretAppF appRt (L.TeaF completeFunc onStep handlers next) = do
+interpretAppF appRt (L.TeaF completeFunc onStep handlers teaToken next) = do
   let coreRt = appRt ^. RLens.coreRuntime
 
   handlersRef <- newIORef Map.empty
@@ -106,7 +105,7 @@ interpretAppF appRt (L.TeaF completeFunc onStep handlers next) = do
   handlers <- readIORef handlersRef
 
   void $ forkIO $ do
-    let loop = forever $ do
+    let loop = do
           mbLine <- HS.getInputLine "> "
           let mbAction = do
                 line <- mbLine
@@ -115,10 +114,13 @@ interpretAppF appRt (L.TeaF completeFunc onStep handlers next) = do
           case mbAction of
             Nothing     -> pure ()
             Just action -> do
-              result <- liftIO $ Impl.runLangL coreRt action
-              liftIO $ runAppL appRt $ onStep result
---              HS.outputStrLn
---            when (null msgs && not success) $ HS.outputStrLn "Unknown command."
+              result    <- liftIO $ Impl.runLangL coreRt action
+              teaAction <- liftIO $ runAppL appRt $ onStep result
+              case teaAction of
+                D.FinishTea     -> liftIO $ Impl.runLangL coreRt $ L.writeVarIO (D.teaFinishedToken teaToken) True
+                D.LoopTea       -> loop
+                D.OutputMsg msg -> HS.outputStrLn msg
+
     let cf = HS.completeWord Nothing " \t" $ pure . completeFunc
     HS.runInputT (HS.setComplete cf HS.defaultSettings) loop
 

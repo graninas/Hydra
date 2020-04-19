@@ -3,6 +3,7 @@ module Labyrinth.App where
 import qualified Data.Text     as T
 import qualified Data.Map      as Map
 
+import qualified Hydra.Domain  as D
 import Labyrinth.Prelude       as L
 import Labyrinth.Domain
 import Labyrinth.Types
@@ -127,28 +128,33 @@ makeMove st dir = do
 quit :: GameState -> LangL ()
 quit st = do
   -- Do something
-  throwException $ Finished False
+--  throwException $ Finished False
+  pure ()
 
 
-onStep :: GameState -> () -> AppL ()
-onStep st _ = pure ()
+onStep :: GameState -> () -> AppL D.TeaAction
+onStep st _ = do
+  atomically $ writeVar (st ^. gameFinished) True
+  pure D.LoopTea
 
-mainLoop :: GameState -> AppL ()
-mainLoop st = tea (onStep st) $ do
-  cmd "go up"    $ makeMove st DirUp
-  cmd "go down"  $ makeMove st DirDown
-  cmd "go left"  $ makeMove st DirLeft
-  cmd "go right" $ makeMove st DirRight
-
-  cmd "up"       $ makeMove st DirUp
-  cmd "down"     $ makeMove st DirDown
-  cmd "left"     $ makeMove st DirLeft
-  cmd "right"    $ makeMove st DirRight
-
-  cmd "quit" $ quit st
 
 app :: GameState -> AppL ()
 app st = do
   scenario $ putStrLn "Labyrinth (aka Terra Incognita) game"
 
-  forever $ mainLoop st
+  teaToken <- tea (onStep st) $ do
+    cmd "go up"    $ makeMove st DirUp
+    cmd "go down"  $ makeMove st DirDown
+    cmd "go left"  $ makeMove st DirLeft
+    cmd "go right" $ makeMove st DirRight
+
+    cmd "up"       $ makeMove st DirUp
+    cmd "down"     $ makeMove st DirDown
+    cmd "left"     $ makeMove st DirLeft
+    cmd "right"    $ makeMove st DirRight
+
+    cmd "quit" $ quit st
+
+  atomically $ do
+    finished <- readVar $ D.teaFinishedToken teaToken
+    when (not finished) retry

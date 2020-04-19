@@ -1,17 +1,13 @@
-{-# LANGUAGE TypeApplications #-}
-{-# LANGUAGE ConstraintKinds #-}
-{-# LANGUAGE GADTs           #-}
 
-module Hydra.Framework.Tea.Language
+module Hydra.Core.TeaHandlers.Language
   ( TeaHandlerF (..)
   , TeaHandlerL
   , cmd
   ) where
 
 import           Hydra.Prelude
-import qualified Data.Text          as T
 
-import qualified Hydra.Core.Language as L
+import qualified Hydra.Core.Lang.Language as L
 
 data TeaHandlerF a next where
   Cmd :: String -> L.LangL a -> (() -> next) -> TeaHandlerF a next

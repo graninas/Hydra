@@ -1,11 +1,11 @@
-module Hydra.Framework.Tea.Interpreter where
+module Hydra.Core.TeaHandlers.Interpreter where
 
 import           Hydra.Prelude
 
 import qualified Data.Map as Map
 
-import qualified Hydra.Core.Language as L
-import qualified Hydra.Framework.Tea.Language as L
+import qualified Hydra.Core.TeaHandlers.Language as L
+import qualified Hydra.Core.Lang.Language as L
 
 type Handlers a = IORef (Map.Map String (L.LangL a))
 

@@ -27,18 +27,17 @@ loggerCfg = D.LoggerConfig
 
 initGameState :: L.AppL GameState
 initGameState = do
-  lab <- L.newVarIO Map.empty
-  pos <- L.newVarIO (0, 0)
-  inv <- Inventory <$> L.newVarIO False
-  treasure <- L.newVarIO Nothing
-  pure $ GameState lab Map.empty pos inv treasure
-   
+  lab       <- L.newVarIO Map.empty
+  pos       <- L.newVarIO (0, 0)
+  inv       <- Inventory <$> L.newVarIO False
+  treasure  <- L.newVarIO Nothing
+  fiinished <- L.newVarIO False
+  pure $ GameState lab Map.empty pos inv treasure fiinished
+
 
 
 startApp :: L.AppL ()
-startApp = do
-  st <- initGameState
-  app st
+startApp = initGameState >>= app
 
 main :: IO ()
 main = R.withAppRuntime (Just loggerCfg) (\rt -> R.runAppL rt startApp)
