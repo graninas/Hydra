@@ -124,22 +124,77 @@ makeMove st dir = do
       setPlayerPos st newPos
       performContentEvent st newPos content
 
-
 quit :: GameState -> LangL ()
-quit st = do
-  writeVarIO (st ^. gameFinished) True
+quit st = writeVarIO (st ^. gameFinished) True
 
+printLabyrinth :: GameState -> LangL ()
+printLabyrinth st = do
+  lab          <- readVarIO $ st ^. labyrinth
+  (maxX, maxY) <- readVarIO $ st ^. labyrinthSize
+
+  let printAndMergeCells y x (t1, m1, b1) = case Map.lookup (x, y) lab of
+        Nothing -> (t1 <> "!III!", m1 <> "!III!", b1 <> "!III!")
+        Just (c, content) ->
+          let (t,m,b) = printCell c content
+          in (t1 <> t, m1 <> m, b1 <> b)
+
+  let printAndMergeRows y rows =
+        let row@(t, m, b) = foldr (printAndMergeCells y) ([],[],[]) [0..maxX-1]
+        in rows ++ [row]
+
+  let printedRows = foldr printAndMergeRows [] [0..maxY-1]
+
+  let outputRows (t, m, b) = putStrLn $ T.pack $ t <> "\n" <> m <> "\n" <> b <> "\n"
+  mapM_ outputRows printedRows
+
+
+
+--
+-- -   ------
+-- |W1 ||W2P|
+-- ------   -
+-- ----------
+-- |  T||   |
+-- ----------
+--
+
+printCell (Cell l r u d) content
+  = ( printHorizontalWall u
+    , printVerticalWall l <> printContent content <> printVerticalWall r
+    , printHorizontalWall d
+    )
+
+printHorizontalWall NoWall            = "-   -"
+printHorizontalWall Wall              = "-----"
+printHorizontalWall (Monolith True)   = "#   #"
+printHorizontalWall (Monolith False)  = "#---#"
+
+printVerticalWall NoWall           = " "
+printVerticalWall Wall             = "|"
+printVerticalWall (Monolith True)  = " "
+printVerticalWall (Monolith False) = "#"
+
+printContent NoContent    = "   "
+printContent Treasure     = "  T"
+printContent (Wormhole n) = "W" <> show n <> " "
+
+
+-- (-Y)
+-- |
+-- V
+-- (+Y)
+
+-- (-X) --- (+X)
 
 onStep :: GameState -> () -> AppL D.CliAction
 onStep st _ = do
-  finished <- readVarIO (st ^. gameFinished)
+  finished <- readVarIO $ st ^. gameFinished
   case finished of
     True  -> pure $ D.CliFinish $ Just "Bye-bye"
-    False -> pure $ D.CliLoop
+    False -> pure D.CliLoop
 
 onUnknownCommand :: String -> AppL D.CliAction
 onUnknownCommand cmd = pure $ D.CliOutputMsg $ "Unknown command: " <> cmd
-
 
 app :: GameState -> AppL ()
 app st = do
@@ -156,7 +211,9 @@ app st = do
     cmd "left"     $ makeMove st DirLeft
     cmd "right"    $ makeMove st DirRight
 
-    cmd "quit" $ quit st
+    cmd "quit"     $ quit st
+
+    cmd "print"    $ printLabyrinth st
 
   atomically $ do
     finished <- readVar $ D.cliFinishedToken cliToken
