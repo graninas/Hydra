@@ -7,6 +7,7 @@ import qualified Hydra.Domain  as D
 import Labyrinth.Prelude       as L
 import Labyrinth.Domain
 import Labyrinth.Types
+import Labyrinth.Render
 import Labyrinth.Lens
 
 -- |---|
@@ -14,9 +15,6 @@ import Labyrinth.Lens
 -- |---|
 -- | ^ |
 -- |---|
-
-data Direction = DirUp | DirDown | DirLeft | DirRight
-  deriving (Show, Read, Eq)
 
 data Passage
   = Passage
@@ -109,7 +107,7 @@ performContentEvent st pos Treasure = do
   atomically $ writeVar (st ^. playerInventory . treasure) True
   setCellContent st pos NoContent
 performContentEvent st _ (Wormhole n) = do
-  putStrLn $"you found a wormhole " +|| n ||+ ". You have been moved to the next wormhole."
+  putStrLn $ "you found a wormhole " +|| n ||+ ". You have been moved to the next wormhole."
   executeWormhole st n
 
 makeMove :: GameState -> Direction -> LangL ()
@@ -129,127 +127,11 @@ quit st = writeVarIO (st ^. gameFinished) True
 
 printLabyrinth :: GameState -> LangL ()
 printLabyrinth st = do
-  lab          <- readVarIO $ st ^. labyrinth
-  (maxX, maxY) <- readVarIO $ st ^. labyrinthSize
+  lab               <- readVarIO $ st ^. labyrinth
+  bounds            <- readVarIO $ st ^. labyrinthSize
+  let template = st ^. labRenderTemplate
 
-  let printAndMergeCells y x (t1, m1, b1) = case Map.lookup (x, y) lab of
-        Nothing -> (t1 <> "!III!", m1 <> "!III!", b1 <> "!III!")
-        Just (c, content) ->
-          let (t,m,b) = printCell c content
-          in (t1 <> t, m1 <> m, b1 <> b)
-
-  let printAndMergeRows y rows =
-        let row@(t, m, b) = foldr (printAndMergeCells y) ([],[],[]) [0..maxX-1]
-        in rows ++ [row]
-
-  let printedRows = foldr printAndMergeRows [] [0..maxY-1]
-
-  let outputRows (t, m, b) = putStrLn $ T.pack $ t <> "\n" <> m <> "\n" <> b
-  mapM_ outputRows printedRows
-
--- printLabyrinth2 :: GameState -> LangL ()
--- printLabyrinth2 st = do
---   lab          <- readVarIO $ st ^. labyrinth
---   (maxX, maxY) <- readVarIO $ st ^. labyrinthSize
---
---   let labRenderVar = st ^. labRenderVar
---
---   writeVarIO labRenderVar $ Map.fromList $ do
---     x <- [0..maxX*2]
---     y <- [0..maxY*2]
---     pure ((x, y), "")
---
---   let renderCell ((x, y), cell) = do
---         r1 <- readVarIO labRenderVar
---         case Map.lookup (x, y) r1 of
---           Nothing -> throwException $ InvalidOperation $ show (x, y) <> " (1)"
---           Just rCell -> renderLLPart (x, y) cell rCell
---
---   mapM_ renderCell $ Map.toList lab
-
--- renderLLPart (x, y) (Cell ) "" =
-
---           X11  X1  x12  X2 X X3 X
---  y1-1     ┏━━━━┯━━━━┓
---  y1-2     ┃           │    ┃
---  y1
---  y2-1     ┠    ┼    ┨
---  y2-2     ┃    │    ┃
---  y2
---  y3-1     ┠────┼────┨
---  y3-2     ┃    │    ┃
---  y3
---  y4-1     ┠────┼────┨
---  y4-2     ┃         ┃
---  y4
---  y5-1     ┗━━━━┷    ┛
---  y5-2
--- ┏━━━┯━━━┓
--- ┃       ┃
--- ┠───┼   ┨
--- ┃       ┃
--- ┗━━━┷   ┛
--- ┏━━━━┯━━━━┓
--- ┃         ┃
--- ┠────┼    ┨
--- ┃         ┃
--- ┗━━━━┷    ┛
-
-
--- ╔════╤════╗
--- ║         ║
--- ╟────┼    ╢
--- ║         ║
--- ╟────┼    ╢
--- ║         ║
--- ╚════╧════╝
-
-
-
--- ▁▁▁▁▁▁▁
--- ▔▔▔▔▔▔▔
--- ▁▁▁▁▁▁▁
--- ▔▔▔▔▔▔▔
--- ▁▁▁▁▁▁▁
-
-
-printCell (Cell l r u d) content
-  = ( printHorizontalWall u
-    , printVerticalWall l <> printContent content <> printVerticalWall r
-    , printHorizontalWall d
-    )
-
-vMonolithSymbol :: IsString s => s
-vMonolithSymbol = "║"
-
-hMonolithSymbol :: IsString s => s
-hMonolithSymbol = "═"
-
-vWallSymbol, hWallSymbol :: IsString s => s
-vWallSymbol = "┃"
-hWallSymbol = "━"
-
-printHorizontalWall NoWall            = hWallSymbol <> "   " <> hWallSymbol
-printHorizontalWall Wall              = join $ replicate 5 hWallSymbol
-printHorizontalWall (Monolith True)   = hMonolithSymbol <> "   " <> hMonolithSymbol
-printHorizontalWall (Monolith False)  = join $ replicate 5 hMonolithSymbol
-
-printVerticalWall NoWall           = " "
-printVerticalWall Wall             = vWallSymbol
-printVerticalWall (Monolith True)  = " "
-printVerticalWall (Monolith False) = vMonolithSymbol
-
-printContent NoContent    = "   "
-printContent Treasure     = "  T"
-printContent (Wormhole n) = "W" <> show n <> " "
-
-
--- (-Y)
--- |
--- V
--- (+Y)
-
--- (-X) --- (+X)
+  printLabRender bounds $ renderLabyrinth template lab
 
 onStep :: GameState -> () -> AppL D.CliAction
 onStep st _ = do

@@ -18,7 +18,8 @@ type LabRender = Map Pos Text
 
 data GameState = GameState
   { _labyrinth            :: StateVar Labyrinth
-  , _labyrinthSize        :: StateVar Pos
+  , _labyrinthSize        :: StateVar Bounds
+  , _labRenderTemplate    :: LabRender
   , _labRenderVar         :: StateVar LabRender
   , _wormholes            :: Map Int Pos
   , _playerPos            :: StateVar Pos
