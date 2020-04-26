@@ -23,19 +23,20 @@ loggerCfg = D.LoggerConfig
   , D._logToFile    = False
   }
 
+-- l r u d
 testLabyrinth2 :: (Pos, Labyrinth)
 testLabyrinth2 = ((3, 3),) $ Map.fromList
-  [ ((0, 0), (Cell (Monolith False) Wall Wall Wall, NoContent))
-  , ((1, 0), (Cell (Monolith False) Wall NoWall Wall, Treasure))
-  , ((2, 0), (Cell (Monolith False) Wall Wall Wall, NoContent))
+  [ ((0, 0), (Cell (Monolith False) Wall (Monolith False) NoWall, NoContent))
+  , ((1, 0), (Cell Wall NoWall (Monolith False) NoWall, NoContent))
+  , ((2, 0), (Cell NoWall (Monolith False) (Monolith False) NoWall, (Wormhole 0)))
 
-  , ((0, 1), (Cell NoWall Wall Wall Wall, NoContent))
-  , ((1, 1), (Cell NoWall NoWall NoWall NoWall, NoContent))
-  , ((2, 1), (Cell Wall NoWall Wall Wall, NoContent))
+  , ((0, 1), (Cell (Monolith False) NoWall NoWall NoWall, NoContent))
+  , ((1, 1), (Cell NoWall Wall NoWall Wall, Treasure))
+  , ((2, 1), (Cell Wall (Monolith True) NoWall NoWall, NoContent))
 
-  , ((0, 2), (Cell Wall (Monolith False) Wall Wall, NoContent))
-  , ((1, 2), (Cell Wall (Monolith False) Wall NoWall, NoContent))
-  , ((2, 2), (Cell Wall (Monolith False) Wall Wall, NoContent))
+  , ((0, 2), (Cell (Monolith False) NoWall NoWall (Monolith False), (Wormhole 1)))
+  , ((1, 2), (Cell NoWall NoWall Wall (Monolith False), NoContent))
+  , ((2, 2), (Cell NoWall (Monolith False) NoWall (Monolith False), NoContent))
   ]
 
 testLabyrinth1 :: (Pos, Labyrinth)
@@ -45,14 +46,14 @@ testLabyrinth1 = ((1, 1),) $ Map.fromList
 
 initGameState :: AppL GameState
 initGameState = do
-  let (bounds, lab) = testLabyrinth1
+  let (bounds, lab) = testLabyrinth2
   let wormholes = Map.empty
   let renderTemplate = renderSkeleton bounds
 
   labRenderVar     <- newVarIO renderTemplate
   labVar           <- newVarIO lab
   labSizeVar       <- newVarIO bounds
-  posVar           <- newVarIO (0, 0)
+  posVar           <- newVarIO (2, 2)
   inv              <- Inventory <$> newVarIO False
   aboutLeaving     <- newVarIO Nothing
   finished         <- newVarIO False

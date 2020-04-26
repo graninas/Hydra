@@ -151,9 +151,18 @@ cellRender (x0, y0) (cell, content) labRender = let
           $ Map.insert (x, y) (mergeCellContent content mbCellR)
           labRender
 
+renderPlayer :: Pos -> LabRender -> LabRender
+renderPlayer (x0, y0) lab = let
+  (x, y) = (x0 * 2 + 1, y0 * 2 + 1)
+  in case Map.lookup (x, y) lab of
+    Nothing   -> Map.insert (0, 0) ("!Player:" <> show (x0, y0)) lab
+    Just curW -> Map.insert (x, y) ((T.take 3 curW) <> "@") lab
 
-renderLabyrinth :: LabRender -> Labyrinth -> LabRender
-renderLabyrinth template lab = Map.foldrWithKey cellRender template lab
+
+renderLabyrinth :: LabRender -> Labyrinth -> Pos -> LabRender
+renderLabyrinth template lab plPos =
+  renderPlayer plPos
+    $ Map.foldrWithKey cellRender template lab
 
 printLabRender :: Bounds -> LabRender -> LangL ()
 printLabRender (maxX, maxY) labRender = do
