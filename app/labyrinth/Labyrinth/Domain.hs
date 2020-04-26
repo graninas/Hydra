@@ -6,6 +6,12 @@ import qualified Data.Map as Map
 import Labyrinth.Prelude as L
 
 type Pos = (Int, Int)
+type Bounds = (Int, Int)
+
+
+data Direction = DirUp | DirDown | DirLeft | DirRight
+  deriving (Show, Read, Eq)
+
 
 data Wall
   = NoWall
