@@ -10,12 +10,6 @@ import Labyrinth.Types
 import Labyrinth.Render
 import Labyrinth.Lens
 
--- |---|
--- | ? |
--- |---|
--- | ^ |
--- |---|
-
 data Passage
   = Passage
   | Exit
@@ -129,9 +123,10 @@ printLabyrinth :: GameState -> LangL ()
 printLabyrinth st = do
   lab               <- readVarIO $ st ^. labyrinth
   bounds            <- readVarIO $ st ^. labyrinthSize
+  plPos             <- readVarIO $ st ^. playerPos
   let template = st ^. labRenderTemplate
 
-  printLabRender bounds $ renderLabyrinth template lab
+  printLabRender bounds $ renderLabyrinth template lab plPos
 
 onStep :: GameState -> () -> AppL D.CliAction
 onStep st _ = do
