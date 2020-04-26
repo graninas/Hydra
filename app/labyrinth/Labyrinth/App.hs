@@ -147,16 +147,71 @@ printLabyrinth st = do
   let outputRows (t, m, b) = putStrLn $ T.pack $ t <> "\n" <> m <> "\n" <> b
   mapM_ outputRows printedRows
 
+-- printLabyrinth2 :: GameState -> LangL ()
+-- printLabyrinth2 st = do
+--   lab          <- readVarIO $ st ^. labyrinth
+--   (maxX, maxY) <- readVarIO $ st ^. labyrinthSize
+--
+--   let labRenderVar = st ^. labRenderVar
+--
+--   writeVarIO labRenderVar $ Map.fromList $ do
+--     x <- [0..maxX*2]
+--     y <- [0..maxY*2]
+--     pure ((x, y), "")
+--
+--   let renderCell ((x, y), cell) = do
+--         r1 <- readVarIO labRenderVar
+--         case Map.lookup (x, y) r1 of
+--           Nothing -> throwException $ InvalidOperation $ show (x, y) <> " (1)"
+--           Just rCell -> renderLLPart (x, y) cell rCell
+--
+--   mapM_ renderCell $ Map.toList lab
+
+-- renderLLPart (x, y) (Cell ) "" =
+
+--           X11  X1  x12  X2 X X3 X
+--  y1-1     ┏━━━━┯━━━━┓
+--  y1-2     ┃           │    ┃
+--  y1
+--  y2-1     ┠    ┼    ┨
+--  y2-2     ┃    │    ┃
+--  y2
+--  y3-1     ┠────┼────┨
+--  y3-2     ┃    │    ┃
+--  y3
+--  y4-1     ┠────┼────┨
+--  y4-2     ┃         ┃
+--  y4
+--  y5-1     ┗━━━━┷    ┛
+--  y5-2
+-- ┏━━━┯━━━┓
+-- ┃       ┃
+-- ┠───┼   ┨
+-- ┃       ┃
+-- ┗━━━┷   ┛
+-- ┏━━━━┯━━━━┓
+-- ┃         ┃
+-- ┠────┼    ┨
+-- ┃         ┃
+-- ┗━━━━┷    ┛
 
 
---
--- -   ------
--- |W1 ||W2P|
--- ------   -
--- ----------
--- |  T||   |
--- ----------
---
+-- ╔════╤════╗
+-- ║         ║
+-- ╟────┼    ╢
+-- ║         ║
+-- ╟────┼    ╢
+-- ║         ║
+-- ╚════╧════╝
+
+
+
+-- ▁▁▁▁▁▁▁
+-- ▔▔▔▔▔▔▔
+-- ▁▁▁▁▁▁▁
+-- ▔▔▔▔▔▔▔
+-- ▁▁▁▁▁▁▁
+
 
 printCell (Cell l r u d) content
   = ( printHorizontalWall u
@@ -164,15 +219,25 @@ printCell (Cell l r u d) content
     , printHorizontalWall d
     )
 
-printHorizontalWall NoWall            = "-   -"
-printHorizontalWall Wall              = "-----"
-printHorizontalWall (Monolith True)   = "#   #"
-printHorizontalWall (Monolith False)  = "#---#"
+vMonolithSymbol :: IsString s => s
+vMonolithSymbol = "║"
+
+hMonolithSymbol :: IsString s => s
+hMonolithSymbol = "═"
+
+vWallSymbol, hWallSymbol :: IsString s => s
+vWallSymbol = "┃"
+hWallSymbol = "━"
+
+printHorizontalWall NoWall            = hWallSymbol <> "   " <> hWallSymbol
+printHorizontalWall Wall              = join $ replicate 5 hWallSymbol
+printHorizontalWall (Monolith True)   = hMonolithSymbol <> "   " <> hMonolithSymbol
+printHorizontalWall (Monolith False)  = join $ replicate 5 hMonolithSymbol
 
 printVerticalWall NoWall           = " "
-printVerticalWall Wall             = "|"
+printVerticalWall Wall             = vWallSymbol
 printVerticalWall (Monolith True)  = " "
-printVerticalWall (Monolith False) = "#"
+printVerticalWall (Monolith False) = vMonolithSymbol
 
 printContent NoContent    = "   "
 printContent Treasure     = "  T"
@@ -212,6 +277,7 @@ app st = do
     cmd "right"    $ makeMove st DirRight
 
     cmd "quit"     $ quit st
+    cmd "q"        $ quit st
 
     cmd "print"    $ printLabyrinth st
 

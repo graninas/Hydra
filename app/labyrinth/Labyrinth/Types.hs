@@ -14,10 +14,13 @@ data Inventory = Inventory
   { _treasure :: StateVar Bool
   }
 
+type LabRender = Map Pos Text
+
 data GameState = GameState
   { _labyrinth            :: StateVar Labyrinth
-  , _labyrinthSize        :: StateVar (Int, Int)
-  , _wormholes            :: Map Int (Int, Int)
+  , _labyrinthSize        :: StateVar Pos
+  , _labRenderVar         :: StateVar LabRender
+  , _wormholes            :: Map Int Pos
   , _playerPos            :: StateVar Pos
   , _playerInventory      :: Inventory
   , _playerIsAboutLeaving :: StateVar (Maybe HasTreasure)
