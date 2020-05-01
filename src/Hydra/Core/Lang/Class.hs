@@ -21,3 +21,8 @@ class (C.Logger l, C.Random r, C.ControlFlow cf, C.State' s, Monad m)
   evalStateAtomically :: s a  -> m a
   evalControlFlow     :: cf a -> m a
   -- todo: io
+
+
+-- TODO: this should not be here.
+class IOL m where
+  evalIO :: IO a -> m a
