@@ -48,8 +48,8 @@ mergeCellContent :: Content -> Maybe Text -> Text
 mergeCellContent content Nothing = "!" <> show content
 mergeCellContent NoContent _ = fullSpace
 mergeCellContent Treasure _ = "T   "
-mergeCellContent (Wormhole n) _ | n < 10 = " W" <> show n <> " "
-mergeCellContent (Wormhole n) _ | n >= 10 = " W? "
+mergeCellContent (Wormhole n) _ | n < 10 = "  W" <> show n
+mergeCellContent (Wormhole n) _ | n >= 10 = "  W?"
 
 mergeCell :: Direction -> Wall -> Text -> Text
 mergeCell dir NoWall curW |
@@ -156,7 +156,7 @@ renderPlayer (x0, y0) lab = let
   (x, y) = (x0 * 2 + 1, y0 * 2 + 1)
   in case Map.lookup (x, y) lab of
     Nothing   -> Map.insert (0, 0) ("!Player:" <> show (x0, y0)) lab
-    Just curW -> Map.insert (x, y) ((T.take 3 curW) <> "@") lab
+    Just curW -> Map.insert (x, y) ((T.take 1 curW) <> "@" <> (T.take 2 $ T.drop 2 curW)) lab
 
 
 renderLabyrinth :: LabRender -> Labyrinth -> Pos -> LabRender
