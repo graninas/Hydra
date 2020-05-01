@@ -68,10 +68,7 @@ instance Functor LangF where
 
 type LangL = Free LangF
 
-class IOL m where
-  evalIO :: IO a -> m a
-
-instance IOL LangL where
+instance C.IOL LangL where
   evalIO io = liftF $ EvalIO io id
 
 evalStateAtomically' :: L.StateL a -> LangL a

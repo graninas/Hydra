@@ -16,6 +16,8 @@ import           Types
 
 import           Hydra.FTLI    ()
 
+-- TODO: join this with the FT approach in the MeteorCounter app
+
 getRandomMeteor :: FTL.RandomL m => m Meteor
 getRandomMeteor = Meteor <$> FTL.getRandomInt (1, 100)
 

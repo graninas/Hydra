@@ -48,6 +48,9 @@ fork = evalProcess' . L.forkProcess'
 process :: L.LangL a -> AppL ()
 process action = void $ fork action
 
+instance C.IOL AppL where
+  evalIO = evalLang' . C.evalIO
+
 instance L.StateIO AppL where
   newVarIO       = evalLang' . L.newVarIO
   readVarIO      = evalLang' . L.readVarIO

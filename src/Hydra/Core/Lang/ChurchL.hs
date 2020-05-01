@@ -41,11 +41,8 @@ makeFunctorInstance ''LangF
 
 type LangL = F LangF
 
--- class IOL m where
---   evalIO :: IO a -> m a
---
--- instance IOL LangL where
---   evalIO io = liftF $ EvalIO io id
+instance C.IOL LangL where
+  evalIO io = liftFC $ EvalIO io id
 
 evalStateAtomically' :: CL.StateL a -> LangL a
 evalStateAtomically' action = liftFC $ EvalStateAtomically action id
