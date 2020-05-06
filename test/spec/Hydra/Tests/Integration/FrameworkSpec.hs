@@ -52,3 +52,57 @@ spec =
 
         result <- R.runAppL rt app
         result `shouldBe` (Right 10)
+
+      it "IOBracket success" $ \rt -> do
+        acquiredRef <- newIORef False
+        releasedRef <- newIORef False
+        usedRef     <- newIORef False
+        let app = L.scenario $ L.ioBracket
+                        (writeIORef acquiredRef True >> newIORef 100)
+                        (\ref -> writeIORef releasedRef True >> writeIORef ref 0)
+                        (\ref -> writeIORef usedRef True >> readIORef ref)
+
+        result <- R.runAppL rt app
+        result `shouldBe` (100 :: Int)
+        acq <- readIORef acquiredRef
+        rel <- readIORef releasedRef
+        use <- readIORef usedRef
+        acq `shouldBe` True
+        rel `shouldBe` True
+        use `shouldBe` True
+
+      it "WithResource success" $ \rt -> do
+        acquiredRef <- newIORef False
+        releasedRef <- newIORef False
+        usedRef     <- newIORef False
+        let app = L.scenario $ L.withResource
+                        (writeIORef acquiredRef True >> newIORef 100)
+                        (\ref -> writeIORef releasedRef True >> writeIORef ref 0)
+                        (\ref -> L.evalIO (writeIORef usedRef True >> readIORef ref))
+
+        result <- R.runAppL rt app
+        result `shouldBe` (100 :: Int)
+        acq <- readIORef acquiredRef
+        rel <- readIORef releasedRef
+        use <- readIORef usedRef
+        acq `shouldBe` True
+        rel `shouldBe` True
+        use `shouldBe` True
+
+      it "langBracket success" $ \rt -> do
+        acquiredRef <- newIORef False
+        releasedRef <- newIORef False
+        usedRef     <- newIORef False
+        let app = L.scenario $ L.langBracket
+                        (L.evalIO (writeIORef acquiredRef True >> newIORef 100))
+                        (\ref -> L.evalIO (writeIORef releasedRef True >> writeIORef ref 0))
+                        (\ref -> L.evalIO (writeIORef usedRef True >> readIORef ref))
+
+        result <- R.runAppL rt app
+        result `shouldBe` (100 :: Int)
+        acq <- readIORef acquiredRef
+        rel <- readIORef releasedRef
+        use <- readIORef usedRef
+        acq `shouldBe` True
+        rel `shouldBe` True
+        use `shouldBe` True

@@ -96,6 +96,11 @@ interpretLangF coreRt (L.RunSafely act next) = do
     Left (err :: SomeException) -> Left $ show err
     Right r  -> Right r
 
+interpretLangF coreRt (L.IOBracket acq rel act next) = next <$> bracket acq rel act
+
+interpretLangF coreRt (L.WithResource acq rel act next) =
+  next <$> bracket acq rel (\r -> runLangL coreRt $ act r)
+
 interpretLangF coreRt (L.CallServantAPI bUrl clientAct next)
   = next <$> catchAny
       (S.runClientM clientAct (S.mkClientEnv (coreRt ^. RLens.httpClientManager) bUrl))

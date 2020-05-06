@@ -53,6 +53,20 @@ data LangF next where
   -- | Making an HTTP request using Servant Client
   CallServantAPI :: BaseUrl -> ClientM a -> (Either ClientError a -> next) -> LangF next
 
+  IOBracket
+    :: IO a        -- computation to run first ("acquire resource")
+    -> (a -> IO b) -- computation to run last ("release resource")
+    -> (a -> IO c) -- computation to run in-between
+    -> (c -> next)
+    -> LangF next
+
+  WithResource
+    :: IO a        -- computation to run first ("acquire resource")
+    -> (a -> IO b) -- computation to run last ("release resource")
+    -> (a -> LangL c) -- computation to run in-between
+    -> (c -> next)
+    -> LangF next
+
 instance Functor LangF where
   fmap f (EvalStateAtomically st next)    = EvalStateAtomically st (f . next)
   fmap f (EvalLogger logAct next)         = EvalLogger logAct (f . next)
@@ -64,6 +78,8 @@ instance Functor LangF where
   fmap f (GetSqlDBConnection sqlCfg next) = GetSqlDBConnection sqlCfg  (f . next)
   fmap f (ThrowException exc next)        = ThrowException exc (f . next)
   fmap f (RunSafely act next)             = RunSafely act (f . next)
+  fmap f (IOBracket acq rel act next)     = IOBracket acq rel act (f . next)
+  fmap f (WithResource acq rel act next)  = WithResource acq rel act (f . next)
   fmap f (CallServantAPI url clM next)    = CallServantAPI url clM (f . next)
 
 type LangL = Free LangF
@@ -144,6 +160,20 @@ throwException ex = liftF $ ThrowException ex id
 runSafely :: LangL a -> LangL (Either Text a)
 runSafely act = liftF $ RunSafely act id
 
+ioBracket
+  :: IO a        -- computation to run first ("acquire resource")
+  -> (a -> IO b) -- computation to run last ("release resource")
+  -> (a -> IO c) -- computation to run in-between
+  -> LangL c
+ioBracket acq rel act = liftF $ IOBracket acq rel act id
+
+withResource
+  :: IO a           -- computation to run first ("acquire resource")
+  -> (a -> IO b)    -- computation to run last ("release resource")
+  -> (a -> LangL c) -- computation to run in-between
+  -> LangL c
+withResource acq rel act = liftF $ WithResource acq rel act id
+
 callServantAPI
   :: BaseUrl
   -> ClientM a
@@ -155,3 +185,26 @@ callAPI
   -> ClientM a
   -> LangL (Either ClientError a)
 callAPI = callServantAPI
+
+
+langBracket
+  :: LangL a
+  -> (a -> LangL b)
+  -> (a -> LangL c)
+  -> LangL c
+langBracket acq rel act = do
+  r <- acq
+  a <- act r
+  rel r
+  pure a
+
+langFinally
+  :: LangL a
+  -> (a -> LangL b)
+  -> (a -> LangL c)
+  -> LangL c
+langFinally acq rel act = do
+  r <- acq
+  a <- act r
+  rel r
+  pure a
