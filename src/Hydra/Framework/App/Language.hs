@@ -10,10 +10,6 @@ import qualified Hydra.Core.Class                as C
 import qualified Hydra.Core.Domain               as D
 import qualified Hydra.Core.Language             as L
 
-import           Language.Haskell.TH.MakeFunctor (makeFunctorInstance)
-import           Database.Beam.Sqlite (Sqlite)
-import qualified Database.Beam as B
-import qualified Database.Beam.Backend.SQL as B
 import qualified System.Console.Haskeline as HS
 
 -- | App language.

@@ -3,7 +3,6 @@ module Hydra.Framework.App.Interpreter where
 import           Hydra.Prelude
 
 import qualified Data.Map as Map
-import qualified Data.Text as T
 
 import qualified Hydra.Core.Domain        as D
 import qualified Hydra.Core.Interpreters  as Impl
@@ -16,12 +15,7 @@ import qualified Hydra.Framework.Language as L
 import qualified Hydra.Framework.RLens    as RLens
 import qualified Hydra.Framework.Runtime  as R
 
-import qualified Database.RocksDB         as Rocks
-import qualified Database.Redis           as Redis
-import qualified Database.SQLite.Simple   as SQLite
-import           Database.Beam.Sqlite     (Sqlite)
 import qualified System.Console.Haskeline         as HS
-import qualified System.Console.Haskeline.History as HS
 
 langRunner :: R.CoreRuntime -> Impl.LangRunner L.LangL
 langRunner coreRt = Impl.LangRunner (Impl.runLangL coreRt)
