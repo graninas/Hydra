@@ -14,7 +14,7 @@ data Inventory = Inventory
   { _treasure :: StateVar Bool
   }
 
-type LabRender = Map Pos Text
+type LabRender = Map Pos String
 
 data GameState = GameState
   { _labyrinth            :: StateVar Labyrinth
@@ -29,7 +29,7 @@ data GameState = GameState
   }
 
 data AppException
-  = NotImplemented Text
+  = NotImplemented String
   | Finished Bool
-  | InvalidOperation Text
+  | InvalidOperation String
   deriving (Eq, Ord, Show, Generic, ToJSON, FromJSON, Exception)

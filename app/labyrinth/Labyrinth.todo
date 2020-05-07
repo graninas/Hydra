@@ -4,10 +4,10 @@ Application:
   ☐ Game loop
   ☐ User commands
   ☐ Save / load
-  ☐ Quiting
+  ✔ Quiting @done(2020-05-07 19:48) @project(Application)
 Labyrinth:
   ✔ Labyrinth definition @done(2020-04-12 18:42) @project(Labyrinth)
-  ☐ Simple labyrinth
+  ✔ Simple labyrinth @done(2020-05-07 19:48) @project(Labyrinth)
   ☐ Labyrinth generation
   ☐ Trace print
 Player:

@@ -19,9 +19,9 @@ data Passage
 
 data MovingResult
   = SuccessfullMove ((Int, Int), (Cell, Content))
-  | ImpossibleMove Text
+  | ImpossibleMove String
   | EndMove Bool
-  | InvalidMove Text
+  | InvalidMove String
   deriving (Show, Read, Eq)
 
 getPassage :: Cell -> Direction -> Passage
@@ -42,13 +42,25 @@ getPassage (Cell _ (Monolith False) _ _) DirRight = MonolithWall
 
 getPassage _ _ = RegularWall
 
+leaveWithoutTreasure :: String
+leaveWithoutTreasure = "You didn't find a treasure. Leaving means failure. Do you want to leave the labyrinth? (yes / no)"
+
+winning :: String
+winning = "Congratulations! You win!"
+
+loosing :: String
+loosing = "You lose..."
+
+unknownCommand :: String -> String
+unknownCommand cmd = "Unknown command: " <> cmd
+
 playerLeaving :: GameState -> Bool -> LangL ()
 playerLeaving st hasTreasure = do
   outputMsg
   atomically $ writeVar (st ^. playerIsAboutLeaving ) (Just hasTreasure)
   where
-    outputMsg | hasTreasure = putStrLn "Congratulations! You win!"
-              | otherwise   = putStrLn "You didn't find a treasure. Leaving means failure. Do you want to leave the labyrinth?"
+    outputMsg | hasTreasure = putStrLn winning
+              | otherwise   = putStrLn leaveWithoutTreasure
 
 calcNextPos :: (Int, Int) -> Direction -> (Int, Int)
 calcNextPos (x, y) DirUp    = (x, y - 1)
@@ -104,8 +116,12 @@ performContentEvent st _ (Wormhole n) = do
   putStrLn $ "you found a wormhole " +|| n ||+ ". You have been moved to the next wormhole."
   executeWormhole st n
 
+clearPlayerLeaving :: GameState -> LangL ()
+clearPlayerLeaving st = writeVarIO (st ^. playerIsAboutLeaving) Nothing
+
 makeMove :: GameState -> Direction -> LangL ()
 makeMove st dir = do
+  clearPlayerLeaving st
   moveResult <- testMove st dir
   case moveResult of
     InvalidMove msg     -> throwException $ InvalidOperation msg
@@ -118,6 +134,28 @@ makeMove st dir = do
 
 quit :: GameState -> LangL ()
 quit st = writeVarIO (st ^. gameFinished) True
+
+handleYes :: GameState -> LangL ()
+handleYes st = do
+  isLeaving <- readVarIO $ st ^. playerIsAboutLeaving
+  writeVarIO (st ^. playerIsAboutLeaving) Nothing
+  case isLeaving of
+    Nothing   -> putStrLn $ unknownCommand "yes"
+    Just True -> do
+      putStrLn winning
+      writeVarIO (st ^. gameFinished) True
+    Just False -> do
+      putStrLn loosing
+      writeVarIO (st ^. gameFinished) True
+
+handleNo :: GameState -> LangL ()
+handleNo st = do
+  isLeaving <- readVarIO $ st ^. playerIsAboutLeaving
+  writeVarIO (st ^. playerIsAboutLeaving) Nothing
+  case isLeaving of
+    Nothing   -> putStrLn $ unknownCommand "no"
+    _ -> pure ()
+
 
 printLabyrinth :: GameState -> LangL ()
 printLabyrinth st = do
@@ -136,7 +174,7 @@ onStep st _ = do
     False -> pure D.CliLoop
 
 onUnknownCommand :: String -> AppL CliAction
-onUnknownCommand cmd = pure $ D.CliOutputMsg $ "Unknown command: " <> cmd
+onUnknownCommand cmd = pure $ D.CliOutputMsg $ unknownCommand cmd
 
 app :: GameState -> AppL ()
 app st = do
@@ -152,6 +190,9 @@ app st = do
     cmd "down"     $ makeMove st DirDown
     cmd "left"     $ makeMove st DirLeft
     cmd "right"    $ makeMove st DirRight
+
+    cmd "yes"      $ handleYes st
+    cmd "no"       $ handleNo st
 
     cmd "quit"     $ quit st
     cmd "q"        $ quit st

@@ -8,50 +8,50 @@ import qualified Data.Map                   as Map
 import           Labyrinth.Types
 import           Labyrinth.Domain
 
-lu, ru, ld, rd :: Text
+lu, ru, ld, rd :: String
 lu = "┏"
 ru = "┓"
 ld = "┗"
 rd = "┛"
 
-lCross, rCross, uCross, dCross :: Text
+lCross, rCross, uCross, dCross :: String
 lCross = "┠"
 rCross = "┨"
 uCross = "┯"
 dCross = "┷"
 
-cross :: Text
+cross :: String
 cross = "┼"
 
-vWall, hWall :: Text
+vWall, hWall :: String
 vWall = "│"
 hWall = "─"
 
-vMonolithWall, hMonolithWall :: Text
+vMonolithWall, hMonolithWall :: String
 vMonolithWall = "┃"
 hMonolithWall = "━"
 
-fullSpace :: Text
+fullSpace :: String
 fullSpace = "    "
 
-vExit, hExit :: Text
+vExit, hExit :: String
 vExit = " "
 hExit = "    "
 
-fullHWall :: Text
+fullHWall :: String
 fullHWall = hWall <> hWall <> hWall <> hWall
 
-fullHMonolithWall :: Text
+fullHMonolithWall :: String
 fullHMonolithWall = hMonolithWall <> hMonolithWall <> hMonolithWall <> hMonolithWall
 
-mergeCellContent :: Content -> Maybe Text -> Text
+mergeCellContent :: Content -> Maybe String -> String
 mergeCellContent content Nothing = "!" <> show content
 mergeCellContent NoContent _ = fullSpace
 mergeCellContent Treasure _ = "T   "
 mergeCellContent (Wormhole n) _ | n < 10 = "  W" <> show n
 mergeCellContent (Wormhole n) _ | n >= 10 = "  W?"
 
-mergeCell :: Direction -> Wall -> Text -> Text
+mergeCell :: Direction -> Wall -> String -> String
 mergeCell dir NoWall curW |
   (dir == DirRight || dir == DirLeft)
   && (curW == " ") = " "
@@ -156,7 +156,7 @@ renderPlayer (x0, y0) lab = let
   (x, y) = (x0 * 2 + 1, y0 * 2 + 1)
   in case Map.lookup (x, y) lab of
     Nothing   -> Map.insert (0, 0) ("!Player:" <> show (x0, y0)) lab
-    Just curW -> Map.insert (x, y) ((T.take 1 curW) <> "@" <> (T.take 2 $ T.drop 2 curW)) lab
+    Just curW -> Map.insert (x, y) (take 1 curW <> "@" <> (take 2 $ drop 2 curW)) lab
 
 
 renderLabyrinth :: LabRender -> Labyrinth -> Pos -> LabRender
