@@ -15,17 +15,19 @@ data Inventory = Inventory
   }
 
 type LabRender = Map Pos String
+type Wormholes = Map Int Pos
 
 data GameState = GameState
   { _labyrinth            :: StateVar Labyrinth
   , _labyrinthSize        :: StateVar Bounds
   , _labRenderTemplate    :: LabRender
   , _labRenderVar         :: StateVar LabRender
-  , _wormholes            :: Map Int Pos
+  , _wormholes            :: Wormholes
   , _playerPos            :: StateVar Pos
   , _playerInventory      :: Inventory
   , _playerIsAboutLeaving :: StateVar (Maybe HasTreasure)
   , _gameFinished         :: SignalVar    -- StateVar Bool
+  , _moveMessages         :: StateVar [String]
   }
 
 data AppException

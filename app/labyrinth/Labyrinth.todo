@@ -1,21 +1,26 @@
 Application:
   ✔ Initial project structure @done(2020-04-12 18:40) @project(Labyrinth)
-  ☐ Game state
-  ☐ Game loop
-  ☐ User commands
+  ✔ Game state @done(2020-05-07 21:39) @project(Application)
+  ✔ Game loop @done(2020-05-07 21:39) @project(Application)
+  ✔ User commands @done(2020-05-07 21:39) @project(Application)
   ☐ Save / load
   ✔ Quiting @done(2020-05-07 19:48) @project(Application)
 Labyrinth:
   ✔ Labyrinth definition @done(2020-04-12 18:42) @project(Labyrinth)
   ✔ Simple labyrinth @done(2020-05-07 19:48) @project(Labyrinth)
   ☐ Labyrinth generation
-  ☐ Trace print
+  ✔ Trace print @done(2020-05-07 21:39) @project(Labyrinth)
 Player:
-  ☐ Player movement
-  ☐ Player inventory
+  ✔ Player movement @done(2020-05-07 21:39) @project(Player)
+  ✔ Player inventory @done(2020-05-07 21:39) @project(Player)
 Objects:
-  ☐ Treasure
-  ☐ Wormholes
+  ✔ Treasure @done(2020-05-07 21:39) @project(Objects)
+  ✔ Wormholes @done(2020-05-07 21:39) @project(Objects)
+
+TODOs:
+  ☐ Finish on win (and on loose)
+  ☐ Write tests
+
 
 --- ✄ -----------------------
 
