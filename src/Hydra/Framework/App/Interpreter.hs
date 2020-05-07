@@ -38,8 +38,8 @@ evalCliAction coreRt cliToken (D.CliFinish mbMsg) = do
       whenJust mbMsg HS.outputStrLn
       liftIO $ Impl.runLangL coreRt $ L.writeVarIO (D.cliFinishedToken cliToken) True
       pure True
-evalCliAction _ cliToken D.CliLoop            = pure True
-evalCliAction _ cliToken (D.CliOutputMsg msg) = HS.outputStrLn msg >> pure True
+evalCliAction _ _ D.CliLoop            = pure True
+evalCliAction _ _ (D.CliOutputMsg msg) = HS.outputStrLn msg >> pure True
 
 interpretAppF :: R.AppRuntime -> L.AppF a -> IO a
 interpretAppF appRt (L.EvalLang action next) = do
@@ -80,14 +80,14 @@ interpretAppF appRt (L.CliF completeFunc onStep onUnknownCommand handlers cliTok
 
   handlersRef <- newIORef Map.empty
   Impl.runCliHandlerL handlersRef handlers
-  handlers <- readIORef handlersRef
+  handlersVal <- readIORef handlersRef
 
   void $ forkIO $ do
     let loop = do
           mbLine <- HS.getInputLine "> "
           let eAct = case mbLine of
                 Nothing -> Left Nothing
-                Just line -> case Map.lookup line handlers of
+                Just line -> case Map.lookup line handlersVal of
                   Nothing -> Left (Just line)
                   Just act -> Right act
 
