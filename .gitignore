@@ -1,4 +1,5 @@
 .stack-work/*
+.liquid/*
 data/*
 *.swp
 cabal-helper*build/
