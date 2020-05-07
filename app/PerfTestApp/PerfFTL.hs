@@ -2,7 +2,7 @@
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
-module FTL where
+module PerfFTL where
 
 import           Control.Monad
 import qualified Data.Map      as Map
@@ -12,7 +12,7 @@ import           Hydra.Prelude
 import qualified Hydra.Domain  as D
 import qualified Hydra.FTL     as FTL
 import qualified Hydra.Runtime as R
-import           Types
+import           PerfTypes
 
 import           Hydra.FTLI    ()
 

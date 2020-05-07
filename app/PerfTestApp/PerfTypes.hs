@@ -1,4 +1,4 @@
-module Types where
+module PerfTypes where
 
 import           Hydra.Prelude
 

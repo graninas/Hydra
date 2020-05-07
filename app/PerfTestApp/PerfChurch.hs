@@ -2,7 +2,7 @@
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
-module Church where
+module PerfChurch where
 
 import           Control.Monad
 import qualified Data.Map      as Map
@@ -12,7 +12,7 @@ import           Hydra.Prelude
 import qualified Hydra.ChurchL  as L
 import qualified Hydra.Domain  as D
 import qualified Hydra.Runtime as R
-import           Types
+import           PerfTypes
 
 
 getRandomMeteor :: L.RandomL Meteor
