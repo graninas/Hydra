@@ -8,16 +8,12 @@ import           Hydra.Prelude
 
 import qualified Hydra.Core.ControlFlow.ChurchL  as CL
 import qualified Hydra.Core.ControlFlow.Class    as C
-import qualified Hydra.Core.ControlFlow.Language as L
 import qualified Hydra.Core.Logger.ChurchL       as CL
 import qualified Hydra.Core.Logger.Class         as C
-import qualified Hydra.Core.Logger.Language      as L
 import qualified Hydra.Core.Random.ChurchL       as CL
 import qualified Hydra.Core.Random.Class         as C
-import qualified Hydra.Core.Random.Language      as L
 import qualified Hydra.Core.State.ChurchL        as CL
 import qualified Hydra.Core.State.Class          as C
-import qualified Hydra.Core.State.Language       as L
 import qualified Hydra.Core.Lang.Class           as C
 
 import           Language.Haskell.TH.MakeFunctor (makeFunctorInstance)

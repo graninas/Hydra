@@ -4,8 +4,6 @@ import           Hydra.Prelude
 
 import qualified Hydra.Core.ChurchI       as CI
 import qualified Hydra.Core.ChurchL       as CL
-import qualified Hydra.Core.Domain        as D
-import qualified Hydra.Core.Language      as L
 import qualified Hydra.Core.RLens         as RLens
 import qualified Hydra.Core.Runtime       as R
 

@@ -4,8 +4,6 @@ import           Hydra.Prelude
 
 import           Hydra.Core.ControlFlow.ChurchI         (runControlFlowL)
 import qualified Hydra.Core.Lang.ChurchL                as CL
-import qualified Hydra.Core.Lang.Interpreter            as I
-import qualified Hydra.Core.Lang.Language               as L
 import           Hydra.Core.Logger.Impl.HsLoggerChurchI (runLoggerL)
 import           Hydra.Core.Random.ChurchI              (runRandomL)
 import qualified Hydra.Core.RLens                       as RLens

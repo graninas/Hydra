@@ -7,7 +7,6 @@ module Hydra.Core.Lang.FTL where
 
 import           Hydra.Prelude
 
-import           Hydra.Core.ControlFlow.FTL as L
 import           Hydra.Core.Logger.FTL      as L
 import           Hydra.Core.Random.FTL      as L
 import qualified Hydra.Core.State.Class     as L

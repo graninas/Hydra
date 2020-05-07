@@ -4,13 +4,10 @@ module Hydra.Core.Process.ChurchI where
 
 import           Hydra.Prelude
 
-import qualified Data.Map                  as M
-
 import qualified Hydra.Core.ChurchL        as CL
 import qualified Hydra.Core.Domain.Process as D
 import qualified Hydra.Core.Language       as L
 import           Hydra.Core.Process.Impl
-import qualified Hydra.Core.RLens          as RLens
 import qualified Hydra.Core.Runtime        as R
 
 interpretProcessF :: LangRunner m' -> R.ProcessRuntime -> L.ProcessF m' a -> IO a

@@ -7,7 +7,6 @@ import           Hydra.Prelude
 
 import qualified Hydra.Core.Domain               as D
 
-import           Language.Haskell.TH.MakeFunctor (makeFunctorInstance)
 
 -- | Language for Process.
 data ProcessF m' next where

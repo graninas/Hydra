@@ -1,7 +1,7 @@
 module Hydra.Core.Domain.Cli where
 
 import           Hydra.Prelude
-import           Hydra.Core.Domain.State (StateVar, SignalVar)
+import           Hydra.Core.Domain.State (SignalVar)
 
 
 data CliToken = CliToken

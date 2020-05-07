@@ -19,12 +19,6 @@ import qualified Hydra.Core.SqlDB.Language       as L
 import qualified Hydra.Core.Lang.Class           as C
 import qualified Hydra.Core.Domain               as D
 
-import           Language.Haskell.TH.MakeFunctor (makeFunctorInstance)
-import           Database.Beam.Backend.SQL (BeamSqlBackend)
-import           Database.Beam (FromBackendRow, SqlSelect)
-import           Database.Beam.Sqlite (Sqlite)
-import qualified Database.Beam as B
-import qualified Database.Beam.Backend.SQL as B
 import           Servant.Client (ClientM, ClientError, BaseUrl)
 
 -- | Core effects container language.

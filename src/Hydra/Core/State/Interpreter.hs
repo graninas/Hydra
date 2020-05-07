@@ -4,8 +4,6 @@ module Hydra.Core.State.Interpreter where
 
 import           Hydra.Prelude
 
-import qualified Data.Map                         as Map
-import           Unsafe.Coerce                    (unsafeCoerce)
 
 import qualified Hydra.Core.Domain                as D
 import qualified Hydra.Core.Language              as L

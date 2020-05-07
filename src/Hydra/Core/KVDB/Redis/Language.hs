@@ -17,9 +17,5 @@
 
 module Hydra.Core.KVDB.Redis.Language where
 
-import           Hydra.Prelude
 
-import qualified Hydra.Core.Domain.DB   as D
-import qualified Hydra.Core.Domain.KVDB as D
 
-import qualified Database.Redis as Redis

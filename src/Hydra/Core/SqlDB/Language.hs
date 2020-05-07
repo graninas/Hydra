@@ -7,8 +7,6 @@ module Hydra.Core.SqlDB.Language where
 
 import           Hydra.Prelude
 import qualified Database.Beam as B
-import qualified Database.Beam.Backend.SQL as B
-import qualified Database.Beam.Query as B
 import qualified Hydra.Core.Domain as D
 
 

@@ -5,7 +5,6 @@ import           Hydra.Prelude
 import qualified Data.Map                        as Map
 
 import qualified Hydra.Core.Domain               as D
-import qualified Hydra.Core.Language             as L
 
 import qualified Database.RocksDB as Rocks
 import qualified Database.Redis as Redis

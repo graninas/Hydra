@@ -7,16 +7,7 @@ module Hydra.Core.Domain.DB where
 
 import           Hydra.Prelude
 
-import qualified Data.Aeson           as A
-import qualified Data.ByteString.Lazy as LBS
 import           Data.Time.Clock                    (NominalDiffTime)
-import qualified Data.Pool                       as DP
-import qualified Database.Beam                   as B
-import qualified Database.Beam.Backend.SQL       as B
-import qualified Database.Beam.Sqlite            as BS
-import qualified Database.Beam.Sqlite.Connection as SQLite
-import           Database.Beam.Sqlite            (Sqlite)
-import qualified Database.SQLite.Simple          as SQLite
 
 
 data DBErrorType

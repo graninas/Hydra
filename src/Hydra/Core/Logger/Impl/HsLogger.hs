@@ -2,7 +2,6 @@ module Hydra.Core.Logger.Impl.HsLogger where
 
 import           Hydra.Prelude
 
-import qualified Data.Text                 as TXT (unpack)
 import           System.IO                 (Handle, stdout)
 import           System.Log.Formatter
 import           System.Log.Handler        (close, setFormatter)
@@ -11,7 +10,6 @@ import           System.Log.Logger
 
 import qualified Hydra.Core.Domain         as D
 import qualified Hydra.Core.Language       as L
-
 -- | Opaque type covering all information needed to teardown the logger.
 data HsLoggerHandle = HsLoggerHandle
   { handlers :: [GenericHandler Handle]

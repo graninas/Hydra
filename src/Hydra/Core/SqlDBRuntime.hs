@@ -3,17 +3,9 @@ module Hydra.Core.SqlDBRuntime where
 
 import           Hydra.Prelude
 
-import qualified Data.Map                        as Map
-
 import qualified Hydra.Core.Domain               as D
-import qualified Hydra.Core.Language             as L
 
 import qualified Data.Pool                       as DP
-import qualified Database.Beam                   as B
-import qualified Database.Beam.Backend.SQL       as B
-import qualified Database.Beam.Sqlite            as BS
-import qualified Database.Beam.Sqlite.Connection as SQLite
-import           Database.Beam.Sqlite            (Sqlite)
 import qualified Database.SQLite.Simple          as SQLite
 
 bemToNative :: D.SqlConn beM -> D.NativeSqlConn

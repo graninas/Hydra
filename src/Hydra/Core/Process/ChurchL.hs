@@ -7,7 +7,6 @@ import           Hydra.Prelude
 
 import qualified Hydra.Core.Domain           as D
 import qualified Hydra.Core.Process.Language as L
-import Hydra.Core.Process.Class
 
 type ProcessL m = F (L.ProcessF m)
 
