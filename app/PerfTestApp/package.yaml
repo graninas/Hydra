@@ -1,0 +1,146 @@
+name:                PerfTestApp
+version:             1.0.0.0
+github:              "graninas/Hydra"
+license:             BSD3
+author:              "Alexander Granin"
+maintainer:          "graninas@gmail.com"
+copyright:           "Granin A.S. 2020"
+
+description:
+  PerfTestApp
+
+default-extensions:
+- NoImplicitPrelude
+- GADTs
+- RankNTypes
+- DeriveFunctor
+- DeriveGeneric
+- OverloadedStrings
+- LambdaCase
+- MultiParamTypeClasses
+- ExplicitNamespaces
+- TypeApplications
+- ScopedTypeVariables
+- TypeOperators
+- TypeFamilies
+- DataKinds
+- FlexibleContexts
+- FlexibleInstances
+- PatternSynonyms
+- PolyKinds
+- DefaultSignatures
+- ConstraintKinds
+- NamedFieldPuns
+- TupleSections
+- ViewPatterns
+- MultiWayIf
+- RecordWildCards
+
+dependencies:
+- base >= 4.7 && < 5
+- bytestring
+- time-units
+- network
+- aeson
+- aeson-pretty
+- cereal
+- mtl
+- cryptonite
+- base16-bytestring
+- base58-bytestring
+- base64-bytestring
+- arithmoi
+- directory
+- filepath
+- process
+- extra
+- time
+- clock
+- vector
+- scientific
+- containers
+- random
+- free
+- iproute
+- memory
+- transformers
+- template-haskell
+- async
+- text
+- haskeline
+- cryptohash-sha256
+- bytestring-conversion
+- newtype-generics
+- lens
+- universum
+- fmt
+- stm
+- hslogger
+- lens-aeson
+- th-abstraction
+- MonadRandom
+- entropy
+- validation
+- silently
+- uuid
+- resourcet
+- triplesec
+- yaml
+- newtype-generics
+- regex-posix
+- safe-exceptions
+- unliftio
+- unliftio-core
+- rocksdb-haskell
+- hedis
+- beam-core
+- beam-postgres
+- beam-sqlite
+- beam-migrate
+- sqlite-simple
+- resource-pool
+- servant
+- servant-server
+- servant-client
+- servant-swagger
+- servant-docs
+- wai
+- warp
+- http-client
+- http-client-tls
+- data-default
+- generic-lens
+- Hydra
+
+library:
+  source-dirs:
+  - src
+  ghc-options:
+  - -Wall
+  - -Wcompat
+  - -Widentities
+  - -fhide-source-paths
+
+executables:
+  PerfTestApp:
+    main:                Main.hs
+    source-dirs:         src/
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    - -Wall
+    # - -O2
+
+#
+# tests:
+#   functional-tests:
+#     main: Spec.hs
+#     source-dirs:
+#     - test/spec
+#     ghc-options:
+#     - -threaded
+#     - -rtsopts
+#     - -with-rtsopts=-N
+#     dependencies:
+#     - Hydra

@@ -7,6 +7,7 @@ An all-in-one framework for writing Haskell apps which use the following feature
 - Safe STM-powered concurrency
 - KV DB functionality (Redis & RocksDB backends supported)
 - SQL DB functionality (beam incorporated, SQLite supported, PG & MySQL possible)
+- CLI apps support
 - Logging
 - Random data generation
 - Many others

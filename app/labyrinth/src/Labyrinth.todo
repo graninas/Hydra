@@ -1,0 +1,59 @@
+Application:
+  ✔ Initial project structure @done(2020-04-12 18:40) @project(Labyrinth)
+  ✔ Game state @done(2020-05-07 21:39) @project(Application)
+  ✔ Game loop @done(2020-05-07 21:39) @project(Application)
+  ✔ User commands @done(2020-05-07 21:39) @project(Application)
+  ☐ Save / load
+  ✔ Quiting @done(2020-05-07 19:48) @project(Application)
+Labyrinth:
+  ✔ Labyrinth definition @done(2020-04-12 18:42) @project(Labyrinth)
+  ✔ Simple labyrinth @done(2020-05-07 19:48) @project(Labyrinth)
+  ☐ Labyrinth generation
+  ✔ Trace print @done(2020-05-07 21:39) @project(Labyrinth)
+Player:
+  ✔ Player movement @done(2020-05-07 21:39) @project(Player)
+  ✔ Player inventory @done(2020-05-07 21:39) @project(Player)
+  ☐ Random position
+Objects:
+  ✔ Treasure @done(2020-05-07 21:39) @project(Objects)
+  ✔ Wormholes @done(2020-05-07 21:39) @project(Objects)
+
+TODOs:
+  ✔ Finish on win (and on loose) @done(2020-05-08 23:52) @project(TODOs)
+  ☐ Write tests
+
+
+--- ✄ -----------------------
+
+Description:
+  "Labyrinth" game (aka "Terra Incognita").
+User commands:
+  Starting a new game with a predefined labyrinth size: "start <labyrinth_size>". Labyrinth size should be not less 4 and not bigger 10.
+  Quiting the current game: "quit" (without saving).
+  Quiting the current game with saving: "save <file_name>" (the game should be saved into a text file).
+  On the start, labyrinth should be randomly generated.
+  Labyrinth consists of cells.
+  A wall can be built between any two neighbour cells.
+  An outside wall is called monolith.
+  There should be no inaccessible cells.
+  There should be one exit randomly dislocated in the monolith wall.
+  Mandatory set of rules
+Game flow:
+  Player's goal to find a treasure and leave the labyrinth.
+  Games starts after the labyrinth is generated.
+  On the start, player is invited to enter commands.
+  Game prints the results of processing the commands.
+  Game ends when the player leaves the labyrinth with a treasure.
+  If the player doesn't have a treasure found, the game should say he can't leave the labyrinth on attempt to pass through the exit.
+Game objects:
+  Treasure.
+  5 wormholes, organized into a cyclic ordered set. Entering a wormhole moves the player into the next wormhole by index. Skipping a move while staying on the wormhole moves the player to the next wormhole.
+User commands:
+  Moving: "go up", "go down", "go left", "go right".
+  Skipping a turn: "skip".
+Game messages:
+  "step impossible, wall"
+  "step executed, wormhole"
+  "step executed, treasure"
+  "step impossible, monolith"
+  "step executed" (on successful moving)
