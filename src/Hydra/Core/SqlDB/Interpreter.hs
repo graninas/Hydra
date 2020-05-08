@@ -4,8 +4,6 @@ import Hydra.Prelude
 
 import qualified Hydra.Core.SqlDB.Language as L
 import qualified Hydra.Core.Domain as D
-import qualified Database.Beam as B
-import qualified Database.Beam.Backend.SQL as B
 
 
 interpretSqlDBMethod

@@ -3,7 +3,6 @@ module Hydra.Framework.App.Interpreter where
 import           Hydra.Prelude
 
 import qualified Data.Map as Map
-import qualified Data.Text as T
 
 import qualified Hydra.Core.Domain        as D
 import qualified Hydra.Core.Interpreters  as Impl
@@ -16,12 +15,7 @@ import qualified Hydra.Framework.Language as L
 import qualified Hydra.Framework.RLens    as RLens
 import qualified Hydra.Framework.Runtime  as R
 
-import qualified Database.RocksDB         as Rocks
-import qualified Database.Redis           as Redis
-import qualified Database.SQLite.Simple   as SQLite
-import           Database.Beam.Sqlite     (Sqlite)
 import qualified System.Console.Haskeline         as HS
-import qualified System.Console.Haskeline.History as HS
 
 langRunner :: R.CoreRuntime -> Impl.LangRunner L.LangL
 langRunner coreRt = Impl.LangRunner (Impl.runLangL coreRt)
@@ -44,8 +38,8 @@ evalCliAction coreRt cliToken (D.CliFinish mbMsg) = do
       whenJust mbMsg HS.outputStrLn
       liftIO $ Impl.runLangL coreRt $ L.writeVarIO (D.cliFinishedToken cliToken) True
       pure True
-evalCliAction _ cliToken D.CliLoop            = pure True
-evalCliAction _ cliToken (D.CliOutputMsg msg) = HS.outputStrLn msg >> pure True
+evalCliAction _ _ D.CliLoop            = pure True
+evalCliAction _ _ (D.CliOutputMsg msg) = HS.outputStrLn msg >> pure True
 
 interpretAppF :: R.AppRuntime -> L.AppF a -> IO a
 interpretAppF appRt (L.EvalLang action next) = do
@@ -86,14 +80,14 @@ interpretAppF appRt (L.CliF completeFunc onStep onUnknownCommand handlers cliTok
 
   handlersRef <- newIORef Map.empty
   Impl.runCliHandlerL handlersRef handlers
-  handlers <- readIORef handlersRef
+  handlersVal <- readIORef handlersRef
 
   void $ forkIO $ do
     let loop = do
           mbLine <- HS.getInputLine "> "
           let eAct = case mbLine of
                 Nothing -> Left Nothing
-                Just line -> case Map.lookup line handlers of
+                Just line -> case Map.lookup line handlersVal of
                   Nothing -> Left (Just line)
                   Just act -> Right act
 

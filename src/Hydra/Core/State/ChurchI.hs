@@ -4,9 +4,6 @@ module Hydra.Core.State.ChurchI where
 
 import           Hydra.Prelude
 
-import qualified Data.Map                               as Map
-import           Unsafe.Coerce                          (unsafeCoerce)
-
 import qualified Hydra.Core.Domain                      as D
 import qualified Hydra.Core.RLens                       as RLens
 import qualified Hydra.Core.Runtime                     as R

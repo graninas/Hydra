@@ -7,7 +7,6 @@ import           Hydra.Prelude
 import qualified Data.Map                  as M
 
 import qualified Hydra.Core.Domain.Process as D
-import qualified Hydra.Core.Language       as L
 import qualified Hydra.Core.RLens          as RLens
 import qualified Hydra.Core.Runtime        as R
 

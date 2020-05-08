@@ -2,7 +2,6 @@ module Hydra.Core.Random.Interpreter where
 
 import           Hydra.Prelude
 
-import           System.Entropy
 import           System.Random       hiding (next)
 
 import qualified Hydra.Core.Language as L

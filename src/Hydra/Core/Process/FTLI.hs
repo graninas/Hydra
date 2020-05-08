@@ -3,16 +3,7 @@
 
 module Hydra.Core.Process.FTLI where
 
-import           Hydra.Prelude
 
-import qualified Hydra.Core.Domain.Process      as D
-import qualified Hydra.Core.FTL                 as L
-import qualified Hydra.Core.Process.Interpreter as Impl
-import qualified Hydra.Core.RLens               as RLens
-import qualified Hydra.Core.Runtime             as R
-
-
--- instance L.ProcessL (ReaderT R.CoreRuntime IO) where
 --   forkProcess action = do
 --     coreRt <- ask
 --     let processRt = coreRt ^. RLens.processRuntime

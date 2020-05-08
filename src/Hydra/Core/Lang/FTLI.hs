@@ -8,7 +8,6 @@ import           Hydra.Core.Random.FTLI       ()
 import qualified Hydra.Core.RLens             as RLens
 import qualified Hydra.Core.Runtime           as R
 import qualified Hydra.Core.State.Interpreter as Impl
-import qualified Hydra.Core.State.Language    as L
 
 instance L.LangL (ReaderT R.CoreRuntime IO) where
 -- instance MonadIO m => L.LangL (ReaderT R.CoreRuntime m) where

@@ -10,10 +10,6 @@ import qualified Hydra.Core.Logger.Impl.HsLogger as Impl
 import qualified Hydra.Core.Logger.Impl.HsLoggerInterpreter as I
 
 import qualified Hydra.Core.KVDBRuntime as R
-import qualified Hydra.Core.SqlDBRuntime as R
-import qualified Database.RocksDB as Rocks
-import qualified Database.Redis as Redis
-import qualified Database.SQLite.Simple as SQLite
 
 import           Network.HTTP.Client     (Manager, newManager)
 import           Network.HTTP.Client.TLS (tlsManagerSettings)
