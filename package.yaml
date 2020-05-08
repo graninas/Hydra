@@ -115,6 +115,7 @@ dependencies:
 - http-client-tls
 - data-default
 - generic-lens
+- optparse-applicative
 
 library:
   source-dirs:
