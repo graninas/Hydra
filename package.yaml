@@ -116,6 +116,7 @@ dependencies:
 - data-default
 - generic-lens
 - optparse-applicative
+- network-uri
 
 library:
   source-dirs:
