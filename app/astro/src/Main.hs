@@ -20,9 +20,9 @@ import qualified Astro.Client.FinalTagless  as FT
 import qualified Astro.Client.FinalTagless2 as FT2
 import qualified Astro.Client.GADT          as GADT
 
-
-runAstroClient :: Approach -> ReportChannel -> IO ()
-runAstroClient appr ch = R.withAppRuntime (Just loggerCfg) (\rt -> R.runAppL rt app')
+runAstroClient :: ClientOptions -> IO ()
+runAstroClient (ClientOptions appr ch)
+    = R.withAppRuntime (Just loggerCfg) (\rt -> R.runAppL rt app')
   where
     app' = app'' appr ch
 
@@ -40,5 +40,5 @@ main :: IO ()
 main = do
   (ConsoleOptions cmd) <- parseConsoleOptions
   case cmd of
-    Client cli     -> runAstroClient (coApproach cli) (coReportChannel cli)
-    Server serOpts -> runAstroServer
+    Client cliOpts -> runAstroClient cliOpts
+    Server _   -> runAstroServer
