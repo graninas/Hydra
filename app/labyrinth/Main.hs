@@ -2,7 +2,6 @@ module Main where
 
 import           Labyrinth.Prelude
 
-import           System.Environment         (getArgs)
 import qualified Data.Map                   as Map
 
 import qualified Hydra.Domain               as D
@@ -55,8 +54,8 @@ analyzeLabyrinth lab =
     f pos (_, Wormhole n) (bounds, wormholes) = (increaseBounds bounds pos, Map.insert n pos wormholes)
     f pos _ (bounds, wormholes) = (increaseBounds bounds pos, wormholes)
 
-initGameState :: AppL GameState
-initGameState = do
+initAppState :: AppL AppState
+initAppState = do
   let (bounds, wormholes, lab) = analyzeLabyrinth testLabyrinth2
   let renderTemplate = renderSkeleton bounds
 
@@ -65,11 +64,10 @@ initGameState = do
   labSizeVar       <- newVarIO bounds
   posVar           <- newVarIO (2, 2)
   inv              <- Inventory <$> newVarIO False
-  aboutLeavingVar  <- newVarIO Nothing
-  finishedVar      <- newVarIO False
+  gameStateVar     <- newVarIO PlayerMove
   moveMsgsVar      <- newVarIO []
 
-  pure $ GameState
+  pure $ AppState
     labVar
     labSizeVar
     renderTemplate
@@ -77,13 +75,12 @@ initGameState = do
     wormholes
     posVar
     inv
-    aboutLeavingVar
-    finishedVar
+    gameStateVar
     moveMsgsVar
 
 
 startApp :: AppL ()
-startApp = initGameState >>= app
+startApp = initAppState >>= app
 
 main :: IO ()
 main = R.withAppRuntime (Just loggerCfg) (\rt -> R.runAppL rt startApp)

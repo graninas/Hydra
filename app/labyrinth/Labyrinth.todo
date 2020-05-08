@@ -13,12 +13,13 @@ Labyrinth:
 Player:
   ✔ Player movement @done(2020-05-07 21:39) @project(Player)
   ✔ Player inventory @done(2020-05-07 21:39) @project(Player)
+  ☐ Random position
 Objects:
   ✔ Treasure @done(2020-05-07 21:39) @project(Objects)
   ✔ Wormholes @done(2020-05-07 21:39) @project(Objects)
 
 TODOs:
-  ☐ Finish on win (and on loose)
+  ✔ Finish on win (and on loose) @done(2020-05-08 23:52) @project(TODOs)
   ☐ Write tests
 
 

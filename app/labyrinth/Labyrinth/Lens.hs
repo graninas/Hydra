@@ -5,8 +5,8 @@
 module Labyrinth.Lens where
 
 import           Control.Lens    (makeFieldsNoPrefix)
-import           Labyrinth.Types (Inventory, GameState)
+import           Labyrinth.Types (Inventory, AppState)
 
 
-makeFieldsNoPrefix ''GameState
+makeFieldsNoPrefix ''AppState
 makeFieldsNoPrefix ''Inventory

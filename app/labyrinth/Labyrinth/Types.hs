@@ -17,7 +17,14 @@ data Inventory = Inventory
 type LabRender = Map Pos String
 type Wormholes = Map Int Pos
 
-data GameState = GameState
+data GameState
+  = PlayerMove
+  | PlayerIsAboutLeaving HasTreasure
+  | PlayerIsAboutLossLeavingConfirmation
+  | GameFinished
+  deriving (Show, Eq)
+
+data AppState = AppState
   { _labyrinth            :: StateVar Labyrinth
   , _labyrinthSize        :: StateVar Bounds
   , _labRenderTemplate    :: LabRender
@@ -25,8 +32,7 @@ data GameState = GameState
   , _wormholes            :: Wormholes
   , _playerPos            :: StateVar Pos
   , _playerInventory      :: Inventory
-  , _playerIsAboutLeaving :: StateVar (Maybe HasTreasure)
-  , _gameFinished         :: SignalVar    -- StateVar Bool
+  , _gameState            :: StateVar GameState
   , _moveMessages         :: StateVar [String]
   }
 
