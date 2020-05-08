@@ -9,9 +9,9 @@ import qualified Data.Map      as Map
 import qualified Data.Set      as Set
 import           Hydra.Prelude
 
-import qualified Free          as Free
-import qualified FTL           as FTL
-import qualified Church        as Church
+import qualified PerfFree          as Free
+import qualified PerfFTL           as FTL
+import qualified PerfChurch        as Church
 import qualified Hydra.Domain  as D
 import qualified Hydra.Runtime as R
 import qualified Hydra.Framework.RLens as RLens
