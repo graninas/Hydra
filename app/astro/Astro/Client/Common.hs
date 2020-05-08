@@ -22,8 +22,7 @@ import qualified Astro.API             as API
 
 data TcpConn = DummyTcpConn
 
-data ReportChannel = TcpChannel | HttpChannel
-  deriving (Show, Read)
+data ReportChannel = TcpChannel | HttpChannel deriving Show
 
 data Approach
   = SH    -- ^ ServiceHandle
@@ -33,7 +32,7 @@ data Approach
   | FT2   -- ^ Final Tagless 2 (mtl-style)
   | CEFM  -- ^ Church Encoded Free Monad
   | GADT  -- ^ GADT
-  deriving (Show, Read)
+  deriving (Show, Read, Bounded, Enum)
 
 meteors  :: Maybe Int -> Maybe Int -> ClientM Meteors
 meteor   :: API.MeteorTemplate     -> ClientM MeteorId

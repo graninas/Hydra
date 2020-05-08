@@ -5,12 +5,12 @@
 module Main where
 
 import           Hydra.Prelude
-import           System.Environment         (getArgs)
 
 import qualified Hydra.Runtime              as R
 import qualified Hydra.Interpreters         as R
 
 import           Astro.Config               (loggerCfg)
+import           Astro.ConsoleOptions
 import           Astro.Server               (runAstroServer)
 import           Astro.Client.Common        (ReportChannel(..), Approach(..))
 import qualified Astro.Client.ServiceHandle as SH
@@ -36,21 +36,9 @@ runAstroClient appr ch = R.withAppRuntime (Just loggerCfg) (\rt -> R.runAppL rt 
     app'' FT2  TcpChannel  = FT2.consoleApp @(FT2.TcpAstroService)
     app'' _ _    = error $ "Approach not yet implemented: " <> show appr
 
-getChannel :: String -> ReportChannel
-getChannel "http" = HttpChannel
-getChannel "tcp"  = TcpChannel
-getChannel ch     = error $ show $ "Channel not supported: " <> ch <> " Supported: http tcp"
-
-getApproach :: String -> Approach
-getApproach apprStr = case readMaybe apprStr of
-  Just appr -> appr
-  Nothing   -> error $ show $ "Approach not supported: " <> apprStr <> " Supported: SH RT FM FT FT2 GADT"
-
 main :: IO ()
 main = do
-  args <- getArgs
-  case args of
-    (chan : appr : _) -> runAstroClient (getApproach appr) (getChannel chan)
-    ("client" : _)    -> runAstroClient SH HttpChannel
-    ("server" : _)    -> runAstroServer
-    _                 -> putStrLn @String "Args not recognized."
+  (ConsoleOptions cmd) <- parseConsoleOptions
+  case cmd of
+    Client cli     -> runAstroClient (coApproach cli) (coReportChannel cli)
+    Server serOpts -> runAstroServer
