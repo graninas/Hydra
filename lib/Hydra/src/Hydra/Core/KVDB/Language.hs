@@ -9,13 +9,13 @@ import           Hydra.Prelude
 import qualified Hydra.Core.Domain.DB   as D
 import qualified Hydra.Core.Domain.KVDB as D
 
-import           Language.Haskell.TH.MakeFunctor (makeFunctorInstance)
-
 data KVDBF next where
   Save :: D.KVDBKey -> D.KVDBValue -> (D.DBResult () -> next) -> KVDBF next
   Load :: D.KVDBKey -> (D.DBResult D.KVDBValue -> next) -> KVDBF next
 
-makeFunctorInstance ''KVDBF
+instance Functor KVDBF where
+  fmap g (Save k v next) = Save k v (g . next)
+  fmap g (Load k next)   = Load k (g . next)
 
 type KVDBL db = Free KVDBF
 

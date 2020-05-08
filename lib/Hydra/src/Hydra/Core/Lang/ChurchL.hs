@@ -16,8 +16,6 @@ import qualified Hydra.Core.State.ChurchL        as CL
 import qualified Hydra.Core.State.Class          as C
 import qualified Hydra.Core.Lang.Class           as C
 
-import           Language.Haskell.TH.MakeFunctor (makeFunctorInstance)
-
 -- | Core effects container language.
 data LangF next where
   -- | Eval stateful action atomically.
@@ -33,7 +31,12 @@ data LangF next where
 
   -- TODO: KVDB
 
-makeFunctorInstance ''LangF
+instance Functor LangF where
+  fmap f (EvalStateAtomically act next) = EvalStateAtomically act (f . next)
+  fmap f (EvalLogger          act next) = EvalLogger          act (f . next)
+  fmap f (EvalRandom          act next) = EvalRandom          act (f . next)
+  fmap f (EvalControlFlow     act next) = EvalControlFlow     act (f . next)
+  fmap f (EvalIO              act next) = EvalIO              act (f . next)
 
 type LangL = F LangF
 

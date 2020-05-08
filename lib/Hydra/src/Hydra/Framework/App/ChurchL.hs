@@ -10,7 +10,6 @@ import qualified Hydra.Core.ChurchL              as L
 import qualified Hydra.Core.Class                as C
 import qualified Hydra.Core.Domain               as D
 
-import           Language.Haskell.TH.MakeFunctor (makeFunctorInstance)
 
 -- | Core effects container language.
 data AppF next where
@@ -19,7 +18,10 @@ data AppF next where
   -- | Eval lang.
   EvalLang    :: L.LangL a  -> (a -> next) -> AppF next
 
-makeFunctorInstance ''AppF
+instance Functor AppF where
+  fmap f (EvalProcess    act next) = EvalProcess act (f . next)
+  fmap f (EvalLang       act next) = EvalLang    act (f . next)
+
 
 type AppL = F AppF
 

@@ -9,14 +9,15 @@ import qualified Hydra.Core.Domain               as D
 
 import Hydra.Core.Logger.Class
 
-import           Language.Haskell.TH.MakeFunctor
 
 -- | Language for logging.
 data LoggerF next where
   -- | Log message with a predefined level.
   LogMessage :: !D.LogLevel -> !D.Message -> (() -> next) -> LoggerF next
 
-makeFunctorInstance ''LoggerF
+instance Functor LoggerF where
+  fmap f (LogMessage lvl msg next) = LogMessage lvl msg (f . next)
+
 
 type LoggerL = Free LoggerF
 

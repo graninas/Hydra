@@ -1,14 +1,13 @@
-name:                Hydra
+name:                labyrinth
 version:             1.0.0.0
 github:              "graninas/Hydra"
 license:             BSD3
 author:              "Alexander Granin"
 maintainer:          "graninas@gmail.com"
-copyright:           "Granin A.S. 2019"
+copyright:           "Granin A.S. 2020"
 
 description:
-  Hydra is the project that allows to build multithreaded concurrent applications.
-  Hydra is initially based on the Hydra.Framework.
+  Labyrinth game (aka Terra Incognita)
 
 default-extensions:
 - NoImplicitPrelude
@@ -87,10 +86,6 @@ dependencies:
 - resourcet
 - triplesec
 - yaml
-- hspec
-- HUnit
-- QuickCheck
-- hspec-contrib
 - newtype-generics
 - regex-posix
 - safe-exceptions
@@ -115,83 +110,37 @@ dependencies:
 - http-client-tls
 - data-default
 - generic-lens
+- Hydra
 
 library:
   source-dirs:
-    - src
+  - src
   ghc-options:
   - -Wall
+  - -Wcompat
+  - -Widentities
+  - -fhide-source-paths
 
 executables:
-  perf-test-app:
-    main:                Main.hs
-    source-dirs:         app/PerfTestApp
-    ghc-options:
-    - -threaded
-    - -rtsopts
-    - -with-rtsopts=-N
-    - -Wall
-    - -O2
-    dependencies:
-    - Hydra
-
-  perf-test-app2:
-    main:                Main.hs
-    source-dirs:         app/PerfTestApp2
-    ghc-options:
-    - -threaded
-    - -rtsopts
-    - -with-rtsopts=-N
-    - -Wall
-    - -O2
-    dependencies:
-    - Hydra
-
-  meteor-counter-app:
-    main:                Main.hs
-    source-dirs:         app/MeteorCounter
-    ghc-options:
-    - -threaded
-    - -rtsopts
-    - -with-rtsopts=-N
-    - -Wall
-    - -O2
-    dependencies:
-    - Hydra
-
-  astro-app:
-    main:                Main.hs
-    source-dirs:         app/astro
-    ghc-options:
-    - -threaded
-    - -rtsopts
-    - -with-rtsopts=-N
-    - -Wall
-    - -O2
-    dependencies:
-    - Hydra
-
   labyrinth:
     main:                Main.hs
-    source-dirs:         app/labyrinth
+    source-dirs:         src/
     ghc-options:
     - -threaded
     - -rtsopts
     - -with-rtsopts=-N
     - -Wall
     # - -O2
-    dependencies:
-    - Hydra
 
-
-tests:
-  functional-tests:
-    main: Spec.hs
-    source-dirs:
-    - test/spec
-    ghc-options:
-    - -threaded
-    - -rtsopts
-    - -with-rtsopts=-N
-    dependencies:
-    - Hydra
+#
+# tests:
+#   functional-tests:
+#     main: Spec.hs
+#     source-dirs:
+#     - test/spec
+#     ghc-options:
+#     - -threaded
+#     - -rtsopts
+#     - -with-rtsopts=-N
+#     dependencies:
+#     - Hydra

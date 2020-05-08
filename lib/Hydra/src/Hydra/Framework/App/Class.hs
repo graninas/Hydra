@@ -10,7 +10,6 @@ import           Hydra.Prelude
 import qualified Hydra.Core.Class                as C
 import qualified Hydra.Core.Domain               as D
 
-import           Language.Haskell.TH.MakeFunctor (makeFunctorInstance)
 
 -- TODO: this is awful
 -- class (C.Logger l, C.Random r, C.ControlFlow cf, C.State' s,
