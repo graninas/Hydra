@@ -72,7 +72,7 @@ serverOptionParser = (Server . ServerOptions) <$> relDbParser
 filePathParser :: ReadM RelDbOptions
 filePathParser = eitherReader parse
     where
-      parse path = Right . UseSqliteDb $ path
+      parse = Right . UseSqliteDb
 
 uriParser :: ReadM RelDbOptions
 uriParser = eitherReader parse
