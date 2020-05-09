@@ -8,7 +8,6 @@ import qualified Hydra.Core.RLens         as RLens
 import qualified Hydra.Core.Runtime       as R
 
 import qualified Hydra.Framework.ChurchL  as CL
-import qualified Hydra.Framework.Language as L
 
 import qualified Hydra.Framework.RLens    as RLens
 import qualified Hydra.Framework.Runtime  as R
