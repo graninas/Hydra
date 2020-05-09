@@ -114,7 +114,10 @@ dependencies:
 - http-client-tls
 - data-default
 - generic-lens
+- optparse-applicative
+- network-uri
 - Hydra
+
 
 library:
   source-dirs:
