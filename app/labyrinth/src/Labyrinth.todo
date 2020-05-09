@@ -5,6 +5,7 @@ Application:
   ✔ User commands @done(2020-05-07 21:39) @project(Application)
   ☐ Save / load
   ✔ Quiting @done(2020-05-07 19:48) @project(Application)
+  ☐ Starting with a size
 Labyrinth:
   ✔ Labyrinth definition @done(2020-04-12 18:42) @project(Labyrinth)
   ✔ Simple labyrinth @done(2020-05-07 19:48) @project(Labyrinth)

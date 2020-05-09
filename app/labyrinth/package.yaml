@@ -132,15 +132,19 @@ executables:
     - -Wall
     # - -O2
 
-#
-# tests:
-#   functional-tests:
-#     main: Spec.hs
-#     source-dirs:
-#     - test/spec
-#     ghc-options:
-#     - -threaded
-#     - -rtsopts
-#     - -with-rtsopts=-N
-#     dependencies:
-#     - Hydra
+tests:
+  functional-tests:
+    main: Spec.hs
+    source-dirs:
+    - test/
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - hspec
+    - HUnit
+    - QuickCheck
+    - hspec-contrib
+    - Hydra
+    - labyrinth
