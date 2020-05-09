@@ -95,12 +95,3 @@ createMeteor mtp@(MeteorTemplate {..}) conn = do
 - [Automatic Whitebox Testing with Free Monads (Talk, Eng)](https://www.youtube.com/watch?v=-cp2BDlwi-M) | [Slides (Eng)](https://docs.google.com/presentation/d/1KJj0OIUdSmkEmWo_u0P1ZyCw28wqpNx8VXClKjpIzEo/edit?usp=sharing)
 - [Automatic whitebox testing with Free Moands (Showcase, Article)](https://github.com/graninas/automatic-whitebox-testing-showcase)
 
-### Special Thanks
-
-Special thanks to these folks who made a good contribution into Hydra directly or indirectly:
-* [Alexander Vershilov](https://github.com/qnikst)
-* [Vasily Gorev](https://github.com/C37H40O9)
-* [Sergey Stepanenko](https://github.com/Kaptch)
-* [Kirill Havryliuk](https://github.com/kirill-havryliuk)
-* [Vladislav Sabanov](https://github.com/willbasky)
-* [Evgeniy Tokarev](https://github.com/strobe)
