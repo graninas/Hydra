@@ -37,6 +37,7 @@ parseConsoleOptions :: IO ConsoleOptions
 parseConsoleOptions
     = execParser $ info (consoleOptionParser <**> helper) fullDesc
 
+consoleOptionParser :: Parser ConsoleOptions
 consoleOptionParser =
     ConsoleOptions
     <$> subparser
@@ -68,10 +69,12 @@ serverOptionParser = (Server . ServerOptions) <$> relDbParser
       defaultUri = UseMySqlDb
                    $ fromJust (parseURI "mysql://root@localhost:3600/astro")
 
+filePathParser :: ReadM RelDbOptions
 filePathParser = eitherReader parse
     where
       parse path = Right . UseSqliteDb $ path
 
+uriParser :: ReadM RelDbOptions
 uriParser = eitherReader parse
     where
       parse uri = maybe err (Right . UseMySqlDb) parsed
@@ -98,6 +101,7 @@ clientOptionParser
                       <> value HttpChannel
                       ))
 
+channelParser :: ReadM ReportChannel
 channelParser = eitherReader parse
     where
       parse "http" = Right HttpChannel
