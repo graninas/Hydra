@@ -41,4 +41,4 @@ main = do
   (ConsoleOptions cmd) <- parseConsoleOptions
   case cmd of
     Client cliOpts -> runAstroClient cliOpts
-    Server _   -> runAstroServer
+    Server serOpts  -> runAstroServer serOpts

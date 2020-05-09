@@ -28,6 +28,7 @@ import qualified Hydra.Interpreters as R
 import qualified Hydra.Language     as L
 
 import           Astro.Config (loggerCfg, dbConfig)
+import           Astro.ConsoleOptions (ServerOptions (..))
 import qualified Astro.API as API
 import           Astro.Domain.Meteor
 import           Astro.Domain.Asteroid
@@ -139,10 +140,12 @@ prepareSQLiteDB = do
       error $ "Exception got: " <> show err
     Right _ -> pure ()
 
-runAstroServer :: IO ()
-runAstroServer = do
+runAstroServer :: ServerOptions -> IO ()
+runAstroServer opts = do
   prepareSQLiteDB
-  putStrLn @String "Starting Astro App Server..."
+  putStrLn @String $ "Starting Astro App Server on port " ++ show port ++ "..."
   R.withAppRuntime (Just loggerCfg) $ \rt -> do
     appSt <- R.runAppL rt $ initState AppConfig
-    run 8080 $ astroBackendApp $ Env rt appSt
+    run port $ astroBackendApp $ Env rt appSt
+      where
+        port = soListenPort opts
