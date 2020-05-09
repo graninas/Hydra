@@ -2,7 +2,7 @@
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
-module Free where
+module Perf2Free where
 
 import           Control.Monad
 import qualified Data.Map       as Map

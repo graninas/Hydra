@@ -45,7 +45,7 @@ main = do
   putStrLn @String $ "Method: " <> show (method cfg)
 
   let mbLoggerCfg = if useLog cfg then Just loggerCfg else Nothing
-  
+
   R.withAppRuntime mbLoggerCfg $ \appRt -> do
     when (method cfg == FT)
       $ FTL.scenario (appRt ^. RLens.coreRuntime)

@@ -2,7 +2,7 @@
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
-module Church where
+module Perf2Church where
 
 import           Control.Monad
 import qualified Data.Map      as Map

@@ -2,7 +2,7 @@
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
-module FTL where
+module Perf2FTL where
 
 import           Control.Monad
 import qualified Data.Map      as Map
