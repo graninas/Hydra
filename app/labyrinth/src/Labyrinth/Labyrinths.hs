@@ -26,3 +26,12 @@ testLabyrinth2 = Map.fromList
   , ((1, 2), (Cell NoWall NoWall Wall (Monolith False), NoContent))
   , ((2, 2), (Cell NoWall (Monolith False) NoWall (Monolith False), NoContent))
   ]
+
+-- x ->    0    1    2
+--      ┏━━━━┯━━━━┯━━━━┓
+--  0   ┃ @  │       W0┃
+--      ┠    ┼    ┼    ┨
+--  1   ┃     T   │
+--      ┠    ┼────┼    ┨
+--  2   ┃  W1          ┃
+--      ┗━━━━┷━━━━┷━━━━┛

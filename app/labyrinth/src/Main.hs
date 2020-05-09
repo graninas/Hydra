@@ -32,7 +32,7 @@ initAppState lab = do
   labRenderVar     <- newVarIO renderTemplate
   labVar           <- newVarIO lab
   labSizeVar       <- newVarIO bounds
-  posVar           <- newVarIO (x - 1, y - 1)
+  posVar           <- newVarIO (0, 0)
   inv              <- Inventory <$> newVarIO False
   gameStateVar     <- newVarIO PlayerMove
   moveMsgsVar      <- newVarIO []
@@ -49,7 +49,7 @@ initAppState lab = do
     moveMsgsVar
 
 startApp :: AppL ()
-startApp = initAppState testLabyrinth1 >>= app
+startApp = initAppState testLabyrinth2 >>= app
 
 main :: IO ()
 main = R.withAppRuntime (Just loggerCfg) (\rt -> R.runAppL rt startApp)
