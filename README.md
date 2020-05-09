@@ -90,6 +90,7 @@ createMeteor mtp@(MeteorTemplate {..}) conn = do
 
 **Additional materials describing these ideas:**
 
+- [Hierarchical Free Monads: The Most Developed Approach In Haskell (And The Death Of Final Tagless)](https://github.com/graninas/hierarchical-free-monads-the-most-developed-approach-in-haskell)
 - [Hierarchical Free Monads and Software Design in Functional Programming (Talk, Eng)](https://www.youtube.com/watch?v=3GKQ4ni2pS0) | [Slides (Eng)](https://docs.google.com/presentation/d/1SYMIZ-LOI8Ylykz0PTxwiPuHN_02gIWh9AjJDO6xbvM/edit?usp=sharing)
 - [Final Tagless vs Free Monad (Talk, Rus)](https://www.youtube.com/watch?v=u1GGqDQyGfc) | [Slides (Eng)](https://docs.google.com/presentation/d/1VhS8ySgk2w5RoN_l_Ar_axcE4Dzf97zLw1uuzUJQbCo/edit?usp=sharing)
 - [Automatic Whitebox Testing with Free Monads (Talk, Eng)](https://www.youtube.com/watch?v=-cp2BDlwi-M) | [Slides (Eng)](https://docs.google.com/presentation/d/1KJj0OIUdSmkEmWo_u0P1ZyCw28wqpNx8VXClKjpIzEo/edit?usp=sharing)
