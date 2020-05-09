@@ -8,6 +8,7 @@ module Astro.ConsoleOptions
     ) where
 
 import           Hydra.Prelude
+import qualified Prelude
 
 import           Data.Semigroup ((<>))
 import           Network.URI
@@ -28,7 +29,11 @@ data ServerOptions = ServerOptions
     , soListenPort   :: Port
     } deriving (Show)
 
-data RelDbOptions = UseSqliteDb String | UseMySqlDb URI deriving (Show)
+data RelDbOptions = UseSqliteDb String | UseMySqlDb URI
+
+instance Show RelDbOptions where
+    show (UseSqliteDb path) = path
+    show (UseMySqlDb uri) = show uri
 
 data ClientOptions = ClientOptions
     { coApproach :: Approach,
