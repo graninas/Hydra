@@ -42,7 +42,7 @@ reportWith
   -> (obj -> AstroService a)
   -> (Either BSL.ByteString obj)
   -> L.AppL (Either BSL.ByteString ())
-reportWith runner _        (Left err)  = pure $ Left err
+reportWith _      _        (Left err)  = pure $ Left err
 reportWith runner reporter (Right obj) = (runner $ reporter obj) >> pure (Right ())
 
 consoleApp :: (forall x. AstroService x -> L.AppL x) -> L.AppL ()

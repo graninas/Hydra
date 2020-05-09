@@ -53,7 +53,7 @@ reportWith
   -> (obj -> AstroService a)
   -> (Either BSL.ByteString obj)
   -> L.AppL (Either BSL.ByteString ())
-reportWith runner _        (Left err)  = pure $ Left err
+reportWith _      _        (Left err)  = pure $ Left err
 reportWith runner reporter (Right obj) = (runAstroService runner $ reporter obj) >> pure (Right ())
 
 getAstroServiceRunner :: ReportChannel -> (AstroServiceF a -> L.AppL a)
