@@ -39,7 +39,7 @@ parseConsoleOptions
 
 consoleOptionParser =
     ConsoleOptions
-    <$> subparser
+    <$> hsubparser
             (  command "server"
                  (info serverOptionParser (progDesc "runs as server"))
             <> command "client"
