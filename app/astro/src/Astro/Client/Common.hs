@@ -99,6 +99,6 @@ tcpConn = DummyTcpConn
 printResults :: [Either BSL.ByteString ()] -> L.AppL ()
 printResults eResults = printResults' (rights eResults)
   where
-    printResults' []   = L.evalIO $ BSL.putStrLn "Command is not recognized."
+    printResults' []   = L.evalIO $ BSL8.putStrLn "Command is not recognized."
     printResults' [()] = pure ()
-    printResults' _    = L.evalIO $ BSL.putStrLn "Multiple commands evaluated unexpectedly"
+    printResults' _    = L.evalIO $ BSL8.putStrLn "Multiple commands evaluated unexpectedly"
