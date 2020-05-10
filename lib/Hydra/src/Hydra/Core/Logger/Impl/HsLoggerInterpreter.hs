@@ -5,7 +5,6 @@ import           Hydra.Prelude
 import qualified Data.Text                 as TXT (unpack)
 import           System.Log.Logger
 
-import qualified Hydra.Core.Domain         as D
 import qualified Hydra.Core.Language       as L
 import           Hydra.Core.Logger.Impl.HsLogger
 

@@ -7,11 +7,9 @@ module Hydra.Language.Extra where
 import           Hydra.Prelude
 
 import qualified Hydra.Core.ChurchL       as CL
-import qualified Hydra.Core.Class         as C
 import qualified Hydra.Core.Language      as L
 import qualified Hydra.Domain             as D
 import qualified Hydra.Framework.ChurchL  as CL
-import qualified Hydra.Framework.Class    as C
 import qualified Hydra.Framework.Language as L
 
 
