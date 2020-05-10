@@ -12,9 +12,6 @@ data Inventory = Inventory
   { _treasure :: StateVar Bool
   }
 
-type LabRender = Map Pos String
-type Wormholes = Map Int Pos
-
 data GameState
   = PlayerMove
   | PlayerIsAboutLeaving HasTreasure

@@ -96,16 +96,16 @@ mergeCell dir w curW   = "!" <> show dir <> show w <> curW
 
 
 renderSkeleton :: Bounds -> LabRender
-renderSkeleton (maxX, maxY) = skeleton
+renderSkeleton (maxX, maxY) = ((rendMaxX, rendMaxY), skeleton)
   where
     p x y = (x, y)
     rendMaxX = maxX * 2
     rendMaxY = maxY * 2
 
-    genLeftMonolithCross   = [(p 0 y,        lCross) | y <- [0, 2..rendMaxY ], y > 1, y < rendMaxY - 1 ]
-    genRightMonolithCross  = [(p rendMaxX y, rCross) | y <- [0, 2..rendMaxY ], y > 1, y < rendMaxY - 1 ]
-    genTopMonolithCross    = [(p x 0,        uCross) | x <- [0, 2..rendMaxX ], x > 1, x < rendMaxX - 1 ]
-    genBottomMonolithCross = [(p x rendMaxY, dCross) | x <- [0, 2..rendMaxX ], x > 1, x < rendMaxX - 1 ]
+    genLeftMonolithCross   = [(p 0 y,        lCross) | y <- [0, 2..rendMaxY - 1], y > 1]
+    genRightMonolithCross  = [(p rendMaxX y, rCross) | y <- [0, 2..rendMaxY - 1], y > 1]
+    genTopMonolithCross    = [(p x 0,        uCross) | x <- [0, 2..rendMaxX - 1], x > 1]
+    genBottomMonolithCross = [(p x rendMaxY, dCross) | x <- [0, 2..rendMaxX - 1], x > 1]
     genInternalCross       = [(p x y,        cross)  | x <- [0, 2..rendMaxX - 1]
                                                      , y <- [0, 2..rendMaxY - 1]
                                                      , y > 1, y < rendMaxY - 1
@@ -129,7 +129,7 @@ renderSkeleton (maxX, maxY) = skeleton
 
 -- foldWithKey :: (k -> a -> b -> b) -> b -> Map k a -> b
 cellRender :: Pos -> (Cell, Content) -> LabRender -> LabRender
-cellRender (x0, y0) (cell, content) labRender = let
+cellRender (x0, y0) (cell, content) (bounds, labRender) = let
   (x, y) = (x0 * 2 + 1, y0 * 2 + 1)
   l = (x-1, y)
   r = (x+1, y)
@@ -138,7 +138,7 @@ cellRender (x0, y0) (cell, content) labRender = let
   g (a, b) = Map.lookup (a, b) labRender
   mbCellR = g (x, y)
   accessedRenderedCells = (g l, g r, g u, g d)
-  in case accessedRenderedCells of
+  labWithCell = case accessedRenderedCells of
       (Nothing, _, _, _) -> Map.insert l ("!l" <> show l) labRender
       (_, Nothing, _, _) -> Map.insert r ("!r" <> show r) labRender
       (_, _, Nothing, _) -> Map.insert u ("!u" <> show u) labRender
@@ -150,25 +150,29 @@ cellRender (x0, y0) (cell, content) labRender = let
           $ Map.insert d (mergeCell DirDown  (downWall  cell) dCr)
           $ Map.insert (x, y) (mergeCellContent content mbCellR)
           labRender
+  in (bounds, labWithCell)
 
 renderPlayer :: Pos -> LabRender -> LabRender
-renderPlayer (x0, y0) lab = let
-  (x, y) = (x0 * 2 + 1, y0 * 2 + 1)
-  in case Map.lookup (x, y) lab of
-    Nothing   -> Map.insert (0, 0) ("!Player:" <> show (x0, y0)) lab
-    Just curW -> Map.insert (x, y) (take 1 curW <> "@" <> (take 2 $ drop 2 curW)) lab
+renderPlayer (x0, y0) (bounds, lab) = (bounds, lab')
+  where
+    (x, y) = (x0 * 2 + 1, y0 * 2 + 1)
+    lab' = case Map.lookup (x, y) lab of
+              Nothing   -> Map.insert (0, 0) ("!Player:" <> show (x0, y0)) lab
+              Just curW -> Map.insert (x, y) (take 1 curW <> "@" <> (take 2 $ drop 2 curW)) lab
 
-
-renderLabyrinth :: LabRender -> Labyrinth -> Pos -> LabRender
-renderLabyrinth template lab plPos =
+renderLabyrinth' :: Skeleton -> Labyrinth -> Pos -> LabRender
+renderLabyrinth' skeleton lab plPos =
   renderPlayer plPos
-    $ Map.foldrWithKey cellRender template lab
+    $ Map.foldrWithKey cellRender skeleton lab
 
-printLabRender :: Bounds -> LabRender -> LangL ()
-printLabRender (maxX, maxY) labRender = do
+renderLabyrinth :: Labyrinth -> Pos -> LabRender
+renderLabyrinth lab plPos = renderLabyrinth' skeleton lab plPos
+  where
+    (bounds, _) = analyzeLabyrinth lab
+    skeleton = renderSkeleton bounds
 
-  let rendMaxX = maxX * 2
-  let rendMaxY = maxY * 2
+printLabRender' :: LabRender -> LangL ()
+printLabRender' ((rendMaxX, rendMaxY), labRender) = do
 
   let printAndMergeCells y row x = case Map.lookup (x, y) labRender of
         Nothing -> row <> "!" <> show (x, y)
@@ -182,3 +186,6 @@ printLabRender (maxX, maxY) labRender = do
 
   let outputRows row = putStrLn row
   mapM_ outputRows printedRows
+
+printLabyrinth :: Labyrinth -> LangL ()
+printLabyrinth lab = printLabRender' $ renderLabyrinth lab (0, 0)

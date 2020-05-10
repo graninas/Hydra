@@ -6,11 +6,17 @@ import Labyrinth.Prelude as L
 
 type Pos = (Int, Int)
 type Bounds = (Int, Int)
+type Wormholes = Map Int Pos
 
+type LabRender = (Bounds, Map Pos String)
+type Skeleton = LabRender
 
-data Direction = DirUp | DirDown | DirLeft | DirRight
+data Direction
+  = DirUp
+  | DirDown
+  | DirLeft
+  | DirRight
   deriving (Show, Read, Eq)
-
 
 data Wall
   = NoWall
@@ -32,4 +38,14 @@ data Content
   | Wormhole Int
   deriving (Show, Read, Eq)
 
-type Labyrinth = Map.Map Pos (Cell, Content)
+type Labyrinth = Map Pos (Cell, Content)
+
+increaseBounds :: Bounds -> Pos -> Bounds
+increaseBounds (x', y') (x, y) = (max x' (x + 1), max y' (y + 1))
+
+analyzeLabyrinth :: Labyrinth -> (Bounds, Wormholes)
+analyzeLabyrinth lab = Map.foldrWithKey f ((0, 0), Map.empty) lab
+  where
+    f :: Pos -> (Cell, Content) -> (Bounds, Wormholes) -> (Bounds, Wormholes)
+    f pos (_, Wormhole n) (bounds, wormholes) = (increaseBounds bounds pos, Map.insert n pos wormholes)
+    f pos _ (bounds, wormholes) = (increaseBounds bounds pos, wormholes)

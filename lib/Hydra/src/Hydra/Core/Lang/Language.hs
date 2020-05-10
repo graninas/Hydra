@@ -83,6 +83,10 @@ instance C.Lang L.LoggerL L.RandomL L.ControlFlowL L.StateL LangL where
   evalRandom          = evalRandom'
   evalControlFlow     = evalControlFlow'
 
+-- | State handling.
+-- Note: don't spawn variables uncontrollably.
+-- Variables cannot be deleted.
+
 instance L.StateIO LangL where
   newVarIO       = evalStateAtomically' . L.newVar
   readVarIO      = evalStateAtomically' . L.readVar

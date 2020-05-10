@@ -33,6 +33,10 @@ instance Functor StateF where
 
 type StateL = Free StateF
 
+-- | State handling.
+-- Note: don't spawn variables uncontrollably.
+-- Variables cannot be deleted.
+
 instance L.State' StateL where
   newVar   val     = liftF $ NewVar val id
   readVar  var     = liftF $ ReadVar var id

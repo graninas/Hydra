@@ -103,6 +103,9 @@ process action = void $ fork action
 instance C.IOL AppL where
   evalIO = evalLang' . C.evalIO
 
+-- | State handling.
+-- Note: don't spawn variables uncontrollably.
+-- Variables cannot be deleted.
 instance L.StateIO AppL where
   newVarIO       = evalLang' . L.newVarIO
   readVarIO      = evalLang' . L.readVarIO

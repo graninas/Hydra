@@ -183,14 +183,14 @@ handleNo st = do
     PlayerIsAboutLossLeavingConfirmation -> cancelPlayerLeaving st
     _ -> addMoveMessage st $ unknownCommand "no"
 
-printLabyrinth :: AppState -> LangL ()
-printLabyrinth st = do
+printLab :: AppState -> LangL ()
+printLab st = do
   lab               <- readVarIO $ st ^. labyrinth
   bounds            <- readVarIO $ st ^. labyrinthSize
   plPos             <- readVarIO $ st ^. playerPos
   let template = st ^. labRenderTemplate
 
-  printLabRender bounds $ renderLabyrinth template lab plPos
+  printLabRender' $ renderLabyrinth' template lab plPos
 
 onStep :: AppState -> () -> AppL D.CliAction
 onStep st _ = do
@@ -246,7 +246,7 @@ app st = do
     cmd "quit"     $ quit st
     cmd "q"        $ quit st
 
-    cmd "print"    $ printLabyrinth st
+    cmd "print"    $ printLab st
 
   atomically $ do
     finished <- readVar $ D.cliFinishedToken cliToken

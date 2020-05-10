@@ -49,5 +49,8 @@ initAppState lab = do
 startApp :: AppL ()
 startApp = initAppState testLabyrinth2 >>= app
 
+execApp :: Maybe D.LoggerConfig -> AppL a -> IO a
+execApp mbCfg act = R.withAppRuntime mbCfg $ \rt -> R.runAppL rt act
+
 main :: IO ()
-main = R.withAppRuntime (Just loggerCfg) (\rt -> R.runAppL rt startApp)
+main = execApp (Just loggerCfg) startApp
