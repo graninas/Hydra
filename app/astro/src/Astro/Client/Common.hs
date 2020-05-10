@@ -66,13 +66,13 @@ reportAsteroidHttp url a = do
     Right r  -> Right r
 
 reportMeteorTcp :: TcpConn -> API.MeteorTemplate -> L.AppL (Either BSL.ByteString MeteorId)
-reportMeteorTcp _ m = do
+reportMeteorTcp _ _ = do
   L.evalIO $ pure ()    -- send via tcp here
   L.logInfo "Meteor sent via TCP (dummy)."
   pure $ Right 0
 
 reportAsteroidTcp :: TcpConn -> API.AsteroidTemplate -> L.AppL (Either BSL.ByteString AsteroidId)
-reportAsteroidTcp _ a = do
+reportAsteroidTcp _ _ = do
   L.evalIO $ pure ()    -- send via tcp here
   L.logInfo "Asteroid sent via TCP (dummy)."
   pure $ Right 0

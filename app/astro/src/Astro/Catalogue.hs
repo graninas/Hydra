@@ -67,7 +67,7 @@ initState cfg = do
 
 
 doOrFail' :: Show e => (Text -> AppException) -> L.AppL (Either e a) -> L.AppL a
-doOrFail' excF act = act >>= \case
+doOrFail' _ act = act >>= \case
   Left e  -> error $ show e
   Right a -> pure a
 
@@ -148,4 +148,4 @@ withDB cfg act = connectOrFail cfg >>= act
 
 
 createObjectTemplate :: API.AstroObjectTemplate -> L.AppL AstroObjectId
-createObjectTemplate template = error "Not implemented yet"
+createObjectTemplate _ = error "Not implemented yet"

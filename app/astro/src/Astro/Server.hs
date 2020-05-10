@@ -163,7 +163,7 @@ meteor m = runApp
   $ createMeteor m
 
 asteroid :: API.AsteroidTemplate -> AppHandler AsteroidId
-asteroid a = error "Not implemented yet."
+asteroid _ = error "Not implemented yet."
 
 prepareSQLiteDB :: IO ()
 prepareSQLiteDB = do
