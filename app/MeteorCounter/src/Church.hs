@@ -4,7 +4,6 @@ import qualified Data.Map      as Map
 import qualified Data.Set      as Set
 
 import qualified Hydra.ChurchL as L
-import qualified Hydra.Domain  as D
 import           Hydra.Prelude
 import qualified Hydra.Runtime as R
 import           Types

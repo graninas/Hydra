@@ -5,11 +5,8 @@
 module PerfFTL where
 
 import           Control.Monad
-import qualified Data.Map      as Map
-import qualified Data.Set      as Set
 import           Hydra.Prelude
 
-import qualified Hydra.Domain  as D
 import qualified Hydra.FTL     as FTL
 import qualified Hydra.Runtime as R
 import           PerfTypes

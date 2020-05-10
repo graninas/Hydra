@@ -5,8 +5,6 @@
 module Main where
 
 import           Control.Monad
-import qualified Data.Map      as Map
-import qualified Data.Set      as Set
 import           Hydra.Prelude
 
 import qualified Free          as Free

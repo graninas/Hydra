@@ -1,6 +1,5 @@
 module Labyrinth.Domain where
 
-import qualified Data.Text as T
 import qualified Data.Map as Map
 
 import Labyrinth.Prelude as L

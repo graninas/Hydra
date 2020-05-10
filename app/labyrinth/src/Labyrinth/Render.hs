@@ -2,7 +2,6 @@ module Labyrinth.Render where
 
 import           Labyrinth.Prelude
 
-import qualified Data.Text                  as T
 import qualified Data.Map                   as Map
 
 import           Labyrinth.Types

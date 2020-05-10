@@ -5,11 +5,8 @@
 module Free where
 
 import           Control.Monad
-import qualified Data.Map       as Map
-import qualified Data.Set       as Set
 import           Hydra.Prelude
 
-import qualified Hydra.Domain   as D
 import qualified Hydra.Language as L
 import qualified Hydra.Runtime  as R
 

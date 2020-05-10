@@ -5,7 +5,6 @@ import qualified Data.Set      as Set
 
 import qualified Hydra.Domain  as D
 import           Hydra.Prelude
-import qualified Hydra.Runtime as R
 
 data Region
   = NorthEast
