@@ -13,17 +13,8 @@ import           Control.Monad
 import           System.Process (readCreateProcess, shell)
 import           Network.Wai.Handler.Warp (run)
 import           Servant
-import           Data.Time
-import qualified Data.Map      as Map
-import qualified Data.Set      as Set
-import           Data.Time.Clock (UTCTime)
-import qualified Database.Beam as B
-import qualified Database.Beam.Sqlite as BS
-import qualified Database.Beam.Backend.SQL as B
-import           Database.Beam ((==.), (&&.), (<-.), (/=.), (==?.))
 
 import           Hydra.Prelude
-import qualified Hydra.Domain  as D
 import qualified Hydra.Runtime as R
 import qualified Hydra.Interpreters as R
 import qualified Hydra.Language     as L

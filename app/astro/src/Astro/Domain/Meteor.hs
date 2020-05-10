@@ -5,8 +5,6 @@ module Astro.Domain.Meteor where
 
 import           Hydra.Prelude
 
-import qualified Data.Map      as Map
-import qualified Data.Set      as Set
 import           Data.Time.Clock (UTCTime)
 
 type DateTime = UTCTime

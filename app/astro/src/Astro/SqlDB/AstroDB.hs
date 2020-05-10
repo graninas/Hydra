@@ -8,7 +8,6 @@ import Hydra.Prelude
 import           Database.Beam
 import           Data.Time.Clock (UTCTime)
 import qualified Database.Beam as B
-import           Database.Beam ((==.), (&&.), (<-.), (/=.), (==?.))
 
 import qualified Astro.Domain.Meteor as D
 

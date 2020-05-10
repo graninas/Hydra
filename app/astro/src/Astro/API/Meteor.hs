@@ -5,8 +5,6 @@ module Astro.API.Meteor where
 
 import           Hydra.Prelude
 
-import           Astro.Domain.Types
-
 data MeteorTemplate = MeteorTemplate
   { size        :: Int
   , mass        :: Int

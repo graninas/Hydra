@@ -7,6 +7,7 @@ module Astro.Client.Common where
 
 import           Hydra.Prelude
 import qualified Data.ByteString.Lazy  as BSL
+import qualified Data.ByteString.Lazy.Char8 as BSL8
 import           Data.Aeson            (decode)
 import           Data.Either           (rights)
 import           Servant
@@ -18,6 +19,8 @@ import           Astro.Domain.Meteor   (MeteorId, Meteors)
 import           Astro.Domain.Asteroid (AsteroidId)
 import qualified Astro.Server          as Server
 import qualified Astro.API             as API
+import           Astro.Domain.AstroObject (AstroObject)
+import           Astro.Domain.Types
 
 
 data TcpConn = DummyTcpConn
