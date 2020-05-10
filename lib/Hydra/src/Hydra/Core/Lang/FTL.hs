@@ -3,7 +3,10 @@
 {-# LANGUAGE TemplateHaskell       #-}
 {-# LANGUAGE UndecidableInstances  #-}
 
-module Hydra.Core.Lang.FTL where
+module Hydra.Core.Lang.FTL
+    ( LangL
+    , evalStateAtomically
+    ) where
 
 import           Hydra.Prelude
 

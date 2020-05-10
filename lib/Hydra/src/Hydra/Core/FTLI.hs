@@ -1,8 +1,6 @@
-module Hydra.Core.FTLI
-  ( module X
-  ) where
+module Hydra.Core.FTLI where
 
-import           Hydra.Core.Lang.FTLI        as X
-import           Hydra.Core.Logger.FTLI      as X
-import           Hydra.Core.Process.FTLI     as X
-import           Hydra.Core.Random.FTLI      as X
+import           Hydra.Core.Lang.FTLI        ()
+import           Hydra.Core.Logger.FTLI      ()
+import           Hydra.Core.Process.FTLI     ()
+import           Hydra.Core.Random.FTLI      ()
