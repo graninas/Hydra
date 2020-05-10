@@ -56,12 +56,12 @@ initState cfg = do
     Left err -> do
       L.logError $ "Failed to init KV DB catalogue: " +|| err ||+ ""
       error $ "Failed to init KV DB catalogue: " +|| err ||+ ""    -- TODO
-    Right astroKVDB -> do
+    Right astroKVDb -> do
       L.logInfo "KV DB initizlied."
-      totalMeteors <- L.newVarIO 0
+      totalMeteorsVar <- L.newVarIO 0
       pure $ AppState
-        { _astroKVDB = astroKVDB
-        , _totalMeteors = totalMeteors
+        { _astroKVDB = astroKVDb
+        , _totalMeteors = totalMeteorsVar
         , _config = cfg
         }
 
