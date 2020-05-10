@@ -24,7 +24,7 @@ getOrInitSqlConn cfg = do
 -- TODO: rework it
 foreverAppFree :: L.AppL a -> L.AppL ()
 foreverAppFree app = do
-  app
+  _ <- app
   awaitVar <- L.newVarIO (1 :: Int)
   L.process $ do
     L.delay 10000000000
@@ -36,7 +36,7 @@ foreverAppFree app = do
 -- TODO: rework it
 foreverAppChurch :: CL.AppL a -> CL.AppL ()
 foreverAppChurch app = do
-  app
+  _ <- app
   awaitVar <- CL.newVarIO (1 :: Int)
   CL.process $ do
     CL.delay 10000000000
