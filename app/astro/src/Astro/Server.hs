@@ -6,7 +6,6 @@
 
 module Astro.Server
   ( runAstroServer
-  , astroAPI
   ) where
 
 import           Control.Monad
@@ -20,6 +19,7 @@ import qualified Hydra.Interpreters as R
 import qualified Hydra.Language     as L
 
 import           Astro.Config (loggerCfg, dbConfig)
+import           Astro.ConsoleOptions (ServerOptions (..))
 import qualified Astro.API as API
 import           Astro.Domain.Meteor
 import           Astro.Domain.Asteroid
@@ -29,57 +29,13 @@ import           Astro.Catalogue
 import           Astro.Types
 
 
-type AstroAPI =
-  (  "meteors"
-    :> QueryParam "mass" Int
-    :> QueryParam "size" Int
-    :> Get '[JSON] Meteors
-    )
-  :<|>
-    (  "meteor"
-    :> ReqBody '[JSON] API.MeteorTemplate
-    :> Post '[JSON] MeteorId
-    )
-  :<|>
-    (  "asteroid"
-    :> ReqBody '[JSON] API.AsteroidTemplate
-    :> Post '[JSON] AsteroidId
-    )
-  :<|>
-    (  "object_template"                                  -- route POST "/object_template"
-    :> ReqBody '[JSON] API.AstroObjectTemplate
-    :> Post '[JSON] AstroObjectId
-    )
-  :<|>
-    "object" :>
-    (
-       ( Capture "object_id" AstroObjectId                -- route GET "/object"
-       :> Get '[JSON] (Maybe AstroObject)
-       )
-     :<|>
-       ( "orbital"                                        -- route POST "/object/orbital"
-       :> Capture "object_id" AstroObjectId
-       :> ReqBody '[JSON] Orbital
-       :> Post '[JSON] AstroObjectId
-       )
-     :<|>
-       ( "physical"                                       -- route POST "/object/physical
-       :> Capture "object_id" AstroObjectId
-       :> ReqBody '[JSON] Physical
-       :> Post '[JSON] AstroObjectId
-       )
-    )
-
-
-astroAPI :: Proxy AstroAPI
-astroAPI = Proxy
 
 data Env = Env !R.AppRuntime !AppState
 type AppHandler = ReaderT Env (ExceptT ServerError IO)
-type AppServer = ServerT AstroAPI AppHandler
+type AppServer = ServerT API.AstroAPI AppHandler
 
-astroServer :: Env -> Server AstroAPI
-astroServer env = hoistServer astroAPI f astroServer'
+astroServer :: Env -> Server API.AstroAPI
+astroServer env = hoistServer API.astroAPI f astroServer'
   where
     f :: ReaderT Env (ExceptT ServerError IO) a -> Handler a
     f r = do
@@ -89,7 +45,7 @@ astroServer env = hoistServer astroAPI f astroServer'
         Right res -> pure res
 
 astroBackendApp :: Env -> Application
-astroBackendApp = serve astroAPI . astroServer
+astroBackendApp = serve API.astroAPI . astroServer
 
 runApp :: L.AppL a -> AppHandler a
 runApp flow = do
@@ -175,10 +131,12 @@ prepareSQLiteDB = do
       error $ "Exception got: " <> show err
     Right _ -> pure ()
 
-runAstroServer :: IO ()
-runAstroServer = do
+runAstroServer :: ServerOptions -> IO ()
+runAstroServer opts = do
   prepareSQLiteDB
-  putStrLn @String "Starting Astro App Server..."
+  putStrLn @String $ "Starting Astro App Server on port " ++ show port ++ "..."
   R.withAppRuntime (Just loggerCfg) $ \rt -> do
     appSt <- R.runAppL rt $ initState AppConfig
-    run 8080 $ astroBackendApp $ Env rt appSt
+    run port $ astroBackendApp $ Env rt appSt
+      where
+        port = soListenPort opts

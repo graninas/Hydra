@@ -28,16 +28,44 @@ This project demonstrates the principles of Software Design and Architecture in 
 - Free Monad
 - Church Encoded Free Monad
 
+The core idea of the Free monadic frameworks is known as Hierarchical Free Monads.
+
 The project is a showcase for my book [Functional Design and Architecture](https://graninas.com/functional-design-and-architecture-book/). The approaches presented in Hydra are well-described and rationalized in the book, so you may obtain even more info about best practices and ideas of how to write a good Haskell code.
 
 Building dependencies
 =====================
 
 Ubuntu:
-```
+```bash
 $ sudo apt-get install libpg-dev librocksdb-dev
 ```
 
+Building and running
+====================
+
+Use stack for building all the framework and apps:
+
+```bash
+$ stack build
+```
+
+You can also switch the optimizations off and use several threads for building:
+
+```bash
+$ stack build --fast -j4
+```
+
+Running a project is also simple:
+
+```bash
+$ stack exec labyrinth
+```
+
+To load a subproject into GHCi, use the following command:
+
+```bash
+$ stack ghci labyrinth:exe:labyrinth
+```
 
 Sample applications
 ===================
@@ -45,10 +73,16 @@ Sample applications
 There are 3 sample applications:
 * [Astro app](app/astro): web server (with servant) and CLI client tool which allows to track meteors (tool for astronomers).
 * [PerfTestApp](app/PerfTestApp): an application you can run to measure the performance of the three engines.
+* [PerfTestApp2](app/PerfTestApp2): another application you can run to measure the performance of the three engines.
 * [MeteorCounter](app/MeteorCounter): application which demonstrates the usage of STM and multithreading using three engines.
+* [Labyrinth](app/labyrinth): a game about exploring the labyrinth with a CLI interactive interface.
 
-Sample SQL-related code
-=======================
+Code samples
+============
+
+###
+
+### Sample SQL-related code
 
 ```haskell
 createMeteor :: MeteorTemplate -> D.SqlConn BS.SqliteM -> L.AppL MeteorId
@@ -88,11 +122,12 @@ createMeteor mtp@(MeteorTemplate {..}) conn = do
   pure $ SqlDB._meteorId $ fromJust m
 ```
 
-**Additional materials describing these ideas:**
+# Additional materials
+
+Checkout the following materials to learn more about he Hierarchical Free Monads approach used in Hydra:
 
 - [Hierarchical Free Monads: The Most Developed Approach In Haskell (And The Death Of Final Tagless)](https://github.com/graninas/hierarchical-free-monads-the-most-developed-approach-in-haskell)
 - [Hierarchical Free Monads and Software Design in Functional Programming (Talk, Eng)](https://www.youtube.com/watch?v=3GKQ4ni2pS0) | [Slides (Eng)](https://docs.google.com/presentation/d/1SYMIZ-LOI8Ylykz0PTxwiPuHN_02gIWh9AjJDO6xbvM/edit?usp=sharing)
 - [Final Tagless vs Free Monad (Talk, Rus)](https://www.youtube.com/watch?v=u1GGqDQyGfc) | [Slides (Eng)](https://docs.google.com/presentation/d/1VhS8ySgk2w5RoN_l_Ar_axcE4Dzf97zLw1uuzUJQbCo/edit?usp=sharing)
 - [Automatic Whitebox Testing with Free Monads (Talk, Eng)](https://www.youtube.com/watch?v=-cp2BDlwi-M) | [Slides (Eng)](https://docs.google.com/presentation/d/1KJj0OIUdSmkEmWo_u0P1ZyCw28wqpNx8VXClKjpIzEo/edit?usp=sharing)
 - [Automatic whitebox testing with Free Moands (Showcase, Article)](https://github.com/graninas/automatic-whitebox-testing-showcase)
-

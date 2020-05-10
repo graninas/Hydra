@@ -17,7 +17,7 @@ data Passage
   deriving (Show, Read, Eq)
 
 data MovingResult
-  = SuccessfullMove ((Int, Int), (Cell, Content))
+  = SuccessfullMove Pos Cell Content
   | ImpossibleMove String
   | ExitFound Bool
   | InvalidMove String
@@ -75,7 +75,7 @@ testMove st dir = do
       (MonolithWall, _)        -> ImpossibleMove "Step impossible: monolith wall"
       (RegularWall, _)         -> ImpossibleMove "Step impossible: wall"
       (Passage, Nothing)       -> InvalidMove $ "Cell not found: " +|| nextPos ||+ ""
-      (Passage, Just nextCell) -> SuccessfullMove (nextPos, nextCell)
+      (Passage, Just (nextCell, nextContent)) -> SuccessfullMove nextPos nextCell nextContent
       (Exit, _)                -> ExitFound hasTreasure
 
 getPlayerPos :: AppState -> LangL Pos
@@ -123,13 +123,19 @@ cancelPlayerLeaving st = do
   setGameState st PlayerMove
 
 -- Evaluates the action on content
-performContentEvent :: AppState -> Pos -> Content -> LangL ()
-performContentEvent _ _ NoContent = pure ()
-performContentEvent st pos Treasure = do
+performPlayerContentEvent :: AppState -> LangL ()
+performPlayerContentEvent st = do
+  pos <- getPlayerPos st
+  (_, content) <- getCell st pos
+  performPlayerContentEvent' st pos content
+
+performPlayerContentEvent' :: AppState -> Pos -> Content -> LangL ()
+performPlayerContentEvent' _ _ NoContent = pure ()
+performPlayerContentEvent' st pos Treasure = do
   addMoveMessage st "You found a treasure!"
   writeVarIO (st ^. playerInventory . treasure) True
   setCellContent st pos NoContent
-performContentEvent st _ (Wormhole n) = do
+performPlayerContentEvent' st _ (Wormhole n) = do
   addMoveMessage st $ "You found a wormhole. You have been moved to the next wormhole."
   executeWormhole st n
 
@@ -146,17 +152,15 @@ makeMove st dir = do
     InvalidMove msg     -> throwException $ InvalidOperation msg
     ImpossibleMove msg  -> addMoveMessage st msg
     ExitFound hasTreasure -> setGameState st $ PlayerIsAboutLeaving hasTreasure
-    SuccessfullMove (newPos, (_, content)) -> do
+    SuccessfullMove newPos _ _ -> do
       addMoveMessage st "Step executed."
       setPlayerPos st newPos
-      performContentEvent st newPos content
+      performPlayerContentEvent st
 
 evalSkip :: AppState -> LangL ()
 evalSkip st = do
   cancelPlayerLeaving st
-  pos <- getPlayerPos st
-  (_, content) <- getCell st pos
-  performContentEvent st pos content
+  performPlayerContentEvent st
 
 quit :: AppState -> LangL ()
 quit st = setGameState st GameFinished
@@ -216,6 +220,7 @@ onStep st _ = do
           | otherwise      -> pure $ D.CliOutputMsg outputMsg
 
 onUnknownCommand :: String -> AppL CliAction
+onUnknownCommand ""     = pure D.CliLoop
 onUnknownCommand cmdStr = pure $ D.CliOutputMsg $ unknownCommand cmdStr
 
 app :: AppState -> AppL ()

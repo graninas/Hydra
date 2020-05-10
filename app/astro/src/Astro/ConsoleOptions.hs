@@ -8,9 +8,11 @@ module Astro.ConsoleOptions
     ) where
 
 import           Hydra.Prelude
+import qualified Prelude
 
 import           Data.Semigroup ((<>))
 import           Network.URI
+import           Network.Wai.Handler.Warp (Port)
 import           Options.Applicative
 
 import           Astro.Client.Common        (ReportChannel(..), Approach(..))
@@ -24,9 +26,14 @@ data Command
 
 data ServerOptions = ServerOptions
     { soRelDbOptions :: RelDbOptions
+    , soListenPort   :: Port
     } deriving (Show)
 
-data RelDbOptions = UseSqliteDb String | UseMySqlDb URI deriving (Show)
+data RelDbOptions = UseSqliteDb String | UseMySqlDb URI
+
+instance Show RelDbOptions where
+    show (UseSqliteDb dbFilePath) = dbFilePath
+    show (UseMySqlDb uri) = show uri
 
 data ClientOptions = ClientOptions
     { coApproach :: Approach,
@@ -40,7 +47,7 @@ parseConsoleOptions
 consoleOptionParser :: Parser ConsoleOptions
 consoleOptionParser =
     ConsoleOptions
-    <$> subparser
+    <$> hsubparser
             (  command "server"
                  (info serverOptionParser (progDesc "runs as server"))
             <> command "client"
@@ -48,7 +55,10 @@ consoleOptionParser =
             )
 
 serverOptionParser :: Parser Command
-serverOptionParser = (Server . ServerOptions) <$> relDbParser
+serverOptionParser
+    = Server <$> (ServerOptions
+                  <$> relDbParser
+                          <*> listenPortParser)
     where
       relDbParser = sqliteParser <|> mysqlParser
       sqliteParser = option filePathParser
@@ -68,6 +78,14 @@ serverOptionParser = (Server . ServerOptions) <$> relDbParser
                                      )
       defaultUri = UseMySqlDb
                    $ fromJust (parseURI "mysql://root@localhost:3600/astro")
+
+      listenPortParser = option auto (  long "listen-port"
+                                     <> short 'l'
+                                     <> metavar "PORT"
+                                     <> help "port for serving HTTP requests"
+                                     <> showDefault
+                                     <> value 8080
+                                     )
 
 filePathParser :: ReadM RelDbOptions
 filePathParser = eitherReader parse
