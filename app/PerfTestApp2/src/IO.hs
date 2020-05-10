@@ -7,7 +7,6 @@ module IO where
 import           Control.Monad
 import           Hydra.Prelude
 
-import           System.Entropy
 import           System.Random       hiding (next)
 
 flow :: IORef Int -> IO ()

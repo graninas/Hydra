@@ -3,7 +3,6 @@
 
 module FTL where
 
-import Control.Monad.IO.Class (liftIO)
 import qualified Data.Map                as Map
 import qualified Data.Set                as Set
 
