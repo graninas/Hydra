@@ -1,6 +1,3 @@
-{-# LANGUAGE GADTs           #-}
-{-# LANGUAGE TemplateHaskell #-}
-
 module Hydra.Core.Random.Language where
 
 import           Hydra.Prelude
@@ -21,3 +18,9 @@ type RandomL = Free RandomF
 
 instance Random RandomL where
   getRandomInt range = liftF $ GetRandomInt range id
+
+
+type ChurchRandomL = F RandomF
+
+instance Random ChurchRandomL where
+  getRandomInt range = liftFC $ GetRandomInt range id
