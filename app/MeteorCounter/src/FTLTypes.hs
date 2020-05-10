@@ -22,11 +22,15 @@ data AppState' m = AppState'
 delaysEnabled' :: AppState' m -> Bool
 delaysEnabled' = enableDelays . _config'
 
+dFactor' :: AppState' m -> Int
 dFactor' = delaysFactor . _config'
 
 storeTrackedMeteors' :: AppState' m -> Bool
 storeTrackedMeteors' = storeTracked . _config'
 
+doLogDiscovered' :: AppState' m -> Bool
 doLogDiscovered' = logDiscovered . _config'
+doLogTracked' :: AppState' m -> Bool
 doLogTracked'    = logTracked . _config'
+doLogTotal' :: AppState' m -> Bool
 doLogTotal'      = logTotal . _config'
