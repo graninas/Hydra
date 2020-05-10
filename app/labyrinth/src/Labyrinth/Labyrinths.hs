@@ -3,7 +3,6 @@ module Labyrinth.Labyrinths where
 import qualified Data.Map  as Map
 
 import           Labyrinth.Prelude
-import           Labyrinth.Types
 import           Labyrinth.Domain
 
 testLabyrinth1 :: Labyrinth

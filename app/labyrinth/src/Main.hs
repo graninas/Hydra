@@ -2,8 +2,6 @@ module Main where
 
 import           Labyrinth.Prelude
 
-import qualified Data.Map                   as Map
-
 import qualified Hydra.Domain               as D
 import qualified Hydra.Runtime              as R
 import qualified Hydra.Interpreters         as R
@@ -26,7 +24,7 @@ loggerCfg = D.LoggerConfig
 
 initAppState :: Labyrinth -> AppL AppState
 initAppState lab = do
-  let (bounds@(x, y), wormholes) = analyzeLabyrinth lab
+  let (bounds, wormholes) = analyzeLabyrinth lab
   let renderTemplate = renderSkeleton bounds
 
   labRenderVar     <- newVarIO renderTemplate

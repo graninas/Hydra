@@ -75,7 +75,7 @@ testMove st dir = do
       (MonolithWall, _)        -> ImpossibleMove "Step impossible: monolith wall"
       (RegularWall, _)         -> ImpossibleMove "Step impossible: wall"
       (Passage, Nothing)       -> InvalidMove $ "Cell not found: " +|| nextPos ||+ ""
-      (Passage, Just (cell, content)) -> SuccessfullMove nextPos cell content
+      (Passage, Just (nextCell, nextContent)) -> SuccessfullMove nextPos nextCell nextContent
       (Exit, _)                -> ExitFound hasTreasure
 
 getPlayerPos :: AppState -> LangL Pos
@@ -152,7 +152,7 @@ makeMove st dir = do
     InvalidMove msg     -> throwException $ InvalidOperation msg
     ImpossibleMove msg  -> addMoveMessage st msg
     ExitFound hasTreasure -> setGameState st $ PlayerIsAboutLeaving hasTreasure
-    SuccessfullMove newPos cell content -> do
+    SuccessfullMove newPos _ _ -> do
       addMoveMessage st "Step executed."
       setPlayerPos st newPos
       performPlayerContentEvent st

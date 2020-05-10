@@ -2,7 +2,6 @@ module Labyrinth.Render where
 
 import           Labyrinth.Prelude
 
-import qualified Data.Text                  as T
 import qualified Data.Map                   as Map
 
 import           Labyrinth.Types
@@ -50,6 +49,7 @@ mergeCellContent NoContent _ = fullSpace
 mergeCellContent Treasure _ = "T   "
 mergeCellContent (Wormhole n) _ | n < 10 = "  W" <> show n
 mergeCellContent (Wormhole n) _ | n >= 10 = "  W?"
+mergeCellContent content renderedContent = error $ "mergeCellContent: unexpected arguments: " <> show content <> ", " <> show renderedContent
 
 mergeCell :: Direction -> Wall -> String -> String
 mergeCell dir NoWall curW |
