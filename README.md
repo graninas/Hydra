@@ -64,7 +64,7 @@ $ stack exec labyrinth
 To load a subproject into GHCi, use the following command:
 
 ```bash
-$ stack exec labyrinth:exe:labyrinth
+$ stack ghci labyrinth:exe:labyrinth
 ```
 
 Sample applications
