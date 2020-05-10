@@ -144,13 +144,13 @@ submitObjectTemplate' template@(API.AstroObjectTemplate {..}) = do
 
 
 getObject :: AstroObjectId -> AppHandler (Maybe AstroObject)
-getObject = undefined
+getObject = error "not implemented"
 
 submitObjectPhysical :: AstroObjectId -> Physical -> AppHandler AstroObjectId
-submitObjectPhysical = undefined
+submitObjectPhysical = error "not implemented"
 
 submitObjectOrbital :: AstroObjectId -> Orbital -> AppHandler AstroObjectId
-submitObjectOrbital = undefined
+submitObjectOrbital = error "not implemented"
 
 meteors :: Maybe Int -> Maybe Int -> AppHandler Meteors
 meteors mbMass mbSize = runApp
