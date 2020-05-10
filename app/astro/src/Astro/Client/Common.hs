@@ -37,6 +37,11 @@ data Approach
   | GADT  -- ^ GADT
   deriving (Show, Read, Bounded, Enum)
 
+setPhysical :: Int -> Physical -> ClientM Int
+setOrbital :: Int -> Orbital -> ClientM Int
+setObjectTemplate :: API.AstroObjectTemplate -> ClientM Int
+getObject :: Int -> ClientM (Maybe AstroObject)
+
 meteors  :: Maybe Int -> Maybe Int -> ClientM Meteors
 meteor   :: API.MeteorTemplate     -> ClientM MeteorId
 asteroid :: API.AsteroidTemplate   -> ClientM AsteroidId
