@@ -16,7 +16,6 @@ import qualified Hydra.Language        as L
 
 import           Astro.Domain.Meteor   (MeteorId, Meteors)
 import           Astro.Domain.Asteroid (AsteroidId)
-import qualified Astro.Server          as Server
 import qualified Astro.API             as API
 
 
@@ -46,7 +45,7 @@ asteroid :: API.AsteroidTemplate   -> ClientM AsteroidId
   :<|> setOrbital
   :<|> setPhysical
   )
- ) = client Server.astroAPI
+ ) = client API.astroAPI
 
 reportMeteorHttp :: BaseUrl -> API.MeteorTemplate -> L.AppL (Either BSL.ByteString MeteorId)
 reportMeteorHttp url m = do
