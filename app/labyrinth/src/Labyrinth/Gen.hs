@@ -1,6 +1,7 @@
 module Labyrinth.Gen where
 
 import qualified Data.Map as Map
+import qualified Data.Set as Set
 
 import Labyrinth.Prelude
 import Labyrinth.Domain
@@ -20,74 +21,63 @@ generateGrid (xSize, ySize) = pure $ Map.fromList $ do
 
 generatePaths :: Bounds -> Labyrinth -> LangL Labyrinth
 generatePaths bounds@(xSize, ySize) grid = do
-  cellsLeftVar <- evalIO $ newIORef [(x, y) | x <- [0..xSize-1], y <- [0..ySize-1]]
-  generatePaths' bounds cellsLeftVar grid
+  let startCell = (0, 0)
+  pathVar    <- evalIO $ newIORef (startCell, [], Set.singleton startCell)
+  generatePaths' bounds grid pathVar
 
-getWallDirs :: Cell -> [Direction]
-getWallDirs (Cell l r u d)
-  =  [ DirLeft  | isWall l ]
-  <> [ DirRight | isWall r ]
-  <> [ DirUp    | isWall u ]
-  <> [ DirDown  | isWall d ]
+getWallDirs :: Labyrinth -> Pos -> [Direction]
+getWallDirs lab pos = case Map.lookup pos lab of
+  Nothing -> []
+  Just (Cell l r u d, _) ->
+    [ DirLeft  | isWall l ]
+    <> [ DirRight | isWall r ]
+    <> [ DirUp    | isWall u ]
+    <> [ DirDown  | isWall d ]
+
+backtrack
+  :: Bounds
+  -> Labyrinth
+  -> IORef (Pos, [Pos], Set.Set Pos)
+  -> LangL Labyrinth
+backtrack bounds lab pathVar = do
+  (p, ps, pSet) <- evalIO $ readIORef pathVar
+  case ps of
+    [] -> pure lab
+    (p' : ps') -> do
+      evalIO $ writeIORef pathVar (p', ps', pSet)
+      generatePaths' bounds lab pathVar
 
 generatePaths'
   :: Bounds
-  -> IORef [Pos]
   -> Labyrinth
+  -> IORef (Pos, [Pos], Set.Set Pos)
   -> LangL Labyrinth
-generatePaths' bounds cellsLeftVar lab = do
-  mbNextCellPos <- getNextCellPos cellsLeftVar
-  let mbNextCell = mbNextCellPos >>= (\pos -> (pos, ) <$> Map.lookup pos lab)
-  case mbNextCell of
-    Nothing -> pure lab
-    Just (pos, (c, cnt)) -> case getWallDirs c of
-      [] -> do
-        popCell cellsLeftVar
-        generatePaths' bounds cellsLeftVar lab
-      dirs -> do
-        nextDir <- (dirs !!) <$> getRandomInt (0, length dirs - 1)
-        lab' <- removeWalls' bounds lab pos nextDir
-        popCell cellsLeftVar
-        generatePaths' bounds cellsLeftVar lab'
+generatePaths' bounds lab pathVar = do
+  (p, ps, pSet) <- evalIO $ readIORef pathVar
+  let wDirs = getWallDirs lab p
+  putStrLn $ "G:> " <> show p <> ", " <> show (length ps) <> ", "
+    <> show wDirs <> ", " <> show (Set.size pSet)
 
--- generatePaths'
---   :: Bounds
---   -> IORef [Pos]
---   -> Labyrinth
---   -> LangL Labyrinth
--- generatePaths' bounds cellsLeftVar lab = do
---   mbNextCell <- getNextCellPos cellsLeftVar
---   nextDir    <- getRndDirection
---   let onBounds' pos = onBounds bounds pos nextDir
---   case mbNextCell of
---     Nothing -> pure lab
---     Just pos
---       | onBounds' pos -> generatePaths' bounds cellsLeftVar lab
---       | otherwise     -> do
---           mbLab' <- removeWalls bounds lab pos nextDir
---           case mbLab' of
---             Nothing -> generatePaths' bounds cellsLeftVar lab
---             Just lab' -> do
---                 popCell cellsLeftVar
---                 generatePaths' bounds cellsLeftVar lab'
-
-getNextCellPos :: IORef [Pos] -> LangL (Maybe Pos)
-getNextCellPos cellsLeftVar = do
-  cellsLeft <- evalIO $ readIORef cellsLeftVar
-  case cellsLeft of
-    [] -> pure Nothing
-    (c:_) -> pure $ Just c
-
-popCell :: IORef [Pos] -> LangL ()
-popCell cellsLeftVar = do
-  cellsLeft <- evalIO $ readIORef cellsLeftVar
-  case cellsLeft of
-    [] -> pure ()
-    (_:cs) -> evalIO $ writeIORef cellsLeftVar cs
+  case wDirs of
+    []     -> backtrack bounds lab pathVar
+    ws -> do
+      rndWIdx <- toEnum <$> getRandomInt (0, length ws - 1)
+      let rndWDir = ws !! rndWIdx
+      let p'      = calcNextPos p rndWDir
+      let pSet'   = Set.insert p' pSet
+      case Set.member p' pSet of
+        False -> do
+          lab' <- removeWalls' lab p rndWDir
+          evalIO $ writeIORef pathVar (p', p:ps, pSet')
+          generatePaths' bounds lab' pathVar
+        True -> do
+          evalIO $ writeIORef pathVar (p, ps, pSet)
+          backtrack bounds lab pathVar
 
 
-removeWalls' :: Bounds -> Labyrinth -> Pos -> Direction -> LangL Labyrinth
-removeWalls' bounds lab pos dir = do
+
+removeWalls' :: Labyrinth -> Pos -> Direction -> LangL Labyrinth
+removeWalls' lab pos dir = do
   let coPos = calcNextPos pos dir
   let coDir = oppositeDir dir
   let mbC1 = Map.lookup pos lab
@@ -96,9 +86,9 @@ removeWalls' bounds lab pos dir = do
     (Just (c1, cnt1), Just (c2, cnt2)) -> do
       let noWallC1 = removeWall' c1 dir
       let noWallC2 = removeWall' c2 coDir
-      pure
-        $ Map.insert pos   (noWallC1, cnt1)
-        $ Map.insert coPos (noWallC2, cnt2) lab
+      let lab' = Map.insert pos   (noWallC1, cnt1)
+               $ Map.insert coPos (noWallC2, cnt2) lab
+      pure lab'
     _ -> do
       printLabyrinth lab
       throwException
@@ -113,44 +103,9 @@ removeWalls' bounds lab pos dir = do
           <> show coDir
           <> ", cells:"
           <> show (mbC1, mbC2)
-          <> ", bounds="
-          <> show bounds
-
-removeWalls :: Bounds -> Labyrinth -> Pos -> Direction -> LangL (Maybe Labyrinth)
-removeWalls bounds lab pos dir = do
-  let coPos = calcNextPos pos dir
-  let coDir = oppositeDir dir
-  let mbC1 = Map.lookup pos lab
-  let mbC2 = Map.lookup coPos lab
-  case (mbC1, mbC2) of
-    (Just (c1, cnt1), Just (c2, cnt2)) -> do
-      let (removed, noWallC1) = removeWall c1 dir
-      let (_, noWallC2)       = removeWall c2 coDir
-      if removed
-          then pure $ Just
-            $ Map.insert pos   (noWallC1, cnt1)
-            $ Map.insert coPos (noWallC2, cnt2) lab
-      else pure Nothing
-    _ -> do
-      printLabyrinth lab
-      throwException
-        $ InvalidOperation
-        $ "removeWalls: Cells not found. pos="
-          <> show pos
-          <> ", coPos="
-          <> show coPos
-          <> ", dir="
-          <> show dir
-          <> ", coDir="
-          <> show coDir
-          <> ", cells:"
-          <> show (mbC1, mbC2)
-          <> ", bounds="
-          <> show bounds
 
 
-getRndDirection :: LangL Direction
-getRndDirection = toEnum <$> getRandomInt (0, 3)
+
 
 generateLabyrinth :: LangL Labyrinth
 generateLabyrinth = do
