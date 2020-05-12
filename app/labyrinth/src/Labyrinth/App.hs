@@ -7,6 +7,7 @@ import Labyrinth.Prelude       as L
 import Labyrinth.Domain
 import Labyrinth.Types
 import Labyrinth.Render
+import Labyrinth.Algorithms
 import Labyrinth.Lens
 
 data Passage
@@ -53,11 +54,6 @@ loosing = "You lose..."
 unknownCommand :: String -> String
 unknownCommand cmdStr = "Unknown command: " <> cmdStr
 
-calcNextPos :: (Int, Int) -> Direction -> (Int, Int)
-calcNextPos (x, y) DirUp    = (x, y - 1)
-calcNextPos (x, y) DirDown  = (x, y + 1)
-calcNextPos (x, y) DirLeft  = (x - 1, y)
-calcNextPos (x, y) DirRight = (x + 1, y)
 
 -- Testing the move. This function doesn't change game state.
 testMove :: AppState -> Direction -> LangL MovingResult

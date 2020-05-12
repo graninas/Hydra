@@ -11,6 +11,7 @@ import           Labyrinth.Types
 import           Labyrinth.Domain
 import           Labyrinth.Render
 import           Labyrinth.Labyrinths
+import           Labyrinth.Algorithms
 import           Labyrinth.Gen
 
 loggerCfg :: D.LoggerConfig

@@ -16,7 +16,7 @@ data Direction
   | DirDown
   | DirLeft
   | DirRight
-  deriving (Show, Read, Eq)
+  deriving (Show, Read, Eq, Bounded, Enum)
 
 data Wall
   = NoWall
@@ -39,13 +39,3 @@ data Content
   deriving (Show, Read, Eq)
 
 type Labyrinth = Map Pos (Cell, Content)
-
-increaseBounds :: Bounds -> Pos -> Bounds
-increaseBounds (x', y') (x, y) = (max x' (x + 1), max y' (y + 1))
-
-analyzeLabyrinth :: Labyrinth -> (Bounds, Wormholes)
-analyzeLabyrinth lab = Map.foldrWithKey f ((0, 0), Map.empty) lab
-  where
-    f :: Pos -> (Cell, Content) -> (Bounds, Wormholes) -> (Bounds, Wormholes)
-    f pos (_, Wormhole n) (bounds, wormholes) = (increaseBounds bounds pos, Map.insert n pos wormholes)
-    f pos _ (bounds, wormholes) = (increaseBounds bounds pos, wormholes)
