@@ -62,15 +62,21 @@ generatePaths' bounds lab pathVar = do
     []     -> backtrack bounds lab pathVar
     ws -> do
       rndWIdx <- toEnum <$> getRandomInt (0, length ws - 1)
+      -- probabilty of walls removing to the visited cell
+      chance <- getRandomInt (0, 100)
       let rndWDir = ws !! rndWIdx
       let p'      = calcNextPos p rndWDir
       let pSet'   = Set.insert p' pSet
-      case Set.member p' pSet of
-        False -> do
+      case (Set.member p' pSet, chance < 10) of
+        (False, _) -> do
           lab' <- removeWalls' lab p rndWDir
           evalIO $ writeIORef pathVar (p', p:ps, pSet')
           generatePaths' bounds lab' pathVar
-        True -> do
+        (True, True) -> do
+          lab' <- removeWalls' lab p rndWDir
+          evalIO $ writeIORef pathVar (p, ps, pSet)
+          generatePaths' bounds lab' pathVar
+        (True, False) -> do
           evalIO $ writeIORef pathVar (p, ps, pSet)
           backtrack bounds lab pathVar
 
