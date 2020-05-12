@@ -44,6 +44,20 @@ generateExits bounds@(xSize, ySize) cnt lab = do
       Nothing -> error $ "placeExits: Cell not found: " <> show (x,y)
       Just (c, cont) -> placeExits (Map.insert (x,y) (setExit c dir, cont) lab) ps
 
+generateWormholes :: Bounds -> Int -> Labyrinth -> LangL Labyrinth
+generateWormholes bounds@(xSize, ySize) cnt lab = do
+  xs <- replicateM cnt $ getRandomInt (0, xSize - 1)
+  ys <- replicateM cnt $ getRandomInt (0, ySize - 1)
+  let ps = zip xs ys
+  pure $ placeWormholes lab 0 ps
+  where
+    placeWormholes :: Labyrinth -> Int -> [Pos] -> Labyrinth
+    placeWormholes lab _ [] = lab
+    placeWormholes lab idx (p:ps) =
+      placeWormholes (Map.update (placeWormhole idx) p lab) (idx + 1) ps
+    placeWormhole :: Int -> (Cell, Content) -> Maybe (Cell, Content)
+    placeWormhole idx (c, _) = Just (c, Wormhole idx)
+
 getWallDirs :: Labyrinth -> Pos -> [Direction]
 getWallDirs lab pos = case Map.lookup pos lab of
   Nothing -> []
@@ -134,5 +148,5 @@ generateLabyrinth = do
   generateGrid bounds
     >>= generatePaths bounds
     >>= generateExits bounds exits
-    -- >>= generateWormholes wormholes
+    >>= generateWormholes bounds wormholes
     -- >>= generateTreasure
