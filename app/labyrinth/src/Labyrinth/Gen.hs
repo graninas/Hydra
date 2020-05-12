@@ -178,13 +178,16 @@ removeWalls' lab pos dir = do
           <> ", cells:"
           <> show (mbC1, mbC2)
 
-generateLabyrinth :: LangL Labyrinth
-generateLabyrinth = do
+generateRndLabyrinth :: LangL Labyrinth
+generateRndLabyrinth = do
   xSize <- getRandomInt (4, 10)
   ySize <- getRandomInt (4, 10)
-  exits <- getRandomInt (1, 4)
+  generateLabyrinth (xSize, ySize)
+
+generateLabyrinth :: Bounds -> LangL Labyrinth
+generateLabyrinth bounds = do
+  exits     <- getRandomInt (1, 4)
   wormholes <- getRandomInt (2, 5)
-  let bounds = (xSize, ySize)
   generateGrid bounds
     >>= generatePaths bounds
     >>= generateExits bounds exits

@@ -13,22 +13,23 @@ data Inventory = Inventory
   }
 
 data GameState
-  = PlayerMove
+  = GameStart
+  | GameFinished
+  | PlayerMove
   | PlayerIsAboutLeaving HasTreasure
   | PlayerIsAboutLossLeavingConfirmation
-  | GameFinished
   deriving (Show, Eq)
 
 data AppState = AppState
   { _labyrinth            :: StateVar Labyrinth
-  , _labyrinthSize        :: StateVar Bounds
-  , _labRenderTemplate    :: LabRender
+  , _labBounds            :: StateVar Bounds
+  , _labRenderTemplate    :: StateVar LabRender
   , _labRenderVar         :: StateVar LabRender
-  , _wormholes            :: Wormholes
+  , _labWormholes         :: StateVar Wormholes
   , _playerPos            :: StateVar Pos
   , _playerInventory      :: Inventory
   , _gameState            :: StateVar GameState
-  , _moveMessages         :: StateVar [String]
+  , _gameMessages         :: StateVar [String]
   }
 
 data AppException

@@ -1,6 +1,7 @@
 module Labyrinth.App where
 
 import qualified Data.Map      as Map
+import qualified Data.String   as Str
 
 import qualified Hydra.Domain  as D
 import Labyrinth.Prelude       as L
@@ -8,6 +9,7 @@ import Labyrinth.Domain
 import Labyrinth.Types
 import Labyrinth.Render
 import Labyrinth.Algorithms
+import Labyrinth.Gen
 import Labyrinth.Lens
 
 data Passage
@@ -100,21 +102,24 @@ setGameState st = writeVarIO (st ^. gameState)
 getGameState :: AppState -> LangL GameState
 getGameState st = readVarIO $ st ^. gameState
 
-nextWormhole :: AppState -> Int -> Int
-nextWormhole st n | (n + 1 < Map.size (st ^. wormholes)) = n + 1
-                  | otherwise = 0
+nextWormhole :: Wormholes -> Int -> Int
+nextWormhole wms n | (n + 1 < Map.size wms) = n + 1
+                   | otherwise = 0
 
 executeWormhole :: AppState -> Int -> LangL ()
-executeWormhole st (nextWormhole st -> n) = case Map.lookup n (st ^. wormholes)  of
-  Nothing  -> throwException $ InvalidOperation $ "Wormhole not found: " +|| n ||+ ""
-  Just pos -> setPlayerPos st pos
+executeWormhole st prevWormhole = do
+  wormholes <- readVarIO $ st ^. labWormholes
+  let n = nextWormhole wormholes prevWormhole
+  case Map.lookup n wormholes  of
+    Nothing  -> throwException $ InvalidOperation $ "Wormhole not found: " +|| n ||+ ""
+    Just pos -> setPlayerPos st pos
 
 cancelPlayerLeaving :: AppState -> LangL ()
 cancelPlayerLeaving st = do
   gameSt <- getGameState st
   case gameSt of
-    PlayerIsAboutLeaving _               -> addMoveMessage st "Okay, continue."
-    PlayerIsAboutLossLeavingConfirmation -> addMoveMessage st "Okay, continue."
+    PlayerIsAboutLeaving _               -> addGameMessage st "Okay, continue."
+    PlayerIsAboutLossLeavingConfirmation -> addGameMessage st "Okay, continue."
     _ -> pure ()
   setGameState st PlayerMove
 
@@ -128,17 +133,17 @@ performPlayerContentEvent st = do
 performPlayerContentEvent' :: AppState -> Pos -> Content -> LangL ()
 performPlayerContentEvent' _ _ NoContent = pure ()
 performPlayerContentEvent' st pos Treasure = do
-  addMoveMessage st "You found a treasure!"
+  addGameMessage st "You found a treasure!"
   writeVarIO (st ^. playerInventory . treasure) True
   setCellContent st pos NoContent
 performPlayerContentEvent' st _ (Wormhole n) = do
-  addMoveMessage st $ "You found a wormhole. You have been moved to the next wormhole."
+  addGameMessage st $ "You found a wormhole. You have been moved to the next wormhole."
   executeWormhole st n
 
-addMoveMessage :: AppState -> String -> LangL ()
-addMoveMessage st msg = do
-  msgs <- readVarIO $ st ^. moveMessages
-  writeVarIO (st ^. moveMessages) $ msgs ++ [msg]
+addGameMessage :: AppState -> String -> LangL ()
+addGameMessage st msg = do
+  msgs <- readVarIO $ st ^. gameMessages
+  writeVarIO (st ^. gameMessages) $ msgs ++ [msg]
 
 makeMove :: AppState -> Direction -> LangL ()
 makeMove st dir = do
@@ -146,10 +151,10 @@ makeMove st dir = do
   moveResult <- testMove st dir
   case moveResult of
     InvalidMove msg     -> throwException $ InvalidOperation msg
-    ImpossibleMove msg  -> addMoveMessage st msg
+    ImpossibleMove msg  -> addGameMessage st msg
     ExitFound hasTreasure -> setGameState st $ PlayerIsAboutLeaving hasTreasure
     SuccessfullMove newPos _ _ -> do
-      addMoveMessage st "Step executed."
+      addGameMessage st "Step executed."
       setPlayerPos st newPos
       performPlayerContentEvent st
 
@@ -166,10 +171,10 @@ handleYes st = do
   gameSt <- getGameState st
   case gameSt of
     PlayerIsAboutLossLeavingConfirmation -> do
-      addMoveMessage st loosing
+      addGameMessage st loosing
       setGameState st GameFinished
     PlayerIsAboutLeaving _ -> throwException $ InvalidOperation "handleYes: Invalid state: PlayerIsAboutLeaving"
-    _ -> addMoveMessage st $ unknownCommand "yes"
+    _ -> addGameMessage st $ unknownCommand "yes"
 
 handleNo :: AppState -> LangL ()
 handleNo st = do
@@ -177,14 +182,13 @@ handleNo st = do
   case gameSt of
     PlayerIsAboutLeaving _ -> throwException $ InvalidOperation "handleNo: Invalid state: PlayerIsAboutLeaving"
     PlayerIsAboutLossLeavingConfirmation -> cancelPlayerLeaving st
-    _ -> addMoveMessage st $ unknownCommand "no"
+    _ -> addGameMessage st $ unknownCommand "no"
 
 printLab :: AppState -> LangL ()
 printLab st = do
-  lab               <- readVarIO $ st ^. labyrinth
-  bounds            <- readVarIO $ st ^. labyrinthSize
-  plPos             <- readVarIO $ st ^. playerPos
-  let template = st ^. labRenderTemplate
+  lab        <- readVarIO $ st ^. labyrinth
+  plPos      <- readVarIO $ st ^. playerPos
+  template   <- readVarIO $ st ^. labRenderTemplate
 
   printLabRender' $ renderLabyrinth' template lab plPos
 
@@ -193,20 +197,21 @@ onStep st _ = do
   gameSt <- scenario $ getGameState st
   isFinished <- scenario $ case gameSt of
     PlayerIsAboutLeaving True  -> do
-      addMoveMessage st winning
+      addGameMessage st winning
       setGameState st GameFinished
       pure True
     PlayerIsAboutLeaving False -> do
-      addMoveMessage st leaveWithoutTreasure
+      addGameMessage st leaveWithoutTreasure
       setGameState st PlayerIsAboutLossLeavingConfirmation
       pure False
     PlayerIsAboutLossLeavingConfirmation ->
       throwException $ InvalidOperation "OnStep: Invalid state: PlayerIsAboutLossLeavingConfirmation"
     PlayerMove   -> pure False
     GameFinished -> pure True
+    GameStart    -> pure False
 
-  msgs <- readVarIO $ st ^. moveMessages
-  writeVarIO (st ^. moveMessages) []
+  msgs <- readVarIO $ st ^. gameMessages
+  writeVarIO (st ^. gameMessages) []
   let outputMsg = intercalate "\n" msgs
 
   case isFinished of
@@ -215,29 +220,71 @@ onStep st _ = do
     False | null outputMsg -> pure D.CliLoop
           | otherwise      -> pure $ D.CliOutputMsg outputMsg
 
-onUnknownCommand :: String -> AppL CliAction
-onUnknownCommand ""     = pure D.CliLoop
-onUnknownCommand cmdStr = pure $ D.CliOutputMsg $ unknownCommand cmdStr
+startGame :: AppState -> Int -> LangL String
+startGame st s = generateLabyrinth (s, s) >>= startGame' st
+
+startRndGame :: AppState -> LangL ()
+startRndGame st = do
+  lab <- generateRndLabyrinth
+  msg <- startGame' st lab
+  addGameMessage st msg
+
+startGame' :: AppState -> Labyrinth -> LangL String
+startGame' st lab = do
+  let (bounds, wormholes) = analyzeLabyrinth lab
+  let renderTemplate      = renderSkeleton bounds
+
+  writeVarIO (st ^. labyrinth) lab
+  writeVarIO (st ^. labBounds) bounds
+  writeVarIO (st ^. labRenderTemplate) renderTemplate
+  writeVarIO (st ^. labRenderVar) renderTemplate
+  writeVarIO (st ^. labWormholes) wormholes
+  writeVarIO (st ^. playerPos) (0, 0)
+  writeVarIO (st ^. playerInventory . treasure) False
+  writeVarIO (st ^. gameState) PlayerMove
+
+  pure "New game started."
+
+
+onUnknownCommand :: AppState -> String -> AppL CliAction
+onUnknownCommand _ ""     = pure D.CliLoop
+onUnknownCommand st cmdStr = do
+  case Str.words cmdStr of
+    ["start", sizeStr] -> case readMaybe sizeStr of
+      Nothing -> pure $ D.CliOutputMsg $ "start command should have 1 int argument."
+      Just s  -> scenario (startGame st s) >>= pure . D.CliOutputMsg
+    _ -> pure $ D.CliOutputMsg $ unknownCommand cmdStr
+
+onPlayerMove :: AppState -> LangL () -> LangL ()
+onPlayerMove st act = do
+  gs <- getGameState st
+  case gs of
+    GameFinished -> addGameMessage st "Game finished. Please type 'start <lab_size>' to start a new game."
+    GameStart -> addGameMessage st "Game is not yet started. Please type 'start <lab_size>' to start a new game."
+    _ -> act
 
 app :: AppState -> AppL ()
 app st = do
   scenario $ putStrLn "Labyrinth (aka Terra Incognita) game"
+  scenario $ putStrLn "Please type 'start <lab_size>' to start a new game."
 
-  cliToken <- cli (onStep st) onUnknownCommand $ do
-    cmd "go up"    $ makeMove st DirUp
-    cmd "go down"  $ makeMove st DirDown
-    cmd "go left"  $ makeMove st DirLeft
-    cmd "go right" $ makeMove st DirRight
+  cliToken <- cli (onStep st) (onUnknownCommand st) $ do
+    cmd "go up"    $ onPlayerMove st $ makeMove st DirUp
+    cmd "go down"  $ onPlayerMove st $ makeMove st DirDown
+    cmd "go left"  $ onPlayerMove st $ makeMove st DirLeft
+    cmd "go right" $ onPlayerMove st $ makeMove st DirRight
 
-    cmd "up"       $ makeMove st DirUp
-    cmd "down"     $ makeMove st DirDown
-    cmd "left"     $ makeMove st DirLeft
-    cmd "right"    $ makeMove st DirRight
+    cmd "up"       $ onPlayerMove st $ makeMove st DirUp
+    cmd "down"     $ onPlayerMove st $ makeMove st DirDown
+    cmd "left"     $ onPlayerMove st $ makeMove st DirLeft
+    cmd "right"    $ onPlayerMove st $ makeMove st DirRight
 
     cmd "yes"      $ handleYes st
     cmd "no"       $ handleNo st
 
-    cmd "skip"     $ evalSkip st
+    cmd "skip"     $ onPlayerMove st $ evalSkip st
+
+    cmd "start"    $ startRndGame st
 
     cmd "quit"     $ quit st
     cmd "q"        $ quit st

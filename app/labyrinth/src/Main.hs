@@ -12,7 +12,6 @@ import           Labyrinth.Domain
 import           Labyrinth.Render
 import           Labyrinth.Labyrinths
 import           Labyrinth.Algorithms
-import           Labyrinth.Gen
 
 loggerCfg :: D.LoggerConfig
 loggerCfg = D.LoggerConfig
@@ -28,20 +27,22 @@ initAppState lab = do
   let (bounds, wormholes) = analyzeLabyrinth lab
   let renderTemplate = renderSkeleton bounds
 
-  labRenderVar     <- newVarIO renderTemplate
-  labVar           <- newVarIO lab
-  labSizeVar       <- newVarIO bounds
-  posVar           <- newVarIO (0, 0)
-  inv              <- Inventory <$> newVarIO False
-  gameStateVar     <- newVarIO PlayerMove
-  moveMsgsVar      <- newVarIO []
+  renderTemplateVar <- newVarIO renderTemplate
+  labRenderVar      <- newVarIO renderTemplate
+  labVar            <- newVarIO lab
+  labBoundsVar      <- newVarIO bounds
+  wormholesVar      <- newVarIO wormholes 
+  posVar            <- newVarIO (0, 0)
+  inv               <- Inventory <$> newVarIO False
+  gameStateVar      <- newVarIO GameStart
+  moveMsgsVar       <- newVarIO []
 
   pure $ AppState
     labVar
-    labSizeVar
-    renderTemplate
+    labBoundsVar
+    renderTemplateVar
     labRenderVar
-    wormholes
+    wormholesVar
     posVar
     inv
     gameStateVar
