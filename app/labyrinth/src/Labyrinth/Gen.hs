@@ -47,6 +47,15 @@ generatePaths bounds@(xSize, ySize) grid = do
           lab' <- generatePaths' bounds lab chance pathVar visitedVar nonVisitedVar
           generatePaths'' lab' 100 visitedVar nonVisitedVar
 
+generateTreasure :: Bounds -> Labyrinth -> LangL Labyrinth
+generateTreasure bounds@(xSize, ySize) lab = do
+  x <- getRandomInt (0, xSize - 1)
+  y <- getRandomInt (0, ySize - 1)
+  case Map.lookup (x,y) lab of
+    Nothing -> error $ "generateTreasure: cell not found: " <> show (x, y)
+    Just (c, NoContent) -> pure $ Map.insert (x, y) (c, Treasure) lab
+    _ -> generateTreasure bounds lab
+
 generateExits :: Bounds -> Int -> Labyrinth -> LangL Labyrinth
 generateExits (xSize, ySize) cnt lab = do
   edgeTags <- replicateM (cnt * 5) (toEnum <$> getRandomInt (0, 3))
@@ -180,4 +189,4 @@ generateLabyrinth = do
     >>= generatePaths bounds
     >>= generateExits bounds exits
     >>= generateWormholes bounds wormholes
-    -- >>= generateTreasure
+    >>= generateTreasure bounds
