@@ -2,6 +2,7 @@ module Labyrinth.Gen where
 
 import qualified Data.Map as Map
 import qualified Data.Set as Set
+import qualified Data.List as List
 
 import Labyrinth.Prelude
 import Labyrinth.Domain
@@ -24,6 +25,24 @@ generatePaths bounds@(xSize, ySize) grid = do
   let startCell = (0, 0)
   pathVar    <- evalIO $ newIORef (startCell, [], Set.singleton startCell)
   generatePaths' bounds grid pathVar
+
+generateExits :: Bounds -> Int -> Labyrinth -> LangL Labyrinth
+generateExits bounds@(xSize, ySize) cnt lab = do
+  edgeTags <- replicateM (cnt * 5) (toEnum <$> getRandomInt (0, 3))
+  exits'   <- mapM toExit edgeTags
+  pure $ placeExits lab $ take cnt $ List.nub exits'
+  where
+    toExit :: Direction -> LangL (Direction, Int, Int)
+    toExit DirUp    = (DirUp,,0)           <$> getRandomInt (0, xSize - 1)
+    toExit DirDown  = (DirDown,,ySize-1)   <$> getRandomInt (0, xSize - 1)
+    toExit DirLeft  = (DirLeft,0,)         <$> getRandomInt (0, ySize - 1)
+    toExit DirRight = (DirRight, xSize-1,) <$> getRandomInt (0, ySize - 1)
+
+    placeExits :: Labyrinth -> [(Direction, Int, Int)] -> Labyrinth
+    placeExits lab []  = lab
+    placeExits lab ((dir,x,y):ps) = case Map.lookup (x,y) lab of
+      Nothing -> error $ "placeExits: Cell not found: " <> show (x,y)
+      Just (c, cont) -> placeExits (Map.insert (x,y) (setExit c dir, cont) lab) ps
 
 getWallDirs :: Labyrinth -> Pos -> [Direction]
 getWallDirs lab pos = case Map.lookup pos lab of
@@ -55,11 +74,8 @@ generatePaths'
 generatePaths' bounds lab pathVar = do
   (p, ps, pSet) <- evalIO $ readIORef pathVar
   let wDirs = getWallDirs lab p
-  putStrLn $ "G:> " <> show p <> ", " <> show (length ps) <> ", "
-    <> show wDirs <> ", " <> show (Set.size pSet)
-
   case wDirs of
-    []     -> backtrack bounds lab pathVar
+    [] -> backtrack bounds lab pathVar
     ws -> do
       rndWIdx <- toEnum <$> getRandomInt (0, length ws - 1)
       -- probabilty of walls removing to the visited cell
@@ -79,8 +95,6 @@ generatePaths' bounds lab pathVar = do
         (True, False) -> do
           evalIO $ writeIORef pathVar (p, ps, pSet)
           backtrack bounds lab pathVar
-
-
 
 removeWalls' :: Labyrinth -> Pos -> Direction -> LangL Labyrinth
 removeWalls' lab pos dir = do
@@ -110,17 +124,15 @@ removeWalls' lab pos dir = do
           <> ", cells:"
           <> show (mbC1, mbC2)
 
-
-
-
 generateLabyrinth :: LangL Labyrinth
 generateLabyrinth = do
   xSize <- getRandomInt (4, 10)
-  -- ySize <- getRandomInt (4, 10)
+  ySize <- getRandomInt (4, 10)
   exits <- getRandomInt (1, 4)
   wormholes <- getRandomInt (2, 5)
-  generateGrid (xSize, xSize)
-    >>= generatePaths (xSize, xSize)
-    -- >>= generateExits exits
+  let bounds = (xSize, ySize)
+  generateGrid bounds
+    >>= generatePaths bounds
+    >>= generateExits bounds exits
     -- >>= generateWormholes wormholes
     -- >>= generateTreasure

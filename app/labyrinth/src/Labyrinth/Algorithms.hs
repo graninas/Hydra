@@ -41,6 +41,12 @@ removeWall (Cell l r u d) DirDown  = (isWall d, Cell l r u NoWall)
 removeWall (Cell l r u d) DirLeft  = (isWall l, Cell NoWall r u d)
 removeWall (Cell l r u d) DirRight = (isWall r, Cell l NoWall u d)
 
+setExit :: Cell -> Direction -> Cell
+setExit (Cell l r _ d) DirUp    = Cell l r (Monolith True) d
+setExit (Cell l r u _) DirDown  = Cell l r u (Monolith True)
+setExit (Cell _ r u d) DirLeft  = Cell (Monolith True) r u d
+setExit (Cell l _ u d) DirRight = Cell l (Monolith True) u d
+
 onBounds :: Bounds -> Pos -> Direction -> Bool
 onBounds (_, ySize) (x, y) DirUp    = y - 1 <= 0
 onBounds (_, ySize) (x, y) DirDown  = y + 1 >= ySize
