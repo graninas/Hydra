@@ -10,13 +10,11 @@ module Astro.Client.ReaderT
 
 import           Hydra.Prelude
 import qualified Data.ByteString.Lazy  as BSL
-import           Servant.Client        (BaseUrl(..), Scheme(..))
 
-import qualified Hydra.Domain          as D
 import qualified Hydra.Language        as L
 
 import qualified Astro.API             as API
-import           Astro.Domain.Meteor   (MeteorId, Meteors)
+import           Astro.Domain.Meteor   (MeteorId)
 import           Astro.Domain.Asteroid (AsteroidId)
 import           Astro.Client.Common   (ReportChannel(..),
   tryParseCmd, reportMeteorTcp, reportAsteroidTcp, reportMeteorHttp,

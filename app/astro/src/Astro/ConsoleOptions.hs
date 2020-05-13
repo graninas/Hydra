@@ -32,7 +32,7 @@ data ServerOptions = ServerOptions
 data RelDbOptions = UseSqliteDb String | UseMySqlDb URI
 
 instance Show RelDbOptions where
-    show (UseSqliteDb path) = path
+    show (UseSqliteDb dbFilePath) = dbFilePath
     show (UseMySqlDb uri) = show uri
 
 data ClientOptions = ClientOptions
@@ -44,6 +44,7 @@ parseConsoleOptions :: IO ConsoleOptions
 parseConsoleOptions
     = execParser $ info (consoleOptionParser <**> helper) fullDesc
 
+consoleOptionParser :: Parser ConsoleOptions
 consoleOptionParser =
     ConsoleOptions
     <$> hsubparser
@@ -86,10 +87,12 @@ serverOptionParser
                                      <> value 8080
                                      )
 
+filePathParser :: ReadM RelDbOptions
 filePathParser = eitherReader parse
     where
-      parse path = Right . UseSqliteDb $ path
+      parse = Right . UseSqliteDb
 
+uriParser :: ReadM RelDbOptions
 uriParser = eitherReader parse
     where
       parse uri = maybe err (Right . UseMySqlDb) parsed
@@ -116,6 +119,7 @@ clientOptionParser
                       <> value HttpChannel
                       ))
 
+channelParser :: ReadM ReportChannel
 channelParser = eitherReader parse
     where
       parse "http" = Right HttpChannel

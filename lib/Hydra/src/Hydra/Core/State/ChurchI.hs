@@ -8,8 +8,6 @@ import qualified Hydra.Core.Domain                      as D
 import qualified Hydra.Core.RLens                       as RLens
 import qualified Hydra.Core.Runtime                     as R
 import qualified Hydra.Core.State.ChurchL               as CL
-import qualified Hydra.Core.State.Class                 as L
-import qualified Hydra.Core.State.Language              as L
 import           Hydra.Core.State.STM
 
 import           Hydra.Core.Logger.Impl.StmLoggerChurch (runStmLoggerL)

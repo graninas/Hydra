@@ -2,6 +2,7 @@
 
 module Labyrinth.Types where
 
+
 import           Labyrinth.Prelude          as L
 import           Labyrinth.Domain
 

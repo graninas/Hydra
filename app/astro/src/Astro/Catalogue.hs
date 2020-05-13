@@ -1,18 +1,14 @@
 module Astro.Catalogue where
 
-import qualified Data.Map       as Map
-import qualified Data.Set       as Set
 import qualified Data.Time.Clock as Time
 
 import qualified Hydra.Domain   as D
 import qualified Hydra.Language as L
 import           Hydra.Prelude
-import qualified Hydra.Runtime  as R
 
 import qualified Database.Beam as B
 import qualified Database.Beam.Sqlite as BS
-import qualified Database.Beam.Backend.SQL as B
-import           Database.Beam ((==.), (&&.), (<-.), (/=.), (==?.))
+import           Database.Beam ((==.), (&&.))
 
 import           Astro.Types
 import           Astro.Lens
@@ -60,18 +56,18 @@ initState cfg = do
     Left err -> do
       L.logError $ "Failed to init KV DB catalogue: " +|| err ||+ ""
       error $ "Failed to init KV DB catalogue: " +|| err ||+ ""    -- TODO
-    Right astroKVDB -> do
+    Right astroKVDb -> do
       L.logInfo "KV DB initizlied."
-      totalMeteors <- L.newVarIO 0
+      totalMeteorsVar <- L.newVarIO 0
       pure $ AppState
-        { _astroKVDB = astroKVDB
-        , _totalMeteors = totalMeteors
+        { _astroKVDB = astroKVDb
+        , _totalMeteors = totalMeteorsVar
         , _config = cfg
         }
 
 
 doOrFail' :: Show e => (Text -> AppException) -> L.AppL (Either e a) -> L.AppL a
-doOrFail' excF act = act >>= \case
+doOrFail' _ act = act >>= \case
   Left e  -> error $ show e
   Right a -> pure a
 
@@ -152,4 +148,4 @@ withDB cfg act = connectOrFail cfg >>= act
 
 
 createObjectTemplate :: API.AstroObjectTemplate -> L.AppL AstroObjectId
-createObjectTemplate template = error "Not implemented yet"
+createObjectTemplate _ = error "Not implemented yet"

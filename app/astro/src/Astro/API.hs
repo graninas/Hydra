@@ -15,7 +15,6 @@ import           Astro.Domain.Meteor
 import           Astro.Domain.Asteroid
 import           Astro.Domain.Types
 import           Astro.Domain.AstroObject
-import           Astro.Catalogue
 
 
 type AstroAPI =

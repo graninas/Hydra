@@ -86,7 +86,7 @@ interpretLangF coreRt (L.GetSqlDBConnection cfg next) = do
       $ next $ Left $ D.DBError D.ConnectionDoesNotExist
       $ "Connection for " <> show connTag <> " not found."
 
-interpretLangF _      (L.ThrowException exc next) = throwIO exc
+interpretLangF _      (L.ThrowException exc _) = throwIO exc
 
 interpretLangF coreRt (L.RunSafely act next) = do
   eResult <- try $ runLangL coreRt act

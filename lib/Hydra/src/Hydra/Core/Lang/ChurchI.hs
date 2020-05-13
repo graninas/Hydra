@@ -23,7 +23,6 @@ interpretLangF coreRt (CL.EvalLogger msg next) =
     next <$> runLoggerL (coreRt ^. RLens.loggerRuntime . RLens.hsLoggerHandle) msg
 interpretLangF _      (CL.EvalRandom  s next)        = next <$> runRandomL s
 interpretLangF _      (CL.EvalIO f next)             = next <$> f
-interpretLangF _ _ = error "Not implemented."
 
 -- | Runs core lang.
 runLangL :: R.CoreRuntime -> CL.LangL a -> IO a

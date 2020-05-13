@@ -12,17 +12,8 @@ import           Control.Monad
 import           System.Process (readCreateProcess, shell)
 import           Network.Wai.Handler.Warp (run)
 import           Servant
-import           Data.Time
-import qualified Data.Map      as Map
-import qualified Data.Set      as Set
-import           Data.Time.Clock (UTCTime)
-import qualified Database.Beam as B
-import qualified Database.Beam.Sqlite as BS
-import qualified Database.Beam.Backend.SQL as B
-import           Database.Beam ((==.), (&&.), (<-.), (/=.), (==?.))
 
 import           Hydra.Prelude
-import qualified Hydra.Domain  as D
 import qualified Hydra.Runtime as R
 import qualified Hydra.Interpreters as R
 import qualified Hydra.Language     as L
@@ -109,13 +100,13 @@ submitObjectTemplate' template@(API.AstroObjectTemplate {..}) = do
 
 
 getObject :: AstroObjectId -> AppHandler (Maybe AstroObject)
-getObject = undefined
+getObject = error "not implemented"
 
 submitObjectPhysical :: AstroObjectId -> Physical -> AppHandler AstroObjectId
-submitObjectPhysical = undefined
+submitObjectPhysical = error "not implemented"
 
 submitObjectOrbital :: AstroObjectId -> Orbital -> AppHandler AstroObjectId
-submitObjectOrbital = undefined
+submitObjectOrbital = error "not implemented"
 
 meteors :: Maybe Int -> Maybe Int -> AppHandler Meteors
 meteors mbMass mbSize = runApp
@@ -128,7 +119,7 @@ meteor m = runApp
   $ createMeteor m
 
 asteroid :: API.AsteroidTemplate -> AppHandler AsteroidId
-asteroid a = error "Not implemented yet."
+asteroid _ = error "Not implemented yet."
 
 prepareSQLiteDB :: IO ()
 prepareSQLiteDB = do

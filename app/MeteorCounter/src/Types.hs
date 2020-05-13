@@ -5,7 +5,6 @@ import qualified Data.Set      as Set
 
 import qualified Hydra.Domain  as D
 import           Hydra.Prelude
-import qualified Hydra.Runtime as R
 
 data Region
   = NorthEast
@@ -49,8 +48,12 @@ delaysEnabled = enableDelays . _config
 storeTrackedMeteors :: AppState -> Bool
 storeTrackedMeteors = storeTracked . _config
 
+dFactor :: AppState -> Int
 dFactor = delaysFactor . _config
 
+doLogDiscovered :: AppState -> Bool
 doLogDiscovered = logDiscovered . _config
+doLogTracked :: AppState -> Bool
 doLogTracked    = logTracked . _config
+doLogTotal :: AppState -> Bool
 doLogTotal      = logTotal . _config

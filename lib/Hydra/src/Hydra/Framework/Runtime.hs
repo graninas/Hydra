@@ -2,8 +2,6 @@ module Hydra.Framework.Runtime where
 
 import           Hydra.Prelude
 
-import qualified Data.Map           as Map
-
 import qualified Hydra.Core.Domain  as D
 import qualified Hydra.Core.Runtime as R
 

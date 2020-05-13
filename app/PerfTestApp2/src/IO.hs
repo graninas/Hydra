@@ -5,11 +5,8 @@
 module IO where
 
 import           Control.Monad
-import qualified Data.Map      as Map
-import qualified Data.Set      as Set
 import           Hydra.Prelude
 
-import           System.Entropy
 import           System.Random       hiding (next)
 
 flow :: IORef Int -> IO ()

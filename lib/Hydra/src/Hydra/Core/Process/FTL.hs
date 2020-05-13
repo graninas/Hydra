@@ -22,19 +22,19 @@ newtype H a = H { unH :: (ThreadId, TMVar (Either SomeException a)) }
 
 instance ProcessL (ReaderT e IO) where
   type ProcessHandle (ReaderT e IO) = H
-  forkProcess f = ReaderT $ \e -> do
+  forkProcess f = ReaderT $ \r -> do
      z <- newEmptyTMVarIO
      t <- forkIOWithUnmask $ \restore -> do
-       x <- (restore $ runReaderT f e) `catch` (\e -> do
-          atomically $ putTMVar z (Left e)
-          throwM e)
+       x <- (restore $ runReaderT f r) `catch` (\ex -> do
+          atomically $ putTMVar z (Left ex)
+          throwM ex)
        atomically $ putTMVar z (Right x)
      pure $ H (t,z)
   killProcess = ReaderT . const . killThread . fst . unH
   tryGetResult (H (_,e)) = ReaderT $ const $ atomically (tryReadTMVar e) >>=
     traverse (\case
-      Left e -> throwM e
+      Left ex -> throwM ex
       Right x -> pure x)
   awaitResult (H (_,e)) = ReaderT $ const $ atomically (readTMVar e) >>= \case
-    Left e -> throwM e
+    Left ex -> throwM ex
     Right x -> pure x

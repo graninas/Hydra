@@ -1,5 +1,3 @@
-module Hydra.Framework.FTLI
-  ( module X
-  ) where
+module Hydra.Framework.FTLI where
 
-import           Hydra.Framework.App.FTLI as X
+import           Hydra.Framework.App.FTLI ()

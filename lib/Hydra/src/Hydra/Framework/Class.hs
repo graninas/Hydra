@@ -1,5 +1,3 @@
-module Hydra.Framework.Class
-  ( module X
-  ) where
+module Hydra.Framework.Class where
 
-import           Hydra.Framework.App.Class as X
+import           Hydra.Framework.App.Class  ()

@@ -2,13 +2,8 @@
 
 module Astro.Types where
 
-import qualified Data.Map      as Map
-import qualified Data.Set      as Set
-import           Data.Time.Clock (UTCTime)
-
 import           Hydra.Prelude
 import qualified Hydra.Domain  as D
-import qualified Hydra.Runtime as R
 
 import qualified Astro.KVDB.AstroDB as KVDB
 

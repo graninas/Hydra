@@ -11,11 +11,10 @@ module Astro.Client.GADT
 import           Hydra.Prelude
 import qualified Data.ByteString.Lazy  as BSL
 
-import qualified Hydra.Domain          as D
 import qualified Hydra.Language        as L
 
 import qualified Astro.API             as API
-import           Astro.Domain.Meteor   (MeteorId, Meteors)
+import           Astro.Domain.Meteor   (MeteorId)
 import           Astro.Domain.Asteroid (AsteroidId)
 import           Astro.Client.Common   (ReportChannel(..))
 import qualified Astro.Client.Common   as C
@@ -43,7 +42,7 @@ reportWith
   -> (obj -> AstroService a)
   -> (Either BSL.ByteString obj)
   -> L.AppL (Either BSL.ByteString ())
-reportWith runner _        (Left err)  = pure $ Left err
+reportWith _      _        (Left err)  = pure $ Left err
 reportWith runner reporter (Right obj) = (runner $ reporter obj) >> pure (Right ())
 
 consoleApp :: (forall x. AstroService x -> L.AppL x) -> L.AppL ()

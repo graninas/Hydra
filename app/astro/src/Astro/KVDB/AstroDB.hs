@@ -4,8 +4,6 @@ module Astro.KVDB.AstroDB where
 
 import           Hydra.Prelude
 
-import qualified Data.Aeson              as A
-import qualified Data.ByteString.Lazy    as LBS
 import           Text.Printf
 
 import qualified Hydra.Domain            as D
