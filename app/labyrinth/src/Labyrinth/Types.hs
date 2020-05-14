@@ -34,6 +34,6 @@ data AppState = AppState
 
 data AppException
   = NotImplemented String
-  | Finished Bool
+  | NotSupported String
   | InvalidOperation String
   deriving (Eq, Ord, Show, Generic, ToJSON, FromJSON, Exception)

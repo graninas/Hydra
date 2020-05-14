@@ -2,20 +2,25 @@
 module Labyrinth.Tests.LogicSpec where
 
 import qualified Control.Exception as E
+import qualified Data.Map as Map
+import           Test.Hspec (Spec, around, describe, it, shouldBe)
+import           Test.Hspec.QuickCheck (prop)
+import           Test.QuickCheck (arbitrary, property, verbose, withMaxSuccess)
+import           Test.QuickCheck.Monadic (assert, monadicIO, pick, pre, run)
+
+import qualified Hydra.Domain               as D
+import qualified Hydra.Runtime              as R
+import qualified Hydra.Interpreters         as R
 
 import           Labyrinth.Prelude
 import           Labyrinth.App
 import           Labyrinth.Types
 import           Labyrinth.Domain
 import           Labyrinth.Render
+import           Labyrinth.Algorithms
 import           Labyrinth.Labyrinths
 import           Labyrinth.Gen
 import           Labyrinth.Lens
-
-import           Test.Hspec
-import qualified Hydra.Domain               as D
-import qualified Hydra.Runtime              as R
-import qualified Hydra.Interpreters         as R
 
 
 initAppState :: Bool -> (Int, Int, Labyrinth) -> AppL AppState
@@ -23,20 +28,22 @@ initAppState hasTreasure (x0, y0, lab) = do
   let (bounds, wormholes) = analyzeLabyrinth lab
   let renderTemplate = renderSkeleton bounds
 
-  labRenderVar     <- newVarIO renderTemplate
-  labVar           <- newVarIO lab
-  labSizeVar       <- newVarIO bounds
-  posVar           <- newVarIO (x0, y0)
-  inv              <- Inventory <$> newVarIO hasTreasure
-  gameStateVar     <- newVarIO PlayerMove
-  moveMsgsVar      <- newVarIO []
+  renderTemplateVar <- newVarIO renderTemplate
+  labRenderVar      <- newVarIO renderTemplate
+  labVar            <- newVarIO lab
+  labBoundsVar      <- newVarIO bounds
+  wormholesVar      <- newVarIO wormholes
+  posVar            <- newVarIO (x0, y0)
+  inv               <- Inventory <$> newVarIO hasTreasure
+  gameStateVar      <- newVarIO PlayerMove
+  moveMsgsVar       <- newVarIO []
 
   pure $ AppState
     labVar
-    labSizeVar
-    renderTemplate
+    labBoundsVar
+    renderTemplateVar
     labRenderVar
-    wormholes
+    wormholesVar
     posVar
     inv
     gameStateVar
@@ -61,7 +68,18 @@ runLabMethodWithTreasure :: (Int, Int, Labyrinth) -> R.AppRuntime -> (AppState -
 runLabMethodWithTreasure startLab rt act = R.runAppL rt (initAppState True startLab >>= act)
 
 spec :: Spec
-spec =
+spec = do
+  around (R.withAppRuntime Nothing) $
+    it "generated labyrinth has passed bounds" $ \rt ->
+        property $ withMaxSuccess 4 $ monadicIO $ do
+          eLab <- run $ try $ R.runAppL rt $ scenario generateRndLabyrinth
+          case eLab of
+            Left (err :: SomeException) -> assert False
+            Right lab -> do
+              let ((x,y), wormholes) = analyzeLabyrinth lab
+              assert $ x * y > 16 && x * y <= 100
+              assert $ (length wormholes >= 2) && (length wormholes <= 5)
+
   around (R.withAppRuntime Nothing) $ do
 
     describe "testMove tests" $ do

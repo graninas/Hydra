@@ -4,7 +4,7 @@ import           Labyrinth.Prelude
 
 import qualified Data.Map                   as Map
 
-import           Labyrinth.Types
+
 import           Labyrinth.Domain
 import           Labyrinth.Algorithms
 

@@ -185,7 +185,9 @@ generateRndLabyrinth = do
   generateLabyrinth (xSize, ySize)
 
 generateLabyrinth :: Bounds -> LangL Labyrinth
-generateLabyrinth bounds = do
+generateLabyrinth bounds@(x,y)
+  | x <= 0 || y <= 0 || x > 10 || y > 10 = throwException $ NotSupported $ "Bounds not supported: " <> show bounds
+  | otherwise = do
   exits     <- getRandomInt (1, 4)
   wormholes <- getRandomInt (2, 5)
   generateGrid bounds
