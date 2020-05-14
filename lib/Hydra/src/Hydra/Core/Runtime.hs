@@ -109,6 +109,17 @@ clearCoreRuntime coreRt =
   -- `finally` (R.closeSQLiteConns $ _sqliteConns coreRt)
   `finally` SYSM.performGC
 
+
+withCoreRuntime :: Maybe D.LoggerConfig -> (CoreRuntime -> IO a) -> IO a
+withCoreRuntime mbLoggerCfg coreF =
+  bracket createLogger' clearLoggerRuntime $ \loggerRt ->
+  bracket (createCoreRuntime loggerRt) clearCoreRuntime coreF
+  where
+    createLogger' = case mbLoggerCfg of
+      Nothing        -> createVoidLoggerRuntime
+      Just loggerCfg -> createLoggerRuntime loggerCfg
+
+
 -- TODO: Church version of flusher.
 -- | Writes all stm entries into real logger.
 flushStmLogger :: StateRuntime -> LoggerRuntime -> IO ()
