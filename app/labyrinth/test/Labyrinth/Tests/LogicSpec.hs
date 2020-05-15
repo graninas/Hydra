@@ -70,16 +70,16 @@ runLabMethodWithTreasure startLab rt act = R.runAppL rt (initAppState True start
 spec :: Spec
 spec = do
   around (R.withCoreRuntime Nothing)
-    $ it "generated labyrinth has passed bounds"
+    $ it "generated labyrinth has correct bounds"
     $ \runtime -> property
     $ withMaxSuccess 4
-    $ monadicIO $ do
+    $ do
         eLab <- run $ try $ R.runLangL runtime generateRndLabyrinth
         case eLab of
           Left (err :: SomeException) -> assert False
           Right lab -> do
             let ((x,y), wormholes) = analyzeLabyrinth lab
-            assert $ x * y > 16 && x * y <= 100
+            assert $ x * y >= 16 && x * y <= 100
             assert $ (length wormholes >= 2) && (length wormholes <= 5)
 
   around (R.withAppRuntime Nothing) $ do
