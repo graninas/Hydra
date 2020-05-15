@@ -73,6 +73,7 @@ spec = do
     $ it "generated labyrinth has correct bounds"
     $ \runtime -> property
     $ withMaxSuccess 4
+    $ monadicIO
     $ do
         eLab <- run $ try $ R.runLangL runtime generateRndLabyrinth
         case eLab of
