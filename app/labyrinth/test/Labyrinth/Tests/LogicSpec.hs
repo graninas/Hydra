@@ -3,6 +3,7 @@ module Labyrinth.Tests.LogicSpec where
 
 import qualified Control.Exception as E
 import qualified Data.Map as Map
+import qualified Data.Word as Word8
 import           Test.Hspec (Spec, around, describe, it, shouldBe)
 import           Test.Hspec.QuickCheck (prop)
 import           Test.QuickCheck (arbitrary, property, verbose, withMaxSuccess)
@@ -72,7 +73,7 @@ spec = do
   around (R.withCoreRuntime Nothing)
     $ it "generated labyrinth has correct bounds"
     $ \runtime -> property
-    $ withMaxSuccess 4
+    $ withMaxSuccess 5
     $ monadicIO
     $ do
         eLab <- run $ try $ R.runLangL runtime generateRndLabyrinth

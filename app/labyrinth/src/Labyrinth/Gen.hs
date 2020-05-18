@@ -24,10 +24,7 @@ generateGrid (xSize, ySize) = pure $ Map.fromList $ do
 
 generatePaths :: Bounds -> Labyrinth -> LangL Labyrinth
 generatePaths bounds@(xSize, ySize) grid = do
-  let lst = do
-        x <- [0..xSize - 1]
-        y <- [0..ySize - 1]
-        pure (x, y)
+  let lst = [(x,y) | x <- [0..xSize - 1], y <- [0..ySize - 1]]
   visitedVar    <- evalIO $ newIORef Set.empty
   nonVisitedVar <- evalIO $ newIORef $ Set.fromList lst
   generatePaths'' grid 10 visitedVar nonVisitedVar
@@ -48,19 +45,23 @@ generatePaths bounds@(xSize, ySize) grid = do
           generatePaths'' lab' 100 visitedVar nonVisitedVar
 
 generateTreasure :: Bounds -> Labyrinth -> LangL Labyrinth
-generateTreasure bounds@(xSize, ySize) lab = do
-  x <- getRandomInt (0, xSize - 1)
-  y <- getRandomInt (0, ySize - 1)
-  case Map.lookup (x,y) lab of
-    Nothing -> error $ "generateTreasure: cell not found: " <> show (x, y)
-    Just (c, NoContent) -> pure $ Map.insert (x, y) (c, Treasure) lab
-    _ -> generateTreasure bounds lab
+generateTreasure (xSize, ySize) lab = generateTreasure' 10
+  where
+    generateTreasure' :: Int -> LangL Labyrinth
+    generateTreasure' 0 = throwException $ GenerationError "Unable to place treasure after 10 tries"
+    generateTreasure' n = do
+      x <- getRandomInt (0, xSize - 1)
+      y <- getRandomInt (0, ySize - 1)
+      case Map.lookup (x,y) lab of
+        Nothing -> throwException $ GenerationError $ "Cell not found: " <> show (x, y)
+        Just (c, NoContent) -> pure $ Map.insert (x, y) (c, Treasure) lab
+        _ -> generateTreasure' (n - 1)
 
 generateExits :: Bounds -> Int -> Labyrinth -> LangL Labyrinth
 generateExits (xSize, ySize) cnt lab = do
   edgeTags <- replicateM (cnt * 5) (toEnum <$> getRandomInt (0, 3))
   exits'   <- mapM toExit edgeTags
-  pure $ placeExits lab $ take cnt $ List.nub exits'
+  placeExits lab $ take cnt $ List.nub exits'
   where
     toExit :: Direction -> LangL (Direction, Int, Int)
     toExit DirUp    = (DirUp,,0)           <$> getRandomInt (0, xSize - 1)
@@ -68,10 +69,10 @@ generateExits (xSize, ySize) cnt lab = do
     toExit DirLeft  = (DirLeft,0,)         <$> getRandomInt (0, ySize - 1)
     toExit DirRight = (DirRight, xSize-1,) <$> getRandomInt (0, ySize - 1)
 
-    placeExits :: Labyrinth -> [(Direction, Int, Int)] -> Labyrinth
-    placeExits lab' []  = lab'
+    placeExits :: Labyrinth -> [(Direction, Int, Int)] -> LangL Labyrinth
+    placeExits lab' [] = pure lab'
     placeExits lab' ((dir,x,y):ps) = case Map.lookup (x,y) lab' of
-      Nothing -> error $ "placeExits: Cell not found: " <> show (x,y)
+      Nothing        -> throwException $ GenerationError $ "placeExits: Cell not found: " <> show (x,y)
       Just (c, cont) -> placeExits (Map.insert (x,y) (setExit c dir, cont) lab') ps
 
 generateWormholes :: Bounds -> Int -> Labyrinth -> LangL Labyrinth
@@ -107,7 +108,7 @@ backtrack
 backtrack bounds lab maxChance pathVar visitedVar nonVisitedVar = do
   (_, ps) <- evalIO $ readIORef pathVar
   case ps of
-    [] -> pure lab
+    []         -> pure lab
     (p' : ps') -> do
       evalIO $ writeIORef pathVar (p', ps')
       generatePaths' bounds lab maxChance pathVar visitedVar nonVisitedVar
@@ -166,7 +167,7 @@ removeWalls' lab pos dir = do
     _ -> do
       printLabyrinth lab
       throwException
-        $ InvalidOperation
+        $ GenerationError
         $ "removeWalls: Cells not found. pos="
           <> show pos
           <> ", coPos="
@@ -180,18 +181,25 @@ removeWalls' lab pos dir = do
 
 generateRndLabyrinth :: LangL Labyrinth
 generateRndLabyrinth = do
-  xSize <- getRandomInt (4, 10)
-  ySize <- getRandomInt (4, 10)
-  generateLabyrinth (xSize, ySize)
-
-generateLabyrinth :: Bounds -> LangL Labyrinth
-generateLabyrinth bounds@(x,y)
-  | x <= 0 || y <= 0 || x > 10 || y > 10 = throwException $ NotSupported $ "Bounds not supported: " <> show bounds
-  | otherwise = do
+  xSize     <- getRandomInt (4, 10)
+  ySize     <- getRandomInt (4, 10)
   exits     <- getRandomInt (1, 4)
   wormholes <- getRandomInt (2, 5)
-  generateGrid bounds
-    >>= generatePaths bounds
-    >>= generateExits bounds exits
-    >>= generateWormholes bounds wormholes
-    >>= generateTreasure bounds
+  generateLabyrinth (xSize, ySize) exits wormholes
+
+generateLabyrinth :: Bounds -> Int -> Int -> LangL Labyrinth
+generateLabyrinth bounds@(x,y) exits wormholes
+  | x <= 0 || y <= 0 || x > 10 || y > 10 = throwException $ GenerationError $ "Bounds not supported: " <> show bounds
+  | otherwise = generateLabyrinth' 10
+  where
+    generateLabyrinth' :: Int -> LangL Labyrinth
+    generateLabyrinth' 0 = throwException $ GenerationError "Failed to generate labyrinth after 10 tries."
+    generateLabyrinth' n = do
+      eLab <- runSafely $ generateGrid bounds
+            >>= generatePaths bounds
+            >>= generateExits bounds exits
+            >>= generateTreasure bounds
+            >>= generateWormholes bounds wormholes
+      case eLab of
+        Left _    -> generateLabyrinth' (n - 1)
+        Right lab -> pure lab

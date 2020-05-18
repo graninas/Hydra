@@ -221,7 +221,7 @@ onStep st _ = do
           | otherwise      -> pure $ D.CliOutputMsg outputMsg
 
 startGame :: AppState -> Int -> LangL String
-startGame st s = generateLabyrinth (s, s) >>= startGame' st
+startGame st s = generateLabyrinth (s, s) 3 5 >>= startGame' st
 
 startRndGame :: AppState -> LangL ()
 startRndGame st = do
@@ -231,15 +231,18 @@ startRndGame st = do
 
 startGame' :: AppState -> Labyrinth -> LangL String
 startGame' st lab = do
-  let (bounds, wormholes) = analyzeLabyrinth lab
+  let (bounds@(xSize, ySize), wormholes) = analyzeLabyrinth lab
   let renderTemplate      = renderSkeleton bounds
+
+  playerX <- getRandomInt (0, xSize - 1)
+  playerY <- getRandomInt (0, ySize - 1)
 
   writeVarIO (st ^. labyrinth) lab
   writeVarIO (st ^. labBounds) bounds
   writeVarIO (st ^. labRenderTemplate) renderTemplate
   writeVarIO (st ^. labRenderVar) renderTemplate
   writeVarIO (st ^. labWormholes) wormholes
-  writeVarIO (st ^. playerPos) (0, 0)
+  writeVarIO (st ^. playerPos) (playerX, playerY)
   writeVarIO (st ^. playerInventory . treasure) False
   writeVarIO (st ^. gameState) PlayerMove
 

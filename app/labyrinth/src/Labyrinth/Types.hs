@@ -36,4 +36,5 @@ data AppException
   = NotImplemented String
   | NotSupported String
   | InvalidOperation String
+  | GenerationError String
   deriving (Eq, Ord, Show, Generic, ToJSON, FromJSON, Exception)

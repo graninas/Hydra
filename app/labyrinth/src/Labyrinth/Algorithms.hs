@@ -48,7 +48,7 @@ setExit (Cell _ r u d) DirLeft  = Cell (Monolith True) r u d
 setExit (Cell l _ u d) DirRight = Cell l (Monolith True) u d
 
 onBounds :: Bounds -> Pos -> Direction -> Bool
-onBounds (_, ySize) (x, y) DirUp    = y - 1 <= 0
-onBounds (_, ySize) (x, y) DirDown  = y + 1 >= ySize
-onBounds (xSize, _) (x, y) DirLeft  = x - 1 <= 0
-onBounds (xSize, _) (x, y) DirRight = x + 1 >= xSize
+onBounds (_, _) (_, y) DirUp    = y - 1 <= 0
+onBounds (_, ySize) (_, y) DirDown  = y + 1 >= ySize
+onBounds (_, _) (x, _) DirLeft  = x - 1 <= 0
+onBounds (xSize, _) (x, _) DirRight = x + 1 >= xSize
