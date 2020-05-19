@@ -3,8 +3,9 @@ module Labyrinth.Tests.LogicSpec where
 
 import qualified Control.Exception as E
 import qualified Data.Map as Map
+import qualified Data.Set as Set
 import qualified Data.Word as Word8
-import           Test.Hspec (Spec, around, describe, it, shouldBe)
+import           Test.Hspec (Spec, around, describe, it, shouldBe, shouldSatisfy)
 import           Test.Hspec.QuickCheck (prop)
 import           Test.QuickCheck (arbitrary, property, verbose, withMaxSuccess)
 import           Test.QuickCheck.Monadic (assert, monadicIO, pick, pre, run)
@@ -26,14 +27,14 @@ import           Labyrinth.Lens
 
 initAppState :: Bool -> (Int, Int, Labyrinth) -> AppL AppState
 initAppState hasTreasure (x0, y0, lab) = do
-  let (bounds, wormholes) = analyzeLabyrinth lab
-  let renderTemplate = renderSkeleton bounds
+  let LabyrinthInfo {..} = analyzeLabyrinth lab
+  let renderTemplate = renderSkeleton _bounds
 
   renderTemplateVar <- newVarIO renderTemplate
   labRenderVar      <- newVarIO renderTemplate
   labVar            <- newVarIO lab
-  labBoundsVar      <- newVarIO bounds
-  wormholesVar      <- newVarIO wormholes
+  labBoundsVar      <- newVarIO _bounds
+  wormholesVar      <- newVarIO _wormholes
   posVar            <- newVarIO (x0, y0)
   inv               <- Inventory <$> newVarIO hasTreasure
   gameStateVar      <- newVarIO PlayerMove
@@ -80,11 +81,24 @@ spec = do
         case eLab of
           Left (err :: SomeException) -> assert False
           Right lab -> do
-            let ((x,y), wormholes) = analyzeLabyrinth lab
+            let LabyrinthInfo {..} = analyzeLabyrinth lab
+            let (x, y) = _bounds
+            let wms = Map.size _wormholes
             assert $ x * y >= 16 && x * y <= 100
-            assert $ (length wormholes >= 2) && (length wormholes <= 5)
+            assert $ (wms >= 2) && (wms <= 5)
 
   around (R.withAppRuntime Nothing) $ do
+
+    describe "Labyrinth generation tests" $
+
+      it "generateLabyrinth" $ \rt -> do
+        lab <- R.runLangL (R._coreRuntime rt) $ generateLabyrinth (4, 4) 3 5
+
+        let LabyrinthInfo {..} = analyzeLabyrinth lab
+        _bounds `shouldBe` (4, 4)
+        (Map.size _wormholes) `shouldSatisfy` (\x -> x >= 2 && x <= 5)
+        (Set.size _exits) `shouldSatisfy` (\x -> x >= 1 && x <= 3)
+        _treasure `shouldSatisfy` (\mbT -> isJust mbT && inBounds _bounds (fromJust mbT))
 
     describe "testMove tests" $ do
 

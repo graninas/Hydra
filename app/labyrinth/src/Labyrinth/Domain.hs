@@ -1,12 +1,14 @@
 module Labyrinth.Domain where
 
-import qualified Data.Map as Map
+import qualified Data.Set as Set
 
 import Labyrinth.Prelude as L
 
 type Pos = (Int, Int)
 type Bounds = (Int, Int)
 type Wormholes = Map Int Pos
+type Exit = (Pos, Direction)
+type Exits = Set.Set Exit
 
 type LabRender = (Bounds, Map Pos String)
 type Skeleton = LabRender
@@ -16,7 +18,7 @@ data Direction
   | DirDown
   | DirLeft
   | DirRight
-  deriving (Show, Read, Eq, Bounded, Enum)
+  deriving (Show, Read, Eq, Ord, Bounded, Enum)
 
 data Wall
   = NoWall

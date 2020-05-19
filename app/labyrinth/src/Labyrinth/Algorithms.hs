@@ -1,10 +1,21 @@
 module Labyrinth.Algorithms where
 
-import qualified Data.Map      as Map
+import qualified Data.Map as Map
+import qualified Data.Set as Set
 
 import Labyrinth.Prelude
 import Labyrinth.Domain
 
+
+data LabyrinthInfo = LabyrinthInfo
+  { _bounds    :: Bounds
+  , _wormholes :: Wormholes
+  , _exits     :: Exits
+  , _treasure  :: Maybe Pos
+  }
+
+emptyLabyrinthInfo :: LabyrinthInfo
+emptyLabyrinthInfo = LabyrinthInfo (0, 0) Map.empty Set.empty Nothing
 
 calcNextPos :: Pos -> Direction -> Pos
 calcNextPos (x, y) DirUp    = (x, y - 1)
@@ -15,12 +26,34 @@ calcNextPos (x, y) DirRight = (x + 1, y)
 increaseBounds :: Bounds -> Pos -> Bounds
 increaseBounds (x', y') (x, y) = (max x' (x + 1), max y' (y + 1))
 
-analyzeLabyrinth :: Labyrinth -> (Bounds, Wormholes)
-analyzeLabyrinth lab = Map.foldrWithKey f ((0, 0), Map.empty) lab
+increaseBounds' :: Pos -> LabyrinthInfo -> LabyrinthInfo
+increaseBounds' (x, y) labInfo =
+  let (x', y') = _bounds labInfo
+  in labInfo { _bounds = (max x' (x + 1), max y' (y + 1)) }
+
+analyzeLabyrinth :: Labyrinth -> LabyrinthInfo
+analyzeLabyrinth lab = Map.foldrWithKey f emptyLabyrinthInfo lab
   where
-    f :: Pos -> (Cell, Content) -> (Bounds, Wormholes) -> (Bounds, Wormholes)
-    f pos (_, Wormhole n) (bounds, wormholes) = (increaseBounds bounds pos, Map.insert n pos wormholes)
-    f pos _ (bounds, wormholes) = (increaseBounds bounds pos, wormholes)
+    f :: Pos -> (Cell, Content) -> LabyrinthInfo -> LabyrinthInfo
+    f p (cell, content) = increaseBounds' p . analyzeCell p cell . analyzeContent p content
+
+analyzeContent :: Pos -> Content -> LabyrinthInfo -> LabyrinthInfo
+analyzeContent p (Wormhole n) labInfo
+  = labInfo { _wormholes = Map.insert n p $ _wormholes labInfo }
+analyzeContent p Treasure labInfo = labInfo { _treasure = Just p }
+analyzeContent _ _ labInfo = labInfo
+
+analyzeCell :: Pos -> Cell -> LabyrinthInfo -> LabyrinthInfo
+analyzeCell p (Cell l r u d)
+  = analyzeExit p DirLeft l
+  . analyzeExit p DirRight r
+  . analyzeExit p DirUp u
+  . analyzeExit p DirDown d
+
+analyzeExit :: Pos -> Direction -> Wall -> LabyrinthInfo -> LabyrinthInfo
+analyzeExit p dir (Monolith True) labInfo = labInfo { _exits = Set.insert (p, dir) $ _exits labInfo }
+analyzeExit _ _ _ labInfo = labInfo
+
 
 oppositeDir :: Direction -> Direction
 oppositeDir DirUp = DirDown
@@ -52,3 +85,6 @@ onBounds (_, _) (_, y) DirUp    = y - 1 <= 0
 onBounds (_, ySize) (_, y) DirDown  = y + 1 >= ySize
 onBounds (_, _) (x, _) DirLeft  = x - 1 <= 0
 onBounds (xSize, _) (x, _) DirRight = x + 1 >= xSize
+
+inBounds :: Bounds -> Pos -> Bool
+inBounds (xSize, ySize) (x, y) = x >= 0 && x < xSize && y >= 0 && y < ySize

@@ -231,17 +231,18 @@ startRndGame st = do
 
 startGame' :: AppState -> Labyrinth -> LangL String
 startGame' st lab = do
-  let (bounds@(xSize, ySize), wormholes) = analyzeLabyrinth lab
-  let renderTemplate      = renderSkeleton bounds
+  let LabyrinthInfo {..} = analyzeLabyrinth lab
+  let (xSize, ySize) = _bounds
+  let renderTemplate = renderSkeleton _bounds
 
   playerX <- getRandomInt (0, xSize - 1)
   playerY <- getRandomInt (0, ySize - 1)
 
   writeVarIO (st ^. labyrinth) lab
-  writeVarIO (st ^. labBounds) bounds
+  writeVarIO (st ^. labBounds) _bounds
   writeVarIO (st ^. labRenderTemplate) renderTemplate
   writeVarIO (st ^. labRenderVar) renderTemplate
-  writeVarIO (st ^. labWormholes) wormholes
+  writeVarIO (st ^. labWormholes) _wormholes
   writeVarIO (st ^. playerPos) (playerX, playerY)
   writeVarIO (st ^. playerInventory . treasure) False
   writeVarIO (st ^. gameState) PlayerMove
