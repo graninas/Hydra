@@ -31,8 +31,10 @@ initAppState lab = do
   labRenderVar      <- newVarIO renderTemplate
   labVar            <- newVarIO lab
   labBoundsVar      <- newVarIO _bounds
-  wormholesVar      <- newVarIO _wormholes 
+  wormholesVar      <- newVarIO _wormholes
   posVar            <- newVarIO (0, 0)
+  playerHPVar       <- newVarIO 100
+  bearPosVar        <- newVarIO (0, 0)
   inv               <- Inventory <$> newVarIO False
   gameStateVar      <- newVarIO GameStart
   moveMsgsVar       <- newVarIO []
@@ -44,6 +46,8 @@ initAppState lab = do
     labRenderVar
     wormholesVar
     posVar
+    playerHPVar
+    bearPosVar
     inv
     gameStateVar
     moveMsgsVar
@@ -55,4 +59,5 @@ execApp :: Maybe D.LoggerConfig -> AppL a -> IO a
 execApp mbCfg act = R.withAppRuntime mbCfg $ \rt -> R.runAppL rt act
 
 main :: IO ()
-main = execApp (Just loggerCfg) startApp
+main =
+  execApp (Just loggerCfg) startApp

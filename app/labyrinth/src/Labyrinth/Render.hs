@@ -159,15 +159,25 @@ renderPlayer (x0, y0) (bounds, lab) = (bounds, lab')
     (x, y) = (x0 * 2 + 1, y0 * 2 + 1)
     lab' = case Map.lookup (x, y) lab of
               Nothing   -> Map.insert (0, 0) ("!Player:" <> show (x0, y0)) lab
+              -- TODO: check for a bear
               Just curW -> Map.insert (x, y) (take 1 curW <> "@" <> (take 2 $ drop 2 curW)) lab
 
-renderLabyrinth' :: Skeleton -> Labyrinth -> Pos -> LabRender
-renderLabyrinth' skeleton lab plPos =
+renderBear :: Pos -> LabRender -> LabRender
+renderBear (x0, y0) (bounds, lab) = (bounds, lab')
+  where
+    (x, y) = (x0 * 2 + 1, y0 * 2 + 1)
+    lab' = case Map.lookup (x, y) lab of
+              Nothing   -> Map.insert (0, 0) ("!Bear:" <> show (x0, y0)) lab
+              Just curW -> Map.insert (x, y) (take 1 curW <> "B" <> (take 2 $ drop 2 curW)) lab
+
+renderLabyrinth' :: Skeleton -> Labyrinth -> Pos -> Pos -> LabRender
+renderLabyrinth' skeleton lab plPos bearPos =
   renderPlayer plPos
+    $ renderBear bearPos
     $ Map.foldrWithKey cellRender skeleton lab
 
-renderLabyrinth :: Labyrinth -> Pos -> LabRender
-renderLabyrinth lab plPos = renderLabyrinth' skeleton lab plPos
+renderLabyrinth :: Labyrinth -> Pos -> Pos -> LabRender
+renderLabyrinth lab plPos bearPos = renderLabyrinth' skeleton lab plPos bearPos
   where
     LabyrinthInfo {..} = analyzeLabyrinth lab
     skeleton = renderSkeleton _bounds
@@ -189,4 +199,4 @@ printLabRender' ((rendMaxX, rendMaxY), labRender) = do
   mapM_ outputRows printedRows
 
 printLabyrinth :: Labyrinth -> LangL ()
-printLabyrinth lab = printLabRender' $ renderLabyrinth lab (0, 0)
+printLabyrinth lab = printLabRender' $ renderLabyrinth lab (0, 0) (0, 0)

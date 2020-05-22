@@ -36,6 +36,8 @@ initAppState hasTreasure (x0, y0, lab) = do
   labBoundsVar      <- newVarIO _bounds
   wormholesVar      <- newVarIO _wormholes
   posVar            <- newVarIO (x0, y0)
+  playerHPVar       <- newVarIO 100
+  bearPosVar        <- newVarIO (x0, y0)
   inv               <- Inventory <$> newVarIO hasTreasure
   gameStateVar      <- newVarIO PlayerMove
   moveMsgsVar       <- newVarIO []
@@ -47,6 +49,8 @@ initAppState hasTreasure (x0, y0, lab) = do
     labRenderVar
     wormholesVar
     posVar
+    playerHPVar
+    bearPosVar
     inv
     gameStateVar
     moveMsgsVar

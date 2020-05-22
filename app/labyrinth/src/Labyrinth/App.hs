@@ -188,9 +188,23 @@ printLab :: AppState -> LangL ()
 printLab st = do
   lab        <- readVarIO $ st ^. labyrinth
   plPos      <- readVarIO $ st ^. playerPos
+  brPos      <- readVarIO $ st ^. bearPos
   template   <- readVarIO $ st ^. labRenderTemplate
 
-  printLabRender' $ renderLabyrinth' template lab plPos
+  printLabRender' $ renderLabyrinth' template lab plPos brPos
+
+moveBear :: AppState -> LangL ()
+moveBear st = do
+  dir   <- getRandomDirection
+  brPos <- readVarIO $ st ^. bearPos
+  let newPos = calcNextPos brPos dir
+  bounds <- readVarIO $ st ^. labBounds
+  lab    <- readVarIO $ st ^. labyrinth
+  when (inBounds bounds newPos) $ do
+    case Map.lookup brPos lab of
+      Nothing        -> throwException $ InvalidOperation $ "Bear in on invalid position: " <> show brPos
+      Just (cell, _) -> unless (isWallOnDirection cell dir) $
+        writeVarIO (st ^. bearPos) newPos
 
 onStep :: AppState -> () -> AppL D.CliAction
 onStep st _ = do
@@ -206,7 +220,9 @@ onStep st _ = do
       pure False
     PlayerIsAboutLossLeavingConfirmation ->
       throwException $ InvalidOperation "OnStep: Invalid state: PlayerIsAboutLossLeavingConfirmation"
-    PlayerMove   -> pure False
+    PlayerMove   -> do
+      moveBear st
+      pure False
     GameFinished -> pure True
     GameStart    -> pure False
 
@@ -237,6 +253,8 @@ startGame' st lab = do
 
   playerX <- getRandomInt (0, xSize - 1)
   playerY <- getRandomInt (0, ySize - 1)
+  bearX   <- getRandomInt (0, xSize - 1)
+  bearY   <- getRandomInt (0, ySize - 1)
 
   writeVarIO (st ^. labyrinth) lab
   writeVarIO (st ^. labBounds) _bounds
@@ -244,6 +262,8 @@ startGame' st lab = do
   writeVarIO (st ^. labRenderVar) renderTemplate
   writeVarIO (st ^. labWormholes) _wormholes
   writeVarIO (st ^. playerPos) (playerX, playerY)
+  writeVarIO (st ^. playerHP) 100
+  writeVarIO (st ^. bearPos) (bearX, bearY)
   writeVarIO (st ^. playerInventory . treasure) False
   writeVarIO (st ^. gameState) PlayerMove
 

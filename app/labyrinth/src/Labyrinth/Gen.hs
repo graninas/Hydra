@@ -12,6 +12,9 @@ import Labyrinth.Render
 
 type Chance = Int
 
+getRandomDirection :: LangL Direction
+getRandomDirection = toEnum <$> getRandomInt (0, 3)
+
 generateGrid :: Bounds -> LangL Labyrinth
 generateGrid (xSize, ySize) = pure $ Map.fromList $ do
   x' <- [0..xSize-1]

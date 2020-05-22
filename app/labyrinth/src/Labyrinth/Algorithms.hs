@@ -65,6 +65,17 @@ isWall :: Wall -> Bool
 isWall Wall = True
 isWall _ = False
 
+isMonolith :: Wall -> Bool
+isMonolith (Monolith _) = True
+isMonolith _ = False
+
+isWallOnDirection :: Cell -> Direction -> Bool
+isWallOnDirection (Cell _ _ u _) DirUp    = isWall u || isMonolith u
+isWallOnDirection (Cell _ _ _ d) DirDown  = isWall d || isMonolith d
+isWallOnDirection (Cell l _ _ _) DirLeft  = isWall l || isMonolith l
+isWallOnDirection (Cell _ r _ _) DirRight = isWall r || isMonolith r
+
+
 removeWall' :: Cell -> Direction -> Cell
 removeWall' c dir = snd $ removeWall c dir
 
