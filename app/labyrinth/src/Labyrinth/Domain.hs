@@ -1,8 +1,10 @@
+{-# LANGUAGE DeriveAnyClass #-}
+
 module Labyrinth.Domain where
 
 import qualified Data.Set as Set
 
-import Labyrinth.Prelude as L
+import Labyrinth.Prelude
 
 type Pos = (Int, Int)
 type Bounds = (Int, Int)
@@ -23,8 +25,8 @@ data Direction
 data Wall
   = NoWall
   | Wall
-  | Monolith Bool     -- ^ On True, then it's an exit
-  deriving (Show, Read, Eq)
+  | Monolith Bool     -- ^ True it it's an exit
+  deriving (Show, Read, Eq, Ord, Generic, ToJSON, FromJSON)
 
 data Cell = Cell
   { leftWall  :: Wall
@@ -32,12 +34,17 @@ data Cell = Cell
   , upWall    :: Wall
   , downWall  :: Wall
   }
-  deriving (Show, Read, Eq)
+  deriving (Show, Read, Eq, Ord, Generic, ToJSON, FromJSON)
 
 data Content
   = NoContent
   | Treasure
   | Wormhole Int
-  deriving (Show, Read, Eq)
+  deriving (Show, Read, Eq, Ord, Generic, ToJSON, FromJSON)
 
 type Labyrinth = Map Pos (Cell, Content)
+
+data Inventory = Inventory
+  { treasureFound :: Bool
+  }
+  deriving (Show, Read, Eq, Ord, Generic, ToJSON, FromJSON)

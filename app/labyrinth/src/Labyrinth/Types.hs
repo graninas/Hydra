@@ -8,7 +8,7 @@ import           Labyrinth.Domain
 
 type HasTreasure = Bool
 
-data Inventory = Inventory
+data InventoryState = InventoryState
   { _treasure :: StateVar Bool
   }
 
@@ -29,7 +29,7 @@ data AppState = AppState
   , _playerPos            :: StateVar Pos
   , _playerHP             :: StateVar Int
   , _bearPos              :: StateVar Pos
-  , _playerInventory      :: Inventory
+  , _playerInventory      :: InventoryState
   , _gameState            :: StateVar GameState
   , _gameMessages         :: StateVar [String]
   }
@@ -39,4 +39,13 @@ data AppException
   | NotSupported String
   | InvalidOperation String
   | GenerationError String
-  deriving (Eq, Ord, Show, Generic, ToJSON, FromJSON, Exception)
+  deriving (Show, Read, Eq, Ord, Generic, ToJSON, FromJSON, Exception)
+
+data GameInfo = GameInfo
+  { giLab             :: Labyrinth
+  , giPlayerPos       :: Pos
+  , giPlayerHP        :: Int
+  , giPlayerInventory :: Inventory
+  , giBearPos         :: Pos
+  }
+  deriving (Show, Read, Eq, Ord, Generic, ToJSON, FromJSON)

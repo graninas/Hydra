@@ -38,7 +38,7 @@ initAppState hasTreasure (x0, y0, lab) = do
   posVar            <- newVarIO (x0, y0)
   playerHPVar       <- newVarIO 100
   bearPosVar        <- newVarIO (x0, y0)
-  inv               <- Inventory <$> newVarIO hasTreasure
+  inv               <- InventoryState <$> newVarIO hasTreasure
   gameStateVar      <- newVarIO PlayerMove
   moveMsgsVar       <- newVarIO []
 

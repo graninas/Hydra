@@ -35,7 +35,7 @@ initAppState lab = do
   posVar            <- newVarIO (0, 0)
   playerHPVar       <- newVarIO 100
   bearPosVar        <- newVarIO (0, 0)
-  inv               <- Inventory <$> newVarIO False
+  inv               <- InventoryState <$> newVarIO False
   gameStateVar      <- newVarIO GameStart
   moveMsgsVar       <- newVarIO []
 

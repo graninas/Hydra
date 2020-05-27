@@ -143,16 +143,15 @@ addGameMessage st msg = do
   msgs <- readVarIO $ st ^. gameMessages
   writeVarIO (st ^. gameMessages) $ msgs ++ [msg]
 
-makeMove :: AppState -> Direction -> LangL ()
-makeMove st dir = do
+makePlayerMove :: AppState -> Direction -> LangL ()
+makePlayerMove st dir = do
   cancelPlayerLeaving st
 
   plPos       <- readVarIO $ st ^. playerPos
   hasTreasure <- readVarIO $ st ^. playerInventory . treasure
   lab         <- readVarIO $ st ^. labyrinth
-  let moveResult = testMove plPos dir lab
 
-  case moveResult of
+  case testMove plPos dir lab of
     InvalidMove msg        -> throwException $ InvalidOperation msg
     ImpossibleMove msg     -> addGameMessage st msg
     LeavingLabyrinthMove   -> setGameState st $ PlayerIsAboutLeaving hasTreasure
@@ -331,10 +330,10 @@ app st = do
     cmd "go left"  $ onPlayerMove st $ makeMove st DirLeft
     cmd "go right" $ onPlayerMove st $ makeMove st DirRight
 
-    cmd "up"       $ onPlayerMove st $ makeMove st DirUp
-    cmd "down"     $ onPlayerMove st $ makeMove st DirDown
-    cmd "left"     $ onPlayerMove st $ makeMove st DirLeft
-    cmd "right"    $ onPlayerMove st $ makeMove st DirRight
+    cmd "up"       $ onPlayerMove st $ makePlayerMove st DirUp
+    cmd "down"     $ onPlayerMove st $ makePlayerMove st DirDown
+    cmd "left"     $ onPlayerMove st $ makePlayerMove st DirLeft
+    cmd "right"    $ onPlayerMove st $ makePlayerMove st DirRight
 
     cmd "yes"      $ handleYes st
     cmd "no"       $ handleNo st
