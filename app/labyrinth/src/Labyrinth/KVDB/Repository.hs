@@ -14,22 +14,16 @@ withKVDB' cfg dbAct = do
     Left err   -> throwException $ InvalidOperation $ show err
     Right conn -> withKVDB conn dbAct
 
-loadLabyrinth :: KVDBConfig LabKVDB -> Int -> AppL GameInfo
+loadLabyrinth :: KVDBConfig LabKVDB -> Int -> AppL GameEntity
 loadLabyrinth kvdbCfg k = do
-  eVal <- withKVDB' kvdbCfg $ loadEntity $ toKeyEntity k
+  eVal <- withKVDB' kvdbCfg $ loadEntity $ LabKey k
   scenario $ case eVal of
     Left err  -> throwException $ InvalidOperation $ show err
     Right val -> pure val
   -- where
     -- 'Production' DB
     -- kvDBConfig = RocksDBConfig @LabKVDB "./prod/labyrinths"
--- 
--- saveLabyrinth :: KVDBConfig LabKVDB -> Int -> GameInfo -> AppL GameInfo
--- saveLabyrinth kvdbCfg k gi = do
---   eVal <- withKVDB' kvdbCfg $ saveEntity (toKeyEntity k)
---   scenario $ case eVal of
---     Left err  -> throwException $ InvalidOperation $ show err
---     Right val -> pure val
---   -- where
---     -- 'Production' DB
---     -- kvDBConfig = RocksDBConfig @LabKVDB "./prod/labyrinths"
+
+saveLabyrinth :: KVDBConfig LabKVDB -> GameEntity -> AppL ()
+saveLabyrinth kvdbCfg ge =
+  void $ withKVDB' kvdbCfg $ saveEntity @GameEntity @GameEntity @LabKVDB ge

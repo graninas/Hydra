@@ -40,12 +40,3 @@ data AppException
   | InvalidOperation String
   | GenerationError String
   deriving (Show, Read, Eq, Ord, Generic, ToJSON, FromJSON, Exception)
-
-data GameInfo = GameInfo
-  { giLab             :: Labyrinth
-  , giPlayerPos       :: Pos
-  , giPlayerHP        :: Int
-  , giPlayerInventory :: Inventory
-  , giBearPos         :: Pos
-  }
-  deriving (Show, Read, Eq, Ord, Generic, ToJSON, FromJSON)
