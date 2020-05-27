@@ -11,6 +11,8 @@ import Labyrinth.Render
 import Labyrinth.Algorithms
 import Labyrinth.Gen
 import Labyrinth.Lens
+import qualified Labyrinth.KVDB.Model as KVDB
+import qualified Labyrinth.KVDB.Repository as KVDB
 
 data Passage
   = Passage
@@ -238,8 +240,46 @@ onStep st _ = do
     False | null outputMsg -> pure D.CliLoop
           | otherwise      -> pure $ D.CliOutputMsg outputMsg
 
-startGame :: AppState -> Int -> LangL String
-startGame st s = generateLabyrinth (s, s) 3 5 >>= startGame' st
+startGame :: AppState -> Int -> AppL String
+startGame st s = scenario $ generateLabyrinth (s, s) 3 5 >>= startGame' st
+
+saveGame :: AppState -> Int -> AppL String
+saveGame st idx = do
+  -- TODO: do not save game when it's not a player move
+  lab   <- readVarIO $ st ^. labyrinth
+  plPos <- readVarIO $ st ^. playerPos
+  plHP  <- readVarIO $ st ^. playerHP
+  tr    <- readVarIO $ st ^. playerInventory . treasure
+  brPos <- readVarIO $ st ^. bearPos
+
+  let plInv = Inventory tr
+
+  eRes <- KVDB.saveGameState (st ^. kvdbConfig)
+    $ KVDB.GameEntity idx lab plPos plHP plInv brPos
+
+  case eRes of
+    Left err -> pure $ show err
+    Right _ -> pure "Game successully saved to KV DB."
+
+loadGame :: AppState -> Int -> AppL String
+loadGame st idx = do
+  eRes <- KVDB.loadGameState (st ^. kvdbConfig) idx
+  case eRes of
+    Left err  -> pure $ "Failed to load game state from KV DB: " <> show err
+    Right (KVDB.GameEntity {..}) -> do
+      let LabyrinthInfo {..} = analyzeLabyrinth geLab
+      let renderTemplate = renderSkeleton _bounds
+      writeVarIO (st ^. labBounds) _bounds
+      writeVarIO (st ^. labRenderTemplate) renderTemplate
+      writeVarIO (st ^. labRenderVar) renderTemplate
+      writeVarIO (st ^. labWormholes) _wormholes
+      writeVarIO (st ^. labyrinth) geLab
+      writeVarIO (st ^. playerPos) gePlayerPos
+      writeVarIO (st ^. playerHP) gePlayerHP
+      writeVarIO (st ^. playerInventory . treasure) $ treasureFound gePlayerInventory
+      writeVarIO (st ^. bearPos) geBearPos
+      writeVarIO (st ^. gameState) PlayerMove
+      pure "Game succesfully loaded from KV DB."
 
 startRndGame :: AppState -> LangL ()
 startRndGame st = do
@@ -277,8 +317,14 @@ onUnknownCommand _ ""     = pure D.CliLoop
 onUnknownCommand st cmdStr = do
   case Str.words cmdStr of
     ["start", sizeStr] -> case readMaybe sizeStr of
-      Nothing -> pure $ D.CliOutputMsg $ "start command should have 1 int argument."
-      Just s  -> scenario (startGame st s) >>= pure . D.CliOutputMsg
+      Nothing   -> pure $ D.CliOutputMsg $ "start command should have 1 int argument."
+      Just size -> D.CliOutputMsg <$> startGame st size
+    ["save", idxStr] -> case readMaybe idxStr of
+      Nothing  -> pure $ D.CliOutputMsg $ "save command should have 1 int argument."
+      Just idx -> D.CliOutputMsg <$> saveGame st idx
+    ["load", idxStr] -> case readMaybe idxStr of
+      Nothing  -> pure $ D.CliOutputMsg $ "load command should have 1 int argument."
+      Just idx -> D.CliOutputMsg <$> loadGame st idx
     _ -> pure $ D.CliOutputMsg $ unknownCommand cmdStr
 
 onPlayerMove :: AppState -> LangL () -> LangL ()
@@ -321,7 +367,9 @@ help = do
 app :: AppState -> AppL ()
 app st = do
   scenario $ putStrLn "Labyrinth (aka Terra Incognita) game"
-  scenario $ putStrLn "Please type 'start <lab_size>' to start a new game."
+  scenario $ putStrLn "start <lab_size>   to start a new game"
+  scenario $ putStrLn "load <idx>         to load a game from KV DB (file by default)"
+  scenario $ putStrLn "save <idx>         to save a game to KV DB (file by default)"
 
   cliToken <- cli (onStep st) (onUnknownCommand st) $ do
     cmd "help"     $ help

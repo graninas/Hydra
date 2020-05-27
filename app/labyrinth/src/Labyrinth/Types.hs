@@ -3,8 +3,9 @@
 module Labyrinth.Types where
 
 
-import           Labyrinth.Prelude          as L
-import           Labyrinth.Domain
+import Labyrinth.Prelude
+import Labyrinth.Domain
+import Labyrinth.KVDB.Model
 
 type HasTreasure = Bool
 
@@ -32,6 +33,7 @@ data AppState = AppState
   , _playerInventory      :: InventoryState
   , _gameState            :: StateVar GameState
   , _gameMessages         :: StateVar [String]
+  , _kvdbConfig           :: KVDBConfig LabKVDB
   }
 
 data AppException

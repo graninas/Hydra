@@ -4,7 +4,6 @@ module Labyrinth.KVDB.Model where
 
 import           Labyrinth.Prelude
 import           Labyrinth.Domain
-import           Labyrinth.Types
 
 import qualified Hydra.Domain as D
 
@@ -27,7 +26,7 @@ data GameEntity = GameEntity
 data LabKVDB
 
 instance D.DB LabKVDB where
-  getDBName = "lab.rdb"
+  getDBName = "labyrinths.rdb"
 
 instance D.DBEntity LabKVDB GameEntity where
   data KeyEntity GameEntity = LabKey Int

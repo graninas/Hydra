@@ -1,0 +1,62 @@
+2020/05/27-21:50:41.922502 7f57df7fe700 RocksDB version: 4.1.0
+2020/05/27-21:50:41.922550 7f57df7fe700 Git sha rocksdb_build_git_sha:
+2020/05/27-21:50:41.922554 7f57df7fe700 Compile date Feb  8 2016
+2020/05/27-21:50:41.922556 7f57df7fe700 DB SUMMARY
+2020/05/27-21:50:41.922601 7f57df7fe700 CURRENT file:  CURRENT
+2020/05/27-21:50:41.922604 7f57df7fe700 IDENTITY file:  IDENTITY
+2020/05/27-21:50:41.922608 7f57df7fe700 MANIFEST file:  MANIFEST-000005 size: 59 Bytes
+2020/05/27-21:50:41.922611 7f57df7fe700 SST files in ./app/labyrinth/labyrinths.rdb dir, Total Num: 0, files: 
+2020/05/27-21:50:41.922613 7f57df7fe700 Write Ahead Log file in ./app/labyrinth/labyrinths.rdb: 000006.log size: 1669 ; 
+2020/05/27-21:50:41.922615 7f57df7fe700          Options.error_if_exists: 0
+2020/05/27-21:50:41.922617 7f57df7fe700        Options.create_if_missing: 1
+2020/05/27-21:50:41.922618 7f57df7fe700          Options.paranoid_checks: 0
+2020/05/27-21:50:41.922620 7f57df7fe700                      Options.env: 0x7f581055cf00
+2020/05/27-21:50:41.922621 7f57df7fe700                 Options.info_log: 0x7f5790036750
+2020/05/27-21:50:41.922623 7f57df7fe700           Options.max_open_files: 1000
+2020/05/27-21:50:41.922624 7f57df7fe700 Options.max_file_opening_threads: 1
+2020/05/27-21:50:41.922626 7f57df7fe700       Options.max_total_wal_size: 0
+2020/05/27-21:50:41.922628 7f57df7fe700        Options.disableDataSync: 0
+2020/05/27-21:50:41.922629 7f57df7fe700              Options.use_fsync: 0
+2020/05/27-21:50:41.922630 7f57df7fe700      Options.max_log_file_size: 0
+2020/05/27-21:50:41.922632 7f57df7fe700 Options.max_manifest_file_size: 18446744073709551615
+2020/05/27-21:50:41.922634 7f57df7fe700      Options.log_file_time_to_roll: 0
+2020/05/27-21:50:41.922635 7f57df7fe700      Options.keep_log_file_num: 1000
+2020/05/27-21:50:41.922637 7f57df7fe700        Options.allow_os_buffer: 1
+2020/05/27-21:50:41.922638 7f57df7fe700       Options.allow_mmap_reads: 0
+2020/05/27-21:50:41.922640 7f57df7fe700       Options.allow_fallocate: 1
+2020/05/27-21:50:41.922641 7f57df7fe700      Options.allow_mmap_writes: 0
+2020/05/27-21:50:41.922643 7f57df7fe700          Options.create_missing_column_families: 0
+2020/05/27-21:50:41.922644 7f57df7fe700                              Options.db_log_dir: 
+2020/05/27-21:50:41.922646 7f57df7fe700                                 Options.wal_dir: ./app/labyrinth/labyrinths.rdb
+2020/05/27-21:50:41.922647 7f57df7fe700                Options.table_cache_numshardbits: 4
+2020/05/27-21:50:41.922649 7f57df7fe700     Options.delete_obsolete_files_period_micros: 21600000000
+2020/05/27-21:50:41.922650 7f57df7fe700              Options.max_background_compactions: 1
+2020/05/27-21:50:41.922652 7f57df7fe700                      Options.max_subcompactions: 1
+2020/05/27-21:50:41.922653 7f57df7fe700                  Options.max_background_flushes: 1
+2020/05/27-21:50:41.922655 7f57df7fe700                         Options.WAL_ttl_seconds: 0
+2020/05/27-21:50:41.922656 7f57df7fe700                       Options.WAL_size_limit_MB: 0
+2020/05/27-21:50:41.922658 7f57df7fe700             Options.manifest_preallocation_size: 4194304
+2020/05/27-21:50:41.922659 7f57df7fe700                          Options.allow_os_buffer: 1
+2020/05/27-21:50:41.922661 7f57df7fe700                         Options.allow_mmap_reads: 0
+2020/05/27-21:50:41.922662 7f57df7fe700                        Options.allow_mmap_writes: 0
+2020/05/27-21:50:41.922664 7f57df7fe700                      Options.is_fd_close_on_exec: 1
+2020/05/27-21:50:41.922665 7f57df7fe700                    Options.stats_dump_period_sec: 600
+2020/05/27-21:50:41.922667 7f57df7fe700                    Options.advise_random_on_open: 1
+2020/05/27-21:50:41.922668 7f57df7fe700                     Options.db_write_buffer_size: 0d
+2020/05/27-21:50:41.922670 7f57df7fe700          Options.access_hint_on_compaction_start: NORMAL
+2020/05/27-21:50:41.922672 7f57df7fe700   Options.new_table_reader_for_compaction_inputs: 0
+2020/05/27-21:50:41.922673 7f57df7fe700                Options.compaction_readahead_size: 0d
+2020/05/27-21:50:41.922675 7f57df7fe700                       Options.use_adaptive_mutex: 0
+2020/05/27-21:50:41.922687 7f57df7fe700                             Options.rate_limiter: (nil)
+2020/05/27-21:50:41.922689 7f57df7fe700      Options.delete_scheduler.rate_bytes_per_sec: 0
+2020/05/27-21:50:41.922691 7f57df7fe700                           Options.bytes_per_sync: 0
+2020/05/27-21:50:41.922692 7f57df7fe700                       Options.wal_bytes_per_sync: 0
+2020/05/27-21:50:41.922694 7f57df7fe700                        Options.wal_recovery_mode: 0
+2020/05/27-21:50:41.922695 7f57df7fe700                   Options.enable_thread_tracking: 0
+2020/05/27-21:50:41.922697 7f57df7fe700                                Options.row_cache: None
+2020/05/27-21:50:41.922698 7f57df7fe700 Compression algorithms supported:
+2020/05/27-21:50:41.922700 7f57df7fe700 	Snappy supported: 1
+2020/05/27-21:50:41.922702 7f57df7fe700 	Zlib supported: 1
+2020/05/27-21:50:41.922704 7f57df7fe700 	Bzip supported: 1
+2020/05/27-21:50:41.922705 7f57df7fe700 	LZ4 supported: 0
+2020/05/27-21:50:41.922707 7f57df7fe700 Fast CRC32 supported: 1

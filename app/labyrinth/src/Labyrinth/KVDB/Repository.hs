@@ -2,9 +2,9 @@
 
 module Labyrinth.KVDB.Repository where
 
-import           Labyrinth.Prelude
-import           Labyrinth.Types
-import           Labyrinth.KVDB.Model
+import Labyrinth.Prelude
+import Labyrinth.Types
+import Labyrinth.KVDB.Model
 
 
 withKVDB' :: DB db => KVDBConfig db -> KVDBL db a -> AppL a
@@ -14,16 +14,10 @@ withKVDB' cfg dbAct = do
     Left err   -> throwException $ InvalidOperation $ show err
     Right conn -> withKVDB conn dbAct
 
-loadLabyrinth :: KVDBConfig LabKVDB -> Int -> AppL GameEntity
-loadLabyrinth kvdbCfg k = do
-  eVal <- withKVDB' kvdbCfg $ loadEntity $ LabKey k
-  scenario $ case eVal of
-    Left err  -> throwException $ InvalidOperation $ show err
-    Right val -> pure val
-  -- where
-    -- 'Production' DB
-    -- kvDBConfig = RocksDBConfig @LabKVDB "./prod/labyrinths"
+loadGameState :: KVDBConfig LabKVDB -> Int -> AppL (DBResult GameEntity)
+loadGameState kvdbCfg k =
+  withKVDB' kvdbCfg $ loadEntity $ LabKey k
 
-saveLabyrinth :: KVDBConfig LabKVDB -> GameEntity -> AppL ()
-saveLabyrinth kvdbCfg ge =
-  void $ withKVDB' kvdbCfg $ saveEntity @GameEntity @GameEntity @LabKVDB ge
+saveGameState :: KVDBConfig LabKVDB -> GameEntity -> AppL (DBResult ())
+saveGameState kvdbCfg ge =
+  withKVDB' kvdbCfg $ saveEntity @GameEntity @GameEntity @LabKVDB ge

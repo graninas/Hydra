@@ -25,6 +25,9 @@ import           Labyrinth.Gen
 import           Labyrinth.Lens
 
 
+kvdbConfig :: KVDBConfig LabKVDB
+kvdbConfig = RocksDBConfig "./labyrinths/" True False
+
 initAppState :: Bool -> (Int, Int, Labyrinth) -> AppL AppState
 initAppState hasTreasure (x0, y0, lab) = do
   let LabyrinthInfo {..} = analyzeLabyrinth lab
@@ -54,7 +57,7 @@ initAppState hasTreasure (x0, y0, lab) = do
     inv
     gameStateVar
     moveMsgsVar
-
+    kvdbConfig
 
 withAppState :: Labyrinth -> R.AppRuntime -> (AppState -> IO a) -> IO a
 withAppState lab rt act = do

@@ -12,6 +12,10 @@ import           Labyrinth.Domain
 import           Labyrinth.Render
 import           Labyrinth.Labyrinths
 import           Labyrinth.Algorithms
+import           Labyrinth.KVDB.Model (LabKVDB)
+
+kvdbConfig :: KVDBConfig LabKVDB
+kvdbConfig = RocksDBConfig "./app/labyrinth/" True False
 
 loggerCfg :: D.LoggerConfig
 loggerCfg = D.LoggerConfig
@@ -51,6 +55,7 @@ initAppState lab = do
     inv
     gameStateVar
     moveMsgsVar
+    kvdbConfig
 
 startApp :: AppL ()
 startApp = initAppState testLabyrinth2 >>= app
