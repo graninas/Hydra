@@ -20,10 +20,10 @@ data Passage
   deriving (Show, Read, Eq)
 
 data MovingResult
-  = SuccessfullMove Pos Cell Content
+  = SuccessfullMove Pos
   | ImpossibleMove String
-  | ExitFound Bool
   | InvalidMove String
+  | LeavingLabyrinthMove
   deriving (Show, Read, Eq)
 
 getPassage :: Cell -> Direction -> Passage
@@ -57,24 +57,22 @@ unknownCommand :: String -> String
 unknownCommand cmdStr = "Unknown command: " <> cmdStr
 
 
--- Testing the move. This function doesn't change game state.
-testMove :: AppState -> Direction -> LangL MovingResult
-testMove st dir = do
-  lab         <- readVarIO $ st ^. labyrinth
-  hasTreasure <- readVarIO $ st ^. playerInventory . treasure
-  curPos      <- readVarIO $ st ^. playerPos
-  let nextPos    = calcNextPos curPos dir
-  let mbCurCell  = Map.lookup curPos lab
-  let mbNextCell = Map.lookup nextPos lab
+-- Testing the move for a position. This function doesn't change the game state.
+testMove :: Pos -> Direction -> Labyrinth -> MovingResult
+testMove pos dir lab = res
+  where
+    nextPos    = calcNextPos pos dir
+    mbCurCell  = Map.lookup pos lab
+    mbNextCell = Map.lookup nextPos lab
 
-  pure $ case mbCurCell of
-    Nothing        -> InvalidMove $ "Cell not found: " +|| curPos ||+ ""
-    Just (cell, _) -> case (getPassage cell dir, mbNextCell) of
-      (MonolithWall, _)        -> ImpossibleMove "Step impossible: monolith wall"
-      (RegularWall, _)         -> ImpossibleMove "Step impossible: wall"
-      (Passage, Nothing)       -> InvalidMove $ "Cell not found: " +|| nextPos ||+ ""
-      (Passage, Just (nextCell, nextContent)) -> SuccessfullMove nextPos nextCell nextContent
-      (Exit, _)                -> ExitFound hasTreasure
+    res = case mbCurCell of
+      Nothing        -> InvalidMove $ "Cell not found: " +|| pos ||+ ""
+      Just (cell, _) -> case (getPassage cell dir, mbNextCell) of
+        (MonolithWall, _)    -> ImpossibleMove "Step impossible: monolith wall"
+        (RegularWall, _)     -> ImpossibleMove "Step impossible: wall"
+        (Passage, Nothing)   -> InvalidMove $ "Cell not found: " +|| nextPos ||+ ""
+        (Passage, Just _)    -> SuccessfullMove nextPos
+        (Exit, _)            -> LeavingLabyrinthMove
 
 getPlayerPos :: AppState -> LangL Pos
 getPlayerPos st = readVarIO $ st ^. playerPos
@@ -148,12 +146,17 @@ addGameMessage st msg = do
 makeMove :: AppState -> Direction -> LangL ()
 makeMove st dir = do
   cancelPlayerLeaving st
-  moveResult <- testMove st dir
+
+  plPos       <- readVarIO $ st ^. playerPos
+  hasTreasure <- readVarIO $ st ^. playerInventory . treasure
+  lab         <- readVarIO $ st ^. labyrinth
+  let moveResult = testMove plPos dir lab
+
   case moveResult of
-    InvalidMove msg     -> throwException $ InvalidOperation msg
-    ImpossibleMove msg  -> addGameMessage st msg
-    ExitFound hasTreasure -> setGameState st $ PlayerIsAboutLeaving hasTreasure
-    SuccessfullMove newPos _ _ -> do
+    InvalidMove msg        -> throwException $ InvalidOperation msg
+    ImpossibleMove msg     -> addGameMessage st msg
+    LeavingLabyrinthMove   -> setGameState st $ PlayerIsAboutLeaving hasTreasure
+    SuccessfullMove newPos -> do
       addGameMessage st "Step executed."
       setPlayerPos st newPos
       performPlayerContentEvent st

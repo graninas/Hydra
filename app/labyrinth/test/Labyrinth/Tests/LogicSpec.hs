@@ -104,35 +104,37 @@ spec = do
         (Set.size _exits) `shouldSatisfy` (\x -> x >= 1 && x <= 3)
         -- _treasure `shouldSatisfy` (\mbT -> isJust mbT && inBounds _bounds (fromJust mbT))
 
-    describe "testMove tests" $ do
+    describe "testMove functional tests" $ do
+
+      let lab = testLabyrinth2
 
       it "testMove DirUp monolith" $ \rt -> do
-        movingResult <- runLabMethod (0, 0, testLabyrinth2) rt (\st -> scenario $ testMove st DirUp)
+        let movingResult = testMove (0, 0) DirUp lab
         movingResult `shouldBe` ImpossibleMove "Step impossible: monolith wall"
 
       it "testMove DirRight wall" $ \rt -> do
-        movingResult <- runLabMethod (0, 0, testLabyrinth2) rt (\st -> scenario $ testMove st DirRight)
+        let movingResult = testMove (0, 0) DirRight lab
         movingResult `shouldBe` ImpossibleMove "Step impossible: wall"
 
       it "testMove DirDown pass" $ \rt -> do
-        movingResult <- runLabMethod (0, 0, testLabyrinth2) rt (\st -> scenario $ testMove st DirDown)
-        movingResult `shouldBe` (SuccessfullMove (0,1) (Cell (Monolith False) NoWall NoWall NoWall) NoContent)
+        let movingResult = testMove (0, 0) DirDown lab
+        movingResult `shouldBe` (SuccessfullMove (0, 1))
 
       it "testMove DirRight treasure" $ \rt -> do
-        movingResult <- runLabMethod (0, 1, testLabyrinth2) rt (\st -> scenario $ testMove st DirRight)
-        movingResult `shouldBe` (SuccessfullMove (1,1) (Cell NoWall Wall NoWall Wall) Treasure)
+        let movingResult = testMove (0, 1) DirRight lab
+        movingResult `shouldBe` (SuccessfullMove (1, 1))
 
       it "testMove DirDown wormhole" $ \rt -> do
-        movingResult <- runLabMethod (0, 1, testLabyrinth2) rt (\st -> scenario $ testMove st DirDown)
-        movingResult `shouldBe` (SuccessfullMove (0,2) (Cell (Monolith False) NoWall NoWall (Monolith False)) (Wormhole 1))
+        let movingResult = testMove (0, 1) DirDown lab
+        movingResult `shouldBe` (SuccessfullMove (0, 2))
 
       it "testMove DirRight exit no treasure" $ \rt -> do
-        movingResult <- runLabMethod (2, 1, testLabyrinth2) rt (\st -> scenario $ testMove st DirRight)
-        movingResult `shouldBe` (ExitFound False)
+        let movingResult = testMove (2, 1) DirRight lab
+        movingResult `shouldBe` LeavingLabyrinthMove
 
       it "testMove DirRight exit treasure" $ \rt -> do
-        movingResult <- runLabMethodWithTreasure (2, 1, testLabyrinth2) rt (\st -> scenario $ testMove st DirRight)
-        movingResult `shouldBe` (ExitFound True)
+        let movingResult = testMove (2, 1) DirRight lab
+        movingResult `shouldBe` LeavingLabyrinthMove
 
     describe "performPlayerContentEvent tests" $ do
 
