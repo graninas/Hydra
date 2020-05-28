@@ -114,8 +114,13 @@ dependencies:
 library:
   source-dirs:
     - src
+    - test-framework
   ghc-options:
   - -Wall
+  dependencies:
+  - hspec
+  - hspec-contrib
+  - QuickCheck
 
 
 tests:
@@ -129,7 +134,6 @@ tests:
     - -with-rtsopts=-N
     dependencies:
     - hspec
-    - HUnit
-    - QuickCheck
     - hspec-contrib
+    - QuickCheck
     - Hydra
