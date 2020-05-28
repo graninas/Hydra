@@ -15,66 +15,10 @@ import qualified Hydra.Runtime              as R
 import qualified Hydra.Interpreters         as R
 
 import           Labyrinth.Prelude
-import           Labyrinth.App
-import           Labyrinth.Types
-import           Labyrinth.Domain
-import           Labyrinth.Render
-import           Labyrinth.Algorithms
-import           Labyrinth.Labyrinths
-import           Labyrinth.Gen
-import           Labyrinth.Lens
+import           Labyrinth
 
+import           Labyrinth.Tests.Common
 
-kvdbConfig :: KVDBConfig LabKVDB
-kvdbConfig = RocksDBConfig "./labyrinths/" True False
-
-initAppState :: Bool -> (Int, Int, Labyrinth) -> AppL AppState
-initAppState hasTreasure (x0, y0, lab) = do
-  let LabyrinthInfo {..} = analyzeLabyrinth lab
-  let renderTemplate = renderSkeleton _bounds
-
-  renderTemplateVar <- newVarIO renderTemplate
-  labRenderVar      <- newVarIO renderTemplate
-  labVar            <- newVarIO lab
-  labBoundsVar      <- newVarIO _bounds
-  wormholesVar      <- newVarIO _wormholes
-  posVar            <- newVarIO (x0, y0)
-  playerHPVar       <- newVarIO 100
-  bearPosVar        <- newVarIO (x0, y0)
-  inv               <- InventoryState <$> newVarIO hasTreasure
-  gameStateVar      <- newVarIO PlayerMove
-  moveMsgsVar       <- newVarIO []
-
-  pure $ AppState
-    labVar
-    labBoundsVar
-    renderTemplateVar
-    labRenderVar
-    wormholesVar
-    posVar
-    playerHPVar
-    bearPosVar
-    inv
-    gameStateVar
-    moveMsgsVar
-    kvdbConfig
-
-withAppState :: Labyrinth -> R.AppRuntime -> (AppState -> IO a) -> IO a
-withAppState lab rt act = do
-  st <- R.runAppL rt $ initAppState False (0, 0, lab)
-  act st
-
-withLabyrinthApp :: Labyrinth -> ((R.AppRuntime, AppState) -> IO a) -> IO a
-withLabyrinthApp lab act
-  = R.withAppRuntime Nothing
-  $ \rt -> withAppState lab rt
-  $ \st -> act (rt, st)
-
-runLabMethod :: (Int, Int, Labyrinth) -> R.AppRuntime -> (AppState -> AppL a) -> IO a
-runLabMethod startLab rt act = R.runAppL rt (initAppState False startLab >>= act)
-
-runLabMethodWithTreasure :: (Int, Int, Labyrinth) -> R.AppRuntime -> (AppState -> AppL a) -> IO a
-runLabMethodWithTreasure startLab rt act = R.runAppL rt (initAppState True startLab >>= act)
 
 spec :: Spec
 spec = do
