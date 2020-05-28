@@ -21,9 +21,11 @@ import           Labyrinth.Tests.Common
 
 spec :: Spec
 spec =
-  describe "KV DB tests" $ do
+  describe "KV DB tests" $
     it "load game test" $ do
       evalLangMocks <- newIORef []
       let testRt = F.TestRuntime evalLangMocks
-      strRes <- F.runAppL testRt $ loadGame st 0
+      strRes <- F.runAppL testRt $ do
+        st <- initAppState False (0, 0) 100 (0, 0) testLabyrinth1 PlayerMove testKvdbConfig
+        loadGame st 0
       strRes `shouldBe` "Game succesfully loaded from KV DB."

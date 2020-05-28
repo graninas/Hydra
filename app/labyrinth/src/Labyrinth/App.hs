@@ -367,8 +367,47 @@ help = do
 
 
 
-app :: AppState -> AppL ()
-app st = do
+initAppState
+  :: PlayerHasTreasure
+  -> PlayerPos
+  -> PlayerHP
+  -> BearPos
+  -> Labyrinth
+  -> GameState
+  -> KVDBConfig KVDB.LabKVDB
+  -> AppL AppState
+initAppState tr plPos plHP brPos lab gst kvdbCfg = do
+  let LabyrinthInfo {liBounds, liWormholes} = analyzeLabyrinth lab
+  let renderTemplate = renderSkeleton liBounds
+
+  renderTemplateVar <- newVarIO renderTemplate
+  renderVar         <- newVarIO renderTemplate
+  labVar            <- newVarIO lab
+  labBoundsVar      <- newVarIO liBounds
+  wormholesVar      <- newVarIO liWormholes
+  posVar            <- newVarIO plPos
+  playerHPVar       <- newVarIO plHP
+  bearPosVar        <- newVarIO brPos
+  inv               <- InventoryState <$> newVarIO tr
+  gameStateVar      <- newVarIO gst
+  moveMsgsVar       <- newVarIO []
+
+  pure $ AppState
+    labVar
+    labBoundsVar
+    renderTemplateVar
+    renderVar
+    wormholesVar
+    posVar
+    playerHPVar
+    bearPosVar
+    inv
+    gameStateVar
+    moveMsgsVar
+    kvdbCfg
+
+labyrinthApp :: AppState -> AppL ()
+labyrinthApp st = do
   scenario $ putStrLn "Labyrinth (aka Terra Incognita) game"
   scenario $ putStrLn "start <lab_size>   to start a new game"
   scenario $ putStrLn "load <idx>         to load a game from KV DB (file by default)"

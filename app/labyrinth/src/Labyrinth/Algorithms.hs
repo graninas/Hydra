@@ -6,14 +6,6 @@ import qualified Data.Set as Set
 import Labyrinth.Prelude
 import Labyrinth.Domain
 
-
-data LabyrinthInfo = LabyrinthInfo
-  { liBounds    :: Bounds
-  , liWormholes :: Wormholes
-  , liExits     :: Exits
-  , liTreasure  :: Maybe Pos
-  }
-
 emptyLabyrinthInfo :: LabyrinthInfo
 emptyLabyrinthInfo = LabyrinthInfo (0, 0) Map.empty Set.empty Nothing
 

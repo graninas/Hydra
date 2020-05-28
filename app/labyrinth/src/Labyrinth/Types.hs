@@ -7,8 +7,13 @@ import Labyrinth.Prelude
 import Labyrinth.Domain
 import Labyrinth.KVDB.Model
 
+type PlayerPos = Pos
+type PlayerHP = Int
+type BearPos = Pos
+type PlayerHasTreasure = Bool
+
 data InventoryState = InventoryState
-  { _treasureState :: StateVar Bool
+  { _treasureState :: StateVar PlayerHasTreasure
   }
 
 data GameState
@@ -25,9 +30,9 @@ data AppState = AppState
   , _labRenderTemplate    :: StateVar LabRender
   , _labRenderVar         :: StateVar LabRender
   , _labWormholes         :: StateVar Wormholes
-  , _playerPos            :: StateVar Pos
-  , _playerHP             :: StateVar Int
-  , _bearPos              :: StateVar Pos
+  , _playerPos            :: StateVar PlayerPos
+  , _playerHP             :: StateVar PlayerHP
+  , _bearPos              :: StateVar BearPos
   , _playerInventory      :: InventoryState
   , _gameState            :: StateVar GameState
   , _gameMessages         :: StateVar [String]

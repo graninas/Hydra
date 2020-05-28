@@ -32,9 +32,9 @@ spec = do
         case eLab of
           Left (err :: SomeException) -> assert False
           Right lab -> do
-            let LabyrinthInfo {..} = analyzeLabyrinth lab
-            let (x, y) = _bounds
-            let wms = Map.size _wormholes
+            let LabyrinthInfo {liBounds, liWormholes} = analyzeLabyrinth lab
+            let (x, y) = liBounds
+            let wms = Map.size liWormholes
             assert $ x * y >= 16 && x * y <= 100
             assert $ (wms >= 2) && (wms <= 5)
 
@@ -45,10 +45,10 @@ spec = do
       it "generateLabyrinth" $ \rt -> do
         lab <- R.runLangL (R._coreRuntime rt) $ generateLabyrinth (4, 4) 3 5
 
-        let LabyrinthInfo {..} = analyzeLabyrinth lab
-        _bounds `shouldBe` (4, 4)
-        (Map.size _wormholes) `shouldSatisfy` (\x -> x >= 2 && x <= 5)
-        (Set.size _exits) `shouldSatisfy` (\x -> x >= 1 && x <= 3)
+        let LabyrinthInfo {liBounds, liWormholes, liExits} = analyzeLabyrinth lab
+        liBounds `shouldBe` (4, 4)
+        (Map.size liWormholes) `shouldSatisfy` (\x -> x >= 2 && x <= 5)
+        (Set.size liExits) `shouldSatisfy` (\x -> x >= 1 && x <= 3)
         -- _treasure `shouldSatisfy` (\mbT -> isJust mbT && inBounds _bounds (fromJust mbT))
 
     describe "testMove functional tests" $ do
@@ -86,7 +86,7 @@ spec = do
     describe "performPlayerContentEvent tests" $ do
 
       it "performPlayerContentEvent no content" $ \rt -> do
-        (pos, tr, gs) <- runLabMethod (0, 0, testLabyrinth2) rt (\st -> do
+        (pos, tr, gs) <- runLabMethod (0, 0) testLabyrinth2 rt (\st -> do
           scenario $ performPlayerContentEvent st
 
           pos <- readVarIO $ st ^. playerPos
@@ -99,7 +99,7 @@ spec = do
         gs `shouldBe` PlayerMove
 
       it "performPlayerContentEvent wormhole" $ \rt -> do
-        (pos, tr, gs) <- runLabMethod (0, 2, testLabyrinth2) rt (\st -> do
+        (pos, tr, gs) <- runLabMethod (0, 2) testLabyrinth2 rt (\st -> do
           scenario $ performPlayerContentEvent st
 
           pos <- readVarIO $ st ^. playerPos

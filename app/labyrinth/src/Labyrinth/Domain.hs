@@ -48,3 +48,10 @@ data Inventory = Inventory
   { treasureFound :: Bool
   }
   deriving (Show, Read, Eq, Ord, Generic, ToJSON, FromJSON)
+
+data LabyrinthInfo = LabyrinthInfo
+  { liBounds    :: Bounds
+  , liWormholes :: Wormholes
+  , liExits     :: Exits
+  , liTreasure  :: Maybe Pos
+  }

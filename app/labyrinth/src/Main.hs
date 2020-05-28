@@ -6,12 +6,7 @@ import qualified Hydra.Domain               as D
 import qualified Hydra.Runtime              as R
 import qualified Hydra.Interpreters         as R
 
-import           Labyrinth.App (app)
-import           Labyrinth.Types
-import           Labyrinth.Domain
-import           Labyrinth.Render
-import           Labyrinth.Labyrinths
-import           Labyrinth.Algorithms
+import qualified Labyrinth as Lab
 import           Labyrinth.KVDB.Model (LabKVDB)
 
 kvdbConfig :: KVDBConfig LabKVDB
@@ -26,43 +21,11 @@ loggerCfg = D.LoggerConfig
   , D._logToFile    = False
   }
 
-initAppState :: Labyrinth -> AppL AppState
-initAppState lab = do
-  let LabyrinthInfo {liBounds, liWormholes} = analyzeLabyrinth lab
-  let renderTemplate = renderSkeleton liBounds
-
-  renderTemplateVar <- newVarIO renderTemplate
-  labRenderVar      <- newVarIO renderTemplate
-  labVar            <- newVarIO lab
-  labBoundsVar      <- newVarIO liBounds
-  wormholesVar      <- newVarIO liWormholes
-  posVar            <- newVarIO (0, 0)
-  playerHPVar       <- newVarIO 100
-  bearPosVar        <- newVarIO (0, 0)
-  inv               <- InventoryState <$> newVarIO False
-  gameStateVar      <- newVarIO GameStart
-  moveMsgsVar       <- newVarIO []
-
-  pure $ AppState
-    labVar
-    labBoundsVar
-    renderTemplateVar
-    labRenderVar
-    wormholesVar
-    posVar
-    playerHPVar
-    bearPosVar
-    inv
-    gameStateVar
-    moveMsgsVar
-    kvdbConfig
-
 startApp :: AppL ()
-startApp = initAppState testLabyrinth2 >>= app
-
-execApp :: Maybe D.LoggerConfig -> AppL a -> IO a
-execApp mbCfg act = R.withAppRuntime mbCfg $ \rt -> R.runAppL rt act
+startApp = do
+  st <- Lab.initAppState False (0,0) 100 (0,0) Lab.testLabyrinth2 Lab.GameStart kvdbConfig
+  Lab.labyrinthApp st
 
 main :: IO ()
-main =
-  execApp (Just loggerCfg) startApp
+main = R.withAppRuntime (Just loggerCfg)
+  $ \rt -> R.runAppL rt startApp
