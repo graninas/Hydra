@@ -3,17 +3,19 @@ module Hydra.Testing.Functional.AppInterpreter where
 import           Hydra.Prelude
 
 import qualified Data.Map as Map
+import           Unsafe.Coerce (unsafeCoerce)
 
 import qualified Hydra.Core.Domain        as D
 import qualified Hydra.Core.Language      as L
 import qualified Hydra.Framework.Language as L
 
 import           Hydra.Testing.Functional.TestRuntime
+import           Hydra.Testing.Functional.LangInterpreter
 
 
 interpretAppF :: TestRuntime -> L.AppF a -> IO a
-interpretAppF testRt@(TestRuntime {evalLangMocks}) (L.EvalLang action next) = do
-  mbMock <- popNextMock evalLangMocks
+interpretAppF testRt (L.EvalLang action next) = do
+  mbMock <- popNextMock testRt
   case mbMock of
     Just (Mock ghcAny)      -> pure $ next $ unsafeCoerce ghcAny
     Just RunTestInterpreter -> next <$> runLangL testRt action

@@ -82,6 +82,9 @@ getPlayerPos st = readVarIO $ st ^. playerPos
 setPlayerPos :: AppState -> Pos -> LangL ()
 setPlayerPos st newPos = writeVarIO (st ^. playerPos) newPos
 
+getPlayerThreasureState :: AppState -> LangL Bool
+getPlayerThreasureState st = readVarIO (st ^. playerInventory . treasureState)
+
 setCellContent :: AppState -> Pos -> Content -> LangL ()
 setCellContent st pos content = do
   lab <- readVarIO $ _labyrinth st
@@ -118,7 +121,7 @@ cancelPlayerLeaving :: AppState -> LangL ()
 cancelPlayerLeaving st = do
   gameSt <- getGameState st
   case gameSt of
-    PlayerIsAboutLeaving _               -> addGameMessage st "Okay, continue."
+    PlayerIsAboutLeaving                 -> addGameMessage st "Okay, continue."
     PlayerIsAboutLossLeavingConfirmation -> addGameMessage st "Okay, continue."
     _ -> pure ()
   setGameState st PlayerMove
@@ -134,7 +137,7 @@ performPlayerContentEvent' :: AppState -> Pos -> Content -> LangL ()
 performPlayerContentEvent' _ _ NoContent = pure ()
 performPlayerContentEvent' st pos Treasure = do
   addGameMessage st "You found a treasure!"
-  writeVarIO (st ^. playerInventory . treasure) True
+  writeVarIO (st ^. playerInventory . treasureState) True
   setCellContent st pos NoContent
 performPlayerContentEvent' st _ (Wormhole n) = do
   addGameMessage st $ "You found a wormhole. You have been moved to the next wormhole."
@@ -150,13 +153,12 @@ makePlayerMove st dir = do
   cancelPlayerLeaving st
 
   plPos       <- readVarIO $ st ^. playerPos
-  hasTreasure <- readVarIO $ st ^. playerInventory . treasure
   lab         <- readVarIO $ st ^. labyrinth
 
   case testMove plPos dir lab of
     InvalidMove msg        -> throwException $ InvalidOperation msg
     ImpossibleMove msg     -> addGameMessage st msg
-    LeavingLabyrinthMove   -> setGameState st $ PlayerIsAboutLeaving hasTreasure
+    LeavingLabyrinthMove   -> setGameState st PlayerIsAboutLeaving
     SuccessfullMove newPos -> do
       addGameMessage st "Step executed."
       setPlayerPos st newPos
@@ -177,14 +179,14 @@ handleYes st = do
     PlayerIsAboutLossLeavingConfirmation -> do
       addGameMessage st loosing
       setGameState st GameFinished
-    PlayerIsAboutLeaving _ -> throwException $ InvalidOperation "handleYes: Invalid state: PlayerIsAboutLeaving"
+    PlayerIsAboutLeaving -> throwException $ InvalidOperation "handleYes: Invalid state: PlayerIsAboutLeaving"
     _ -> addGameMessage st $ unknownCommand "yes"
 
 handleNo :: AppState -> LangL ()
 handleNo st = do
   gameSt <- getGameState st
   case gameSt of
-    PlayerIsAboutLeaving _ -> throwException $ InvalidOperation "handleNo: Invalid state: PlayerIsAboutLeaving"
+    PlayerIsAboutLeaving -> throwException $ InvalidOperation "handleNo: Invalid state: PlayerIsAboutLeaving"
     PlayerIsAboutLossLeavingConfirmation -> cancelPlayerLeaving st
     _ -> addGameMessage st $ unknownCommand "no"
 
@@ -212,16 +214,17 @@ moveBear st = do
 
 onStep :: AppState -> () -> AppL D.CliAction
 onStep st _ = do
-  gameSt <- scenario $ getGameState st
+  gameSt   <- scenario $ getGameState st
+  treasure <- scenario $ getPlayerThreasureState st
   isFinished <- scenario $ case gameSt of
-    PlayerIsAboutLeaving True  -> do
-      addGameMessage st winning
-      setGameState st GameFinished
-      pure True
-    PlayerIsAboutLeaving False -> do
-      addGameMessage st leaveWithoutTreasure
-      setGameState st PlayerIsAboutLossLeavingConfirmation
-      pure False
+    PlayerIsAboutLeaving -> do
+      when treasure $ addGameMessage st winning
+      when treasure $ setGameState st GameFinished
+
+      unless treasure $ addGameMessage st leaveWithoutTreasure
+      unless treasure $ setGameState st PlayerIsAboutLossLeavingConfirmation
+
+      pure treasure
     PlayerIsAboutLossLeavingConfirmation ->
       throwException $ InvalidOperation "OnStep: Invalid state: PlayerIsAboutLossLeavingConfirmation"
     PlayerMove   -> do
@@ -249,7 +252,7 @@ saveGame st idx = do
   lab   <- readVarIO $ st ^. labyrinth
   plPos <- readVarIO $ st ^. playerPos
   plHP  <- readVarIO $ st ^. playerHP
-  tr    <- readVarIO $ st ^. playerInventory . treasure
+  tr    <- readVarIO $ st ^. playerInventory . treasureState
   brPos <- readVarIO $ st ^. bearPos
 
   let plInv = Inventory tr
@@ -267,16 +270,16 @@ loadGame st idx = do
   case eRes of
     Left err  -> pure $ "Failed to load game state from KV DB: " <> show err
     Right (KVDB.GameEntity {..}) -> do
-      let LabyrinthInfo {..} = analyzeLabyrinth geLab
-      let renderTemplate = renderSkeleton _bounds
-      writeVarIO (st ^. labBounds) _bounds
+      let LabyrinthInfo {liBounds, liWormholes} = analyzeLabyrinth geLab
+      let renderTemplate = renderSkeleton liBounds
+      writeVarIO (st ^. labBounds) liBounds
       writeVarIO (st ^. labRenderTemplate) renderTemplate
       writeVarIO (st ^. labRenderVar) renderTemplate
-      writeVarIO (st ^. labWormholes) _wormholes
+      writeVarIO (st ^. labWormholes) liWormholes
       writeVarIO (st ^. labyrinth) geLab
       writeVarIO (st ^. playerPos) gePlayerPos
       writeVarIO (st ^. playerHP) gePlayerHP
-      writeVarIO (st ^. playerInventory . treasure) $ treasureFound gePlayerInventory
+      writeVarIO (st ^. playerInventory . treasureState) $ treasureFound gePlayerInventory
       writeVarIO (st ^. bearPos) geBearPos
       writeVarIO (st ^. gameState) PlayerMove
       pure "Game succesfully loaded from KV DB."
@@ -289,9 +292,9 @@ startRndGame st = do
 
 startGame' :: AppState -> Labyrinth -> LangL String
 startGame' st lab = do
-  let LabyrinthInfo {..} = analyzeLabyrinth lab
-  let (xSize, ySize) = _bounds
-  let renderTemplate = renderSkeleton _bounds
+  let LabyrinthInfo {liBounds, liWormholes} = analyzeLabyrinth lab
+  let (xSize, ySize) = liBounds
+  let renderTemplate = renderSkeleton liBounds
 
   playerX <- getRandomInt (0, xSize - 1)
   playerY <- getRandomInt (0, ySize - 1)
@@ -299,14 +302,14 @@ startGame' st lab = do
   bearY   <- getRandomInt (0, ySize - 1)
 
   writeVarIO (st ^. labyrinth) lab
-  writeVarIO (st ^. labBounds) _bounds
+  writeVarIO (st ^. labBounds) liBounds
   writeVarIO (st ^. labRenderTemplate) renderTemplate
   writeVarIO (st ^. labRenderVar) renderTemplate
-  writeVarIO (st ^. labWormholes) _wormholes
+  writeVarIO (st ^. labWormholes) liWormholes
   writeVarIO (st ^. playerPos) (playerX, playerY)
   writeVarIO (st ^. playerHP) 100
   writeVarIO (st ^. bearPos) (bearX, bearY)
-  writeVarIO (st ^. playerInventory . treasure) False
+  writeVarIO (st ^. playerInventory . treasureState) False
   writeVarIO (st ^. gameState) PlayerMove
 
   pure "New game started."

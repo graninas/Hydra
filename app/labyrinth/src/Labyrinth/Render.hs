@@ -179,8 +179,8 @@ renderLabyrinth' skeleton lab plPos bearPos =
 renderLabyrinth :: Labyrinth -> Pos -> Pos -> LabRender
 renderLabyrinth lab plPos bearPos = renderLabyrinth' skeleton lab plPos bearPos
   where
-    LabyrinthInfo {..} = analyzeLabyrinth lab
-    skeleton = renderSkeleton _bounds
+    LabyrinthInfo {liBounds} = analyzeLabyrinth lab
+    skeleton = renderSkeleton liBounds
 
 printLabRender' :: LabRender -> LangL ()
 printLabRender' ((rendMaxX, rendMaxY), labRender) = do

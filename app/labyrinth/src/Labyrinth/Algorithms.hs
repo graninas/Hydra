@@ -8,10 +8,10 @@ import Labyrinth.Domain
 
 
 data LabyrinthInfo = LabyrinthInfo
-  { _bounds    :: Bounds
-  , _wormholes :: Wormholes
-  , _exits     :: Exits
-  , _treasure  :: Maybe Pos
+  { liBounds    :: Bounds
+  , liWormholes :: Wormholes
+  , liExits     :: Exits
+  , liTreasure  :: Maybe Pos
   }
 
 emptyLabyrinthInfo :: LabyrinthInfo
@@ -28,8 +28,8 @@ increaseBounds (x', y') (x, y) = (max x' (x + 1), max y' (y + 1))
 
 increaseBounds' :: Pos -> LabyrinthInfo -> LabyrinthInfo
 increaseBounds' (x, y) labInfo =
-  let (x', y') = _bounds labInfo
-  in labInfo { _bounds = (max x' (x + 1), max y' (y + 1)) }
+  let (x', y') = liBounds labInfo
+  in labInfo { liBounds = (max x' (x + 1), max y' (y + 1)) }
 
 analyzeLabyrinth :: Labyrinth -> LabyrinthInfo
 analyzeLabyrinth lab = Map.foldrWithKey f emptyLabyrinthInfo lab
@@ -39,8 +39,8 @@ analyzeLabyrinth lab = Map.foldrWithKey f emptyLabyrinthInfo lab
 
 analyzeContent :: Pos -> Content -> LabyrinthInfo -> LabyrinthInfo
 analyzeContent p (Wormhole n) labInfo
-  = labInfo { _wormholes = Map.insert n p $ _wormholes labInfo }
-analyzeContent p Treasure labInfo = labInfo { _treasure = Just p }
+  = labInfo { liWormholes = Map.insert n p $ liWormholes labInfo }
+analyzeContent p Treasure labInfo = labInfo { liTreasure = Just p }
 analyzeContent _ _ labInfo = labInfo
 
 analyzeCell :: Pos -> Cell -> LabyrinthInfo -> LabyrinthInfo
@@ -51,7 +51,7 @@ analyzeCell p (Cell l r u d)
   . analyzeExit p DirDown d
 
 analyzeExit :: Pos -> Direction -> Wall -> LabyrinthInfo -> LabyrinthInfo
-analyzeExit p dir (Monolith True) labInfo = labInfo { _exits = Set.insert (p, dir) $ _exits labInfo }
+analyzeExit p dir (Monolith True) labInfo = labInfo { liExits = Set.insert (p, dir) $ liExits labInfo }
 analyzeExit _ _ _ labInfo = labInfo
 
 

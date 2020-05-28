@@ -12,15 +12,15 @@ data Mock
   | RunTestInterpreter
   | RunRealInterpreter
 
--- | Runtime data for core subsystems.
+
 data TestRuntime = TestRuntime
-    { evalLangMocks :: IORef [Mock]
+    { mocks :: IORef [Mock]
     }
 
 
-popNextMock :: IORef [Mock] -> Maybe Mock
-popNextMock ref = do
-  lst <- readIORef ref
+popNextMock :: TestRuntime -> IO (Maybe Mock)
+popNextMock (TestRuntime {mocks}) = do
+  lst <- readIORef mocks
   case lst of
-    [] -> pure Nothing
-    (m:ms) -> writeIORef ref ms >> pure $ Just m
+    []     -> pure Nothing
+    (m:ms) -> writeIORef mocks ms >> pure (Just m)

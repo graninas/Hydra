@@ -90,7 +90,7 @@ spec = do
           scenario $ performPlayerContentEvent st
 
           pos <- readVarIO $ st ^. playerPos
-          tr  <- readVarIO $ st ^. playerInventory . treasure
+          tr  <- readVarIO $ st ^. playerInventory . treasureState
           gs  <- readVarIO $ st ^. gameState
           pure (pos, tr, gs))
 
@@ -103,7 +103,7 @@ spec = do
           scenario $ performPlayerContentEvent st
 
           pos <- readVarIO $ st ^. playerPos
-          tr  <- readVarIO $ st ^. playerInventory . treasure
+          tr  <- readVarIO $ st ^. playerInventory . treasureState
           gs  <- readVarIO $ st ^. gameState
           pure (pos, tr, gs))
 

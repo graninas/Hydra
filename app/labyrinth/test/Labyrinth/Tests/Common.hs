@@ -14,23 +14,25 @@ import qualified Hydra.Runtime              as R
 import qualified Hydra.Interpreters         as R
 
 import           Labyrinth.Prelude
+import qualified Labyrinth.KVDB.Model as KVDB
+import qualified Labyrinth.KVDB.Repository as KVDB
 import           Labyrinth
 
 
-kvdbConfig :: KVDBConfig LabKVDB
-kvdbConfig = RocksDBConfig "./labyrinths/" True False
+testKvdbConfig :: KVDBConfig KVDB.LabKVDB
+testKvdbConfig = RocksDBConfig "./labyrinths/" True False
 
 
 initAppState :: Bool -> (Int, Int, Labyrinth) -> AppL AppState
 initAppState hasTreasure (x0, y0, lab) = do
-  let LabyrinthInfo {..} = analyzeLabyrinth lab
-  let renderTemplate = renderSkeleton _bounds
+  let LabyrinthInfo {liBounds, liWormholes} = analyzeLabyrinth lab
+  let renderTemplate = renderSkeleton liBounds
 
   renderTemplateVar <- newVarIO renderTemplate
   labRenderVar      <- newVarIO renderTemplate
   labVar            <- newVarIO lab
-  labBoundsVar      <- newVarIO _bounds
-  wormholesVar      <- newVarIO _wormholes
+  labBoundsVar      <- newVarIO liBounds
+  wormholesVar      <- newVarIO liWormholes
   posVar            <- newVarIO (x0, y0)
   playerHPVar       <- newVarIO 100
   bearPosVar        <- newVarIO (x0, y0)
@@ -50,7 +52,7 @@ initAppState hasTreasure (x0, y0, lab) = do
     inv
     gameStateVar
     moveMsgsVar
-    kvdbConfig
+    testKvdbConfig
 
 withAppState :: Labyrinth -> R.AppRuntime -> (AppState -> IO a) -> IO a
 withAppState lab rt act = do

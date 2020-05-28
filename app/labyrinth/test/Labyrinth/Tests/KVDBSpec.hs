@@ -13,7 +13,7 @@ import           Test.QuickCheck.Monadic (assert, monadicIO, pick, pre, run)
 import qualified Hydra.Domain               as D
 import qualified Hydra.Runtime              as R
 import qualified Hydra.Interpreters         as R
-import qualified Hydra.Testing.Functional   as FT
+import qualified Hydra.Testing.Functional   as F
 
 import           Labyrinth.Prelude
 import           Labyrinth
@@ -23,4 +23,7 @@ spec :: Spec
 spec =
   describe "KV DB tests" $ do
     it "load game test" $ do
-      loadGame
+      evalLangMocks <- newIORef []
+      let testRt = F.TestRuntime evalLangMocks
+      strRes <- F.runAppL testRt $ loadGame st 0
+      strRes `shouldBe` "Game succesfully loaded from KV DB."

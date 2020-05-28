@@ -28,14 +28,14 @@ loggerCfg = D.LoggerConfig
 
 initAppState :: Labyrinth -> AppL AppState
 initAppState lab = do
-  let LabyrinthInfo {..} = analyzeLabyrinth lab
-  let renderTemplate = renderSkeleton _bounds
+  let LabyrinthInfo {liBounds, liWormholes} = analyzeLabyrinth lab
+  let renderTemplate = renderSkeleton liBounds
 
   renderTemplateVar <- newVarIO renderTemplate
   labRenderVar      <- newVarIO renderTemplate
   labVar            <- newVarIO lab
-  labBoundsVar      <- newVarIO _bounds
-  wormholesVar      <- newVarIO _wormholes
+  labBoundsVar      <- newVarIO liBounds
+  wormholesVar      <- newVarIO liWormholes
   posVar            <- newVarIO (0, 0)
   playerHPVar       <- newVarIO 100
   bearPosVar        <- newVarIO (0, 0)

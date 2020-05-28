@@ -7,17 +7,15 @@ import Labyrinth.Prelude
 import Labyrinth.Domain
 import Labyrinth.KVDB.Model
 
-type HasTreasure = Bool
-
 data InventoryState = InventoryState
-  { _treasure :: StateVar Bool
+  { _treasureState :: StateVar Bool
   }
 
 data GameState
   = GameStart
   | GameFinished
   | PlayerMove
-  | PlayerIsAboutLeaving HasTreasure
+  | PlayerIsAboutLeaving
   | PlayerIsAboutLossLeavingConfirmation
   deriving (Show, Eq)
 
