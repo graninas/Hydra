@@ -2,25 +2,41 @@ module Hydra.Testing.Functional.TestRuntime where
 
 import           Hydra.Prelude
 
-import qualified Data.Map                        as Map
+import qualified Data.Map              as Map
 
-import qualified Hydra.Core.Domain               as D
-import qualified Hydra.Core.Language             as L
+import qualified Hydra.Core.Domain     as D
+import qualified Hydra.Core.Language   as L
+import qualified Hydra.Runtime         as R
+import qualified Hydra.Interpreters    as R
 
-data Mock
+data Step
   = Mock Any
   | RunTestInterpreter
   | RunRealInterpreter
 
 
 data TestRuntime = TestRuntime
-    { mocks :: IORef [Mock]
-    }
+  { _appRuntime :: Maybe R.AppRuntime
+  , _steps      :: IORef [Step]
+  }
 
 
-popNextMock :: TestRuntime -> IO (Maybe Mock)
-popNextMock (TestRuntime {mocks}) = do
-  lst <- readIORef mocks
+popNextStep :: TestRuntime -> IO (Maybe Step)
+popNextStep (TestRuntime {_steps}) = do
+  lst <- readIORef _steps
   case lst of
     []     -> pure Nothing
-    (m:ms) -> writeIORef mocks ms >> pure (Just m)
+    (m:ms) -> writeIORef _steps ms >> pure (Just m)
+
+createTestRuntime :: Maybe R.AppRuntime -> IO TestRuntime
+createTestRuntime mbAppRt = do
+  mocksRef <- newIORef []
+  pure $ TestRuntime mbAppRt mocksRef
+
+clearTestRuntime :: TestRuntime -> IO ()
+clearTestRuntime (TestRuntime (Just appRt) _) = R.clearAppRuntime appRt
+clearTestRuntime _ = pure ()
+
+withTestRuntime :: Maybe R.AppRuntime -> (TestRuntime -> IO a) -> IO a
+withTestRuntime mbAppRt testF =
+  bracket (createTestRuntime mbAppRt) clearTestRuntime testF
