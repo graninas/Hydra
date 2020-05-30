@@ -2,7 +2,6 @@ module Hydra.Testing.Functional.AppInterpreter where
 
 import           Hydra.Prelude
 
-import qualified Data.Map as Map
 import           Unsafe.Coerce (unsafeCoerce)
 
 import qualified Hydra.Core.Domain        as D
@@ -12,36 +11,30 @@ import qualified Hydra.Runtime            as R
 import qualified Hydra.Interpreters       as R
 
 import           Hydra.Testing.Functional.TestRuntime
-import           Hydra.Testing.Functional.LangInterpreter
+import           Hydra.Testing.Functional.Common
+import qualified Hydra.Testing.Functional.LangInterpreter as F
 import qualified Hydra.Testing.Functional.RLens as RLens
-
-withStep :: TestRuntime -> b -> IO a
-withStep testRt act = do
-  mbMock <- popNextStep testRt
-  case mbMock of
-    Just (Mock ghcAny)      -> pure $ unsafeCoerce ghcAny
-    Just RunTestInterpreter -> act
-    Just RunRealInterpreter -> error "Real interpreter running not implemented."
-    Nothing                 -> error "Mock not found."
 
 
 interpretAppF :: TestRuntime -> L.AppF a -> IO a
 interpretAppF testRt (L.EvalLang action next) =
-  next <$> withStep testRt (
-    runLangL testRt action)
-
+  withStep "AppF.EvalLang" testRt next
+    (F.runLangL testRt action)
+    (\appRt -> R.interpretAppF appRt (L.EvalLang action next))
 
 interpretAppF testRt (L.EvalProcess action next) =
-  error "EvalProcess test interpreter not implemented."
+  error "AppF.EvalProcess test interpreter not implemented."
 
-interpretAppF testRt (L.InitKVDB cfg dbName next) = do
-  error "InitKVDB test interpreter not implemented."
+interpretAppF testRt (L.InitKVDB cfg dbName next) =
+  withStep "AppF.InitKVDB" testRt next
+    (initKVDB' testRt cfg dbName)
+    (\appRt -> R.interpretAppF appRt (L.InitKVDB cfg dbName next))
 
 interpretAppF testRt (L.InitSqlDB cfg next) =
-  error "InitSqlDB test interpreter not implemented."
+  error "AppF.InitSqlDB test interpreter not implemented."
 
 interpretAppF testRt (L.CliF completeFunc onStep onUnknownCommand handlers cliToken next) =
-  error "CliF test interpreter not implemented."
+  error "AppF.CliF test interpreter not implemented."
 
 runAppL :: TestRuntime -> L.AppL a -> IO a
 runAppL testRt = foldFree (interpretAppF testRt)

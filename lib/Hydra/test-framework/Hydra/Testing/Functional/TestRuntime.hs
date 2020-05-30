@@ -16,7 +16,8 @@ data Step
 
 
 data TestRuntime = TestRuntime
-  { _appRuntime :: Maybe R.AppRuntime
+  { _traceSteps :: Bool
+  , _appRuntime :: Maybe R.AppRuntime
   , _steps      :: IORef [Step]
   }
 
@@ -27,16 +28,3 @@ popNextStep (TestRuntime {_steps}) = do
   case lst of
     []     -> pure Nothing
     (m:ms) -> writeIORef _steps ms >> pure (Just m)
-
-createTestRuntime :: Maybe R.AppRuntime -> IO TestRuntime
-createTestRuntime mbAppRt = do
-  mocksRef <- newIORef []
-  pure $ TestRuntime mbAppRt mocksRef
-
-clearTestRuntime :: TestRuntime -> IO ()
-clearTestRuntime (TestRuntime (Just appRt) _) = R.clearAppRuntime appRt
-clearTestRuntime _ = pure ()
-
-withTestRuntime :: Maybe R.AppRuntime -> (TestRuntime -> IO a) -> IO a
-withTestRuntime mbAppRt testF =
-  bracket (createTestRuntime mbAppRt) clearTestRuntime testF

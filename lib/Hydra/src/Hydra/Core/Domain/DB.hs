@@ -34,6 +34,7 @@ class DB db where
 data DBType
   = Redis
   | RocksDB
+  | MockedKVDB
   deriving (Show, Read, Ord, Eq, Enum, Bounded, Generic, ToJSON, FromJSON)
 
 type DBName = String
