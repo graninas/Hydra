@@ -17,18 +17,18 @@ import qualified Hydra.Testing.Functional.RLens as RLens
 
 
 interpretAppF :: TestRuntime -> L.AppF a -> IO a
-interpretAppF testRt (L.EvalLang action next) =
+interpretAppF testRt f@(L.EvalLang action next) =
   withStep "AppF.EvalLang" testRt next
     (F.runLangL testRt action)
-    (\appRt -> R.interpretAppF appRt (L.EvalLang action next))
+    (id, \appRt -> R.interpretAppF appRt f)
 
 interpretAppF testRt (L.EvalProcess action next) =
   error "AppF.EvalProcess test interpreter not implemented."
 
-interpretAppF testRt (L.InitKVDB cfg dbName next) =
+interpretAppF testRt f@(L.InitKVDB cfg dbName next) =
   withStep "AppF.InitKVDB" testRt next
     (initKVDB' testRt cfg dbName)
-    (\appRt -> R.interpretAppF appRt (L.InitKVDB cfg dbName next))
+    (id, \appRt -> R.interpretAppF appRt f)
 
 interpretAppF testRt (L.InitSqlDB cfg next) =
   error "AppF.InitSqlDB test interpreter not implemented."

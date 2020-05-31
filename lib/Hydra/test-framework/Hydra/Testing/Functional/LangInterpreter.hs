@@ -2,7 +2,7 @@ module Hydra.Testing.Functional.LangInterpreter where
 
 import           Hydra.Prelude
 
-import qualified Data.Map as Map
+import           Control.Exception (throwIO)
 import           Unsafe.Coerce (unsafeCoerce)
 
 import qualified Hydra.Core.Domain        as D
@@ -14,6 +14,7 @@ import qualified Hydra.Interpreters       as R
 import           Hydra.Testing.Functional.TestRuntime
 import           Hydra.Testing.Functional.Common
 import qualified Hydra.Testing.Functional.RLens as RLens
+import qualified Hydra.Framework.RLens          as RLens
 
 
 
@@ -42,10 +43,10 @@ interpretLangF testRt (L.EvalSqlDB conn sqlDbMethod next) =
 interpretLangF testRt (L.GetSqlDBConnection cfg next) =
   error "LangF.GetSqlDBConnection not implemented."
 
-interpretLangF testRt (L.ThrowException exc next) =
+interpretLangF testRt f@(L.ThrowException exc next) =
   withStep "LangF.ThrowException" testRt next
-    (F.runLangL testRt action)
-    (\appRt -> R.interpretLangF appRt (L.ThrowException exc next))
+    (throwIO exc)
+    (R._coreRuntime, \coreRt -> R.interpretLangF coreRt f)
 
 interpretLangF testRt (L.RunSafely act next) =
   error "LangF.RunSafely not implemented."

@@ -11,7 +11,6 @@ import qualified Hydra.Runtime            as R
 import qualified Hydra.Interpreters       as R
 
 import           Hydra.Testing.Functional.TestRuntime
-import qualified Hydra.Testing.Functional.LangInterpreter as F
 import qualified Hydra.Testing.Functional.RLens as RLens
 
 type TestAct a = IO a
@@ -21,9 +20,9 @@ withStep
   -> TestRuntime
   -> (t -> a)
   -> TestAct t
-  -> (R.AppRuntime -> IO a)
+  -> (R.AppRuntime -> rt, rt -> IO a)
   -> IO a
-withStep stepName testRt next testAct realAct = do
+withStep stepName testRt next testAct (realRtF, realAct) = do
   when (testRt ^. RLens.traceSteps) $ putStrLn stepName
   mbMock <- popNextStep testRt
   let mbRealAppRt = testRt ^. RLens.appRuntime
@@ -31,7 +30,7 @@ withStep stepName testRt next testAct realAct = do
     (Just (Mock ghcAny)     , _)          -> pure $ next $ unsafeCoerce ghcAny
     (Just RunTestInterpreter, _)          -> next <$> testAct
     (Just RunRealInterpreter, Nothing)    -> error $ show stepName <> ": Real runtime is not ready."
-    (Just RunRealInterpreter, Just appRt) -> realAct appRt
+    (Just RunRealInterpreter, Just appRt) -> realAct $ realRtF appRt
     (Nothing                , _)          -> error $ show stepName <> ": Mock not found."
 
 

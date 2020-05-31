@@ -22,29 +22,32 @@ import           Labyrinth.Tests.Common
 
 spec :: Spec
 spec =
-  describe "KV DB functional tests" $
-    it "load game failure test" $ do
+  around (R.withAppRuntime Nothing) $
+    describe "KV DB functional tests" $
+      it "load game failure test" $ \appRt -> do
 
-      mocks <- newIORef
-        [ F.Mock $ unsafeCoerce $ D.StateVar 0   -- renderTemplateVar
-        , F.Mock $ unsafeCoerce $ D.StateVar 1   -- renderVar
-        , F.Mock $ unsafeCoerce $ D.StateVar 2   -- labVar
-        , F.Mock $ unsafeCoerce $ D.StateVar 3   -- labBoundsVar
-        , F.Mock $ unsafeCoerce $ D.StateVar 4   -- wormholesVar
-        , F.Mock $ unsafeCoerce $ D.StateVar 5   -- posVar
-        , F.Mock $ unsafeCoerce $ D.StateVar 6   -- playerHPVar
-        , F.Mock $ unsafeCoerce $ D.StateVar 7   -- bearPosVar
-        , F.Mock $ unsafeCoerce $ D.StateVar 8   -- tr
-        , F.Mock $ unsafeCoerce $ D.StateVar 9   -- gameStateVar
-        , F.Mock $ unsafeCoerce $ D.StateVar 10  -- moveMsgsVar
+        mocks <- newIORef
+          [ F.Mock $ unsafeCoerce $ D.StateVar 0   -- renderTemplateVar
+          , F.Mock $ unsafeCoerce $ D.StateVar 1   -- renderVar
+          , F.Mock $ unsafeCoerce $ D.StateVar 2   -- labVar
+          , F.Mock $ unsafeCoerce $ D.StateVar 3   -- labBoundsVar
+          , F.Mock $ unsafeCoerce $ D.StateVar 4   -- wormholesVar
+          , F.Mock $ unsafeCoerce $ D.StateVar 5   -- posVar
+          , F.Mock $ unsafeCoerce $ D.StateVar 6   -- playerHPVar
+          , F.Mock $ unsafeCoerce $ D.StateVar 7   -- bearPosVar
+          , F.Mock $ unsafeCoerce $ D.StateVar 8   -- tr
+          , F.Mock $ unsafeCoerce $ D.StateVar 9   -- gameStateVar
+          , F.Mock $ unsafeCoerce $ D.StateVar 10  -- moveMsgsVar
 
-        , F.Mock $ unsafeCoerce $ Left $ D.DBError SystemError "KVDB Failure."
-        , F.RunTestInterpreter                   -- scenario
-        , F.RunRealInterpreter                   -- throw exception
-        ]
+          , F.Mock $ unsafeCoerce $ Left $ D.DBError SystemError "KVDB Failure."
+          , F.RunRealInterpreter                   -- scenario
+          , F.RunRealInterpreter                   -- throw exception
+          ]
 
-      let testRt = F.TestRuntime True Nothing mocks
-      strRes <- F.runAppL testRt $ do
-        st <- initAppState False (0, 0) 100 (0, 0) testLabyrinth1 PlayerMove testKvdbConfig
-        loadGame st 0
-      strRes `shouldBe` "Game succesfully loaded from KV DB."
+        let testRt = F.TestRuntime True (Just appRt) mocks
+        eStrRes <- try $ F.runAppL testRt $ do
+          st <- initAppState False (0, 0) 100 (0, 0) testLabyrinth1 PlayerMove testKvdbConfig
+          loadGame st 0
+        case eStrRes of
+          Left (e :: AppException) -> e `shouldBe` (InvalidOperation "DBError SystemError \"KVDB Failure.\"")
+          _ -> fail "Test failed."
