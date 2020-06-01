@@ -267,12 +267,31 @@ onPlayerMove st act = do
     GameStart -> addGameMessage st "Game is not yet started. Please type 'start <lab_size>' to start a new game."
     _ -> act
 
+help :: LangL ()
+help = do
+   putStrLn "Command Options:"
+   putStrLn "go up:  player moves a space up in the Labyrinth grid"
+   putStrLn "go down:  player moves a space down in the Labyrinth grid"
+   putStrLn "....."
+   putStrLn "Command Options:"
+   putStrLn "Command Options:"
+   putStrLn "Command Options:"
+   putStrLn "  "
+   putStrLn "Labyrinth Signs:"
+   putStrLn "@:  player sign"
+   putStrLn "W#:  worm hole"
+   putStrLn "T:  treasure"
+   putStrLn "B:  bear"
+
+
+
 app :: AppState -> AppL ()
 app st = do
   scenario $ putStrLn "Labyrinth (aka Terra Incognita) game"
   scenario $ putStrLn "Please type 'start <lab_size>' to start a new game."
 
   cliToken <- cli (onStep st) (onUnknownCommand st) $ do
+    cmd "help"     $ help
     cmd "go up"    $ onPlayerMove st $ makeMove st DirUp
     cmd "go down"  $ onPlayerMove st $ makeMove st DirDown
     cmd "go left"  $ onPlayerMove st $ makeMove st DirLeft
