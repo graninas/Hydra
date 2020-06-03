@@ -269,19 +269,30 @@ onPlayerMove st act = do
 
 help :: LangL ()
 help = do
-   putStrLn "Command Options:"
-   putStrLn "go up:  player moves a space up in the Labyrinth grid"
-   putStrLn "go down:  player moves a space down in the Labyrinth grid"
-   putStrLn "....."
-   putStrLn "Command Options:"
-   putStrLn "Command Options:"
-   putStrLn "Command Options:"
+   putStrLn "COMMAND OPTIONS"
+   putStrLn " go up OR up:        player moves a space up in the Labyrinth grid"
+   putStrLn " go down OR down:    player moves a space down in the Labyrinth grid"
+   putStrLn " go left OR left:    player moves a space to the left in the Labyrinth grid"
+   putStrLn " go right OR right:  player moves a space to the right in the Labyrinth grid"
+
+   putStrLn " yes:                answer 'yes' to the question being asked"
+   putStrLn " no:                 answer 'no' to the question being asked"
+
+   putStrLn " skip:               player moves no where and stays in the current position"
+
+   putStrLn " start:              begin the game with a random Labyrinth size"
+   putStrLn " start (n):          begin the game with a Labyrinth of size (n x n)"
+
+   putStrLn " quit OR q:          quit the game"
+
+   putStrLn " print:              show the current state of the player in the Labyrinth"
+
    putStrLn "  "
-   putStrLn "Labyrinth Signs:"
-   putStrLn "@:  player sign"
-   putStrLn "W#:  worm hole"
-   putStrLn "T:  treasure"
-   putStrLn "B:  bear"
+   putStrLn "LABYRINTH SYMBOLS"
+   putStrLn " @:                  player"
+   putStrLn " W(n):               worm hole that first tries to direct player to W(n+1), then to W0"
+   putStrLn " T:                  treasure"
+   putStrLn " B:                  bear"
 
 
 
