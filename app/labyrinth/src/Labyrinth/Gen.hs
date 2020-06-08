@@ -114,19 +114,17 @@ generatePathway bounds lab maxChance pathVar visitedVar nonVisitedVar = do
           evalIO $ writeIORef pathVar (p, ps)
           backtrack bounds lab maxChance pathVar visitedVar nonVisitedVar
 
-
-generateTreasure :: Bounds -> Labyrinth -> LangL Labyrinth
-generateTreasure (xSize, ySize) lab = generateTreasure' 10
-  where
-    generateTreasure' :: Int -> LangL Labyrinth
-    generateTreasure' 0 = throwException $ GenerationError "Unable to place treasure after 10 tries"
-    generateTreasure' n = do
-      x <- getRandomInt (0, xSize - 1)
-      y <- getRandomInt (0, ySize - 1)
-      case Map.lookup (x,y) lab of
-        Nothing -> throwException $ GenerationError $ "Cell not found: " <> show (x, y)
-        Just (c, NoContent) -> pure $ Map.insert (x, y) (c, Treasure) lab
-        _ -> generateTreasure' (n - 1)
+-- | Generates a treasure.
+generateTreasure :: Labyrinth -> LangL Labyrinth
+generateTreasure lab = do
+  let emptyCells = getEmptyCells lab
+  when (Set.null emptyCells) $ throwException $ GenerationError "No empty cells found to place the treasure."
+  rndPosIdx <- getRandomInt (0, Set.size emptyCells - 1)
+  let pos = Set.elemAt rndPosIdx emptyCells
+  case Map.lookup pos lab of
+    Just (c, NoContent) -> pure $ Map.insert pos (c, Treasure) lab
+    Just _              -> throwException $ GenerationError $ "Unexpected non empty cell found: " <> show pos
+    Nothing             -> throwException $ GenerationError "Unable to obtain a cell for the treasure."
 
 generateExits :: Bounds -> Int -> Labyrinth -> LangL Labyrinth
 generateExits (xSize, ySize) cnt lab = do
@@ -146,18 +144,23 @@ generateExits (xSize, ySize) cnt lab = do
       Nothing        -> throwException $ GenerationError $ "placeExits: Cell not found: " <> show (x,y)
       Just (c, cont) -> placeExits (Map.insert (x,y) (setExit c dir, cont) lab') ps
 
-generateWormholes :: Bounds -> Int -> Labyrinth -> LangL Labyrinth
-generateWormholes (xSize, ySize) cnt lab = do
-  xs <- replicateM (cnt * 5) $ getRandomInt (0, xSize - 1)
-  ys <- replicateM (cnt * 5) $ getRandomInt (0, ySize - 1)
-  pure $ placeWormholes lab 0 $ take cnt $ List.nub $ zip xs ys
-  where
-    placeWormholes :: Labyrinth -> Int -> [Pos] -> Labyrinth
-    placeWormholes lab' _ [] = lab'
-    placeWormholes lab' idx (p:ps) =
-      placeWormholes (Map.update (placeWormhole idx) p lab') (idx + 1) ps
-    placeWormhole :: Int -> (Cell, Content) -> Maybe (Cell, Content)
-    placeWormhole idx (c, _) = Just (c, Wormhole idx)
+generateWormholes :: Int -> Labyrinth -> LangL Labyrinth
+generateWormholes cnt lab = do
+  let emptyCells = getEmptyCells lab
+  placeWormholes cnt emptyCells lab
+
+placeWormholes :: Int -> Set.Set Pos -> Labyrinth -> LangL Labyrinth
+placeWormholes cnt emptyCells lab
+    | Set.null emptyCells || cnt == 0 = pure lab
+    | otherwise = do
+  rndPosIdx <- getRandomInt (0, Set.size emptyCells - 1)
+  let pos = Set.elemAt rndPosIdx emptyCells
+  case Map.lookup pos lab of
+    Just (c, NoContent) -> do
+      let lab'        = Map.insert pos (c, Wormhole cnt) lab
+      let emptyCells' = Set.deleteAt rndPosIdx emptyCells
+      placeWormholes  (cnt - 1) emptyCells' lab'
+    _ -> pure lab
 
 getWallDirs :: Labyrinth -> Pos -> [Direction]
 getWallDirs lab pos = case Map.lookup pos lab of
@@ -217,6 +220,6 @@ generateLabyrinth bounds exits wormholes = do
   lab1 <- generateGrid bounds
   lab2 <- generatePaths bounds lab1
   lab3 <- generateExits bounds exits lab2
-  lab4 <- generateTreasure bounds lab3
-  lab5 <- generateWormholes bounds wormholes lab4
+  lab4 <- generateTreasure lab3
+  lab5 <- generateWormholes wormholes lab4
   pure lab5

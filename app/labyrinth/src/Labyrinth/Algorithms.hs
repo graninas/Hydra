@@ -67,7 +67,6 @@ isWallOnDirection (Cell _ _ _ d) DirDown  = isWall d || isMonolith d
 isWallOnDirection (Cell l _ _ _) DirLeft  = isWall l || isMonolith l
 isWallOnDirection (Cell _ r _ _) DirRight = isWall r || isMonolith r
 
-
 removeWall' :: Cell -> Direction -> Cell
 removeWall' c dir = snd $ removeWall c dir
 
@@ -91,3 +90,10 @@ onBounds (xSize, _) (x, _) DirRight = x + 1 >= xSize
 
 inBounds :: Bounds -> Pos -> Bool
 inBounds (xSize, ySize) (x, y) = x >= 0 && x < xSize && y >= 0 && y < ySize
+
+getEmptyCells :: Labyrinth -> Set.Set Pos
+getEmptyCells = Map.foldrWithKey f Set.empty
+  where
+    f :: Pos -> (Cell, Content) -> Set.Set Pos -> Set.Set Pos
+    f p (_, NoContent) s = Set.insert p s
+    f p _ s = s
