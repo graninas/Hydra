@@ -252,3 +252,6 @@ generateLabyrinth bounds exits wormholes = do
   lab5 <- generateTheMap lab4
   lab5 <- generateWormholes wormholes lab5
   pure lab6
+
+
+-- Task:  Make "map" functionality for game
