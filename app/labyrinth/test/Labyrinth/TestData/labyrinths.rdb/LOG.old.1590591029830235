@@ -1,0 +1,141 @@
+2020/05/27-21:50:25.186341 7f8ae2ffd700 RocksDB version: 4.1.0
+2020/05/27-21:50:25.186425 7f8ae2ffd700 Git sha rocksdb_build_git_sha:
+2020/05/27-21:50:25.186429 7f8ae2ffd700 Compile date Feb  8 2016
+2020/05/27-21:50:25.186431 7f8ae2ffd700 DB SUMMARY
+2020/05/27-21:50:25.186459 7f8ae2ffd700 SST files in ./app/labyrinth/labyrinths.rdb dir, Total Num: 0, files: 
+2020/05/27-21:50:25.186462 7f8ae2ffd700 Write Ahead Log file in ./app/labyrinth/labyrinths.rdb: 
+2020/05/27-21:50:25.186464 7f8ae2ffd700          Options.error_if_exists: 0
+2020/05/27-21:50:25.186466 7f8ae2ffd700        Options.create_if_missing: 1
+2020/05/27-21:50:25.186467 7f8ae2ffd700          Options.paranoid_checks: 0
+2020/05/27-21:50:25.186469 7f8ae2ffd700                      Options.env: 0x7f8b08783f00
+2020/05/27-21:50:25.186471 7f8ae2ffd700                 Options.info_log: 0x7f8a80007440
+2020/05/27-21:50:25.186472 7f8ae2ffd700           Options.max_open_files: 1000
+2020/05/27-21:50:25.186474 7f8ae2ffd700 Options.max_file_opening_threads: 1
+2020/05/27-21:50:25.186475 7f8ae2ffd700       Options.max_total_wal_size: 0
+2020/05/27-21:50:25.186477 7f8ae2ffd700        Options.disableDataSync: 0
+2020/05/27-21:50:25.186478 7f8ae2ffd700              Options.use_fsync: 0
+2020/05/27-21:50:25.186480 7f8ae2ffd700      Options.max_log_file_size: 0
+2020/05/27-21:50:25.186481 7f8ae2ffd700 Options.max_manifest_file_size: 18446744073709551615
+2020/05/27-21:50:25.186483 7f8ae2ffd700      Options.log_file_time_to_roll: 0
+2020/05/27-21:50:25.186484 7f8ae2ffd700      Options.keep_log_file_num: 1000
+2020/05/27-21:50:25.186486 7f8ae2ffd700        Options.allow_os_buffer: 1
+2020/05/27-21:50:25.186488 7f8ae2ffd700       Options.allow_mmap_reads: 0
+2020/05/27-21:50:25.186489 7f8ae2ffd700       Options.allow_fallocate: 1
+2020/05/27-21:50:25.186491 7f8ae2ffd700      Options.allow_mmap_writes: 0
+2020/05/27-21:50:25.186492 7f8ae2ffd700          Options.create_missing_column_families: 0
+2020/05/27-21:50:25.186494 7f8ae2ffd700                              Options.db_log_dir: 
+2020/05/27-21:50:25.186495 7f8ae2ffd700                                 Options.wal_dir: ./app/labyrinth/labyrinths.rdb
+2020/05/27-21:50:25.186497 7f8ae2ffd700                Options.table_cache_numshardbits: 4
+2020/05/27-21:50:25.186498 7f8ae2ffd700     Options.delete_obsolete_files_period_micros: 21600000000
+2020/05/27-21:50:25.186500 7f8ae2ffd700              Options.max_background_compactions: 1
+2020/05/27-21:50:25.186501 7f8ae2ffd700                      Options.max_subcompactions: 1
+2020/05/27-21:50:25.186503 7f8ae2ffd700                  Options.max_background_flushes: 1
+2020/05/27-21:50:25.186504 7f8ae2ffd700                         Options.WAL_ttl_seconds: 0
+2020/05/27-21:50:25.186506 7f8ae2ffd700                       Options.WAL_size_limit_MB: 0
+2020/05/27-21:50:25.186507 7f8ae2ffd700             Options.manifest_preallocation_size: 4194304
+2020/05/27-21:50:25.186509 7f8ae2ffd700                          Options.allow_os_buffer: 1
+2020/05/27-21:50:25.186511 7f8ae2ffd700                         Options.allow_mmap_reads: 0
+2020/05/27-21:50:25.186512 7f8ae2ffd700                        Options.allow_mmap_writes: 0
+2020/05/27-21:50:25.186514 7f8ae2ffd700                      Options.is_fd_close_on_exec: 1
+2020/05/27-21:50:25.186515 7f8ae2ffd700                    Options.stats_dump_period_sec: 600
+2020/05/27-21:50:25.186517 7f8ae2ffd700                    Options.advise_random_on_open: 1
+2020/05/27-21:50:25.186518 7f8ae2ffd700                     Options.db_write_buffer_size: 0d
+2020/05/27-21:50:25.186520 7f8ae2ffd700          Options.access_hint_on_compaction_start: NORMAL
+2020/05/27-21:50:25.186522 7f8ae2ffd700   Options.new_table_reader_for_compaction_inputs: 0
+2020/05/27-21:50:25.186523 7f8ae2ffd700                Options.compaction_readahead_size: 0d
+2020/05/27-21:50:25.186525 7f8ae2ffd700                       Options.use_adaptive_mutex: 0
+2020/05/27-21:50:25.186526 7f8ae2ffd700                             Options.rate_limiter: (nil)
+2020/05/27-21:50:25.186528 7f8ae2ffd700      Options.delete_scheduler.rate_bytes_per_sec: 0
+2020/05/27-21:50:25.186529 7f8ae2ffd700                           Options.bytes_per_sync: 0
+2020/05/27-21:50:25.186543 7f8ae2ffd700                       Options.wal_bytes_per_sync: 0
+2020/05/27-21:50:25.186544 7f8ae2ffd700                        Options.wal_recovery_mode: 0
+2020/05/27-21:50:25.186546 7f8ae2ffd700                   Options.enable_thread_tracking: 0
+2020/05/27-21:50:25.186547 7f8ae2ffd700                                Options.row_cache: None
+2020/05/27-21:50:25.186549 7f8ae2ffd700 Compression algorithms supported:
+2020/05/27-21:50:25.186551 7f8ae2ffd700 	Snappy supported: 1
+2020/05/27-21:50:25.186552 7f8ae2ffd700 	Zlib supported: 1
+2020/05/27-21:50:25.186554 7f8ae2ffd700 	Bzip supported: 1
+2020/05/27-21:50:25.186555 7f8ae2ffd700 	LZ4 supported: 0
+2020/05/27-21:50:25.186557 7f8ae2ffd700 Fast CRC32 supported: 1
+2020/05/27-21:50:25.186601 7f8ae2ffd700 Creating manifest 1 
+2020/05/27-21:50:25.197734 7f8ae2ffd700 Recovering from manifest file: MANIFEST-000001
+2020/05/27-21:50:25.197798 7f8ae2ffd700 --------------- Options for column family [default]:
+2020/05/27-21:50:25.197803 7f8ae2ffd700               Options.comparator: rocksdb.InternalKeyComparator:leveldb.BytewiseComparator
+2020/05/27-21:50:25.197805 7f8ae2ffd700           Options.merge_operator: None
+2020/05/27-21:50:25.197807 7f8ae2ffd700        Options.compaction_filter: None
+2020/05/27-21:50:25.197809 7f8ae2ffd700        Options.compaction_filter_factory: None
+2020/05/27-21:50:25.197811 7f8ae2ffd700         Options.memtable_factory: SkipListFactory
+2020/05/27-21:50:25.197813 7f8ae2ffd700            Options.table_factory: BlockBasedTable
+2020/05/27-21:50:25.197826 7f8ae2ffd700            table_factory options:   flush_block_policy_factory: FlushBlockBySizePolicyFactory (0x7f8a800019e0)
+  cache_index_and_filter_blocks: 0
+  index_type: 0
+  hash_index_allow_collision: 1
+  checksum: 1
+  no_block_cache: 0
+  block_cache: 0x7f8a80001a30
+  block_cache_size: 8388608
+  block_cache_compressed: (nil)
+  block_size: 4096
+  block_size_deviation: 10
+  block_restart_interval: 16
+  filter_policy: nullptr
+  format_version: 0
+2020/05/27-21:50:25.197829 7f8ae2ffd700        Options.write_buffer_size: 4194304
+2020/05/27-21:50:25.197831 7f8ae2ffd700  Options.max_write_buffer_number: 2
+2020/05/27-21:50:25.197833 7f8ae2ffd700          Options.compression: Snappy
+2020/05/27-21:50:25.197835 7f8ae2ffd700       Options.prefix_extractor: nullptr
+2020/05/27-21:50:25.197837 7f8ae2ffd700             Options.num_levels: 7
+2020/05/27-21:50:25.197838 7f8ae2ffd700        Options.min_write_buffer_number_to_merge: 1
+2020/05/27-21:50:25.197840 7f8ae2ffd700     Options.max_write_buffer_number_to_maintain: 0
+2020/05/27-21:50:25.197842 7f8ae2ffd700            Options.compression_opts.window_bits: -14
+2020/05/27-21:50:25.197844 7f8ae2ffd700                  Options.compression_opts.level: -1
+2020/05/27-21:50:25.197846 7f8ae2ffd700               Options.compression_opts.strategy: 0
+2020/05/27-21:50:25.197847 7f8ae2ffd700      Options.level0_file_num_compaction_trigger: 4
+2020/05/27-21:50:25.197849 7f8ae2ffd700          Options.level0_slowdown_writes_trigger: 20
+2020/05/27-21:50:25.197851 7f8ae2ffd700              Options.level0_stop_writes_trigger: 24
+2020/05/27-21:50:25.197852 7f8ae2ffd700                   Options.target_file_size_base: 2097152
+2020/05/27-21:50:25.197854 7f8ae2ffd700             Options.target_file_size_multiplier: 1
+2020/05/27-21:50:25.197856 7f8ae2ffd700                Options.max_bytes_for_level_base: 10485760
+2020/05/27-21:50:25.197858 7f8ae2ffd700 Options.level_compaction_dynamic_level_bytes: 0
+2020/05/27-21:50:25.197860 7f8ae2ffd700          Options.max_bytes_for_level_multiplier: 10
+2020/05/27-21:50:25.197861 7f8ae2ffd700 Options.max_bytes_for_level_multiplier_addtl[0]: 1
+2020/05/27-21:50:25.197863 7f8ae2ffd700 Options.max_bytes_for_level_multiplier_addtl[1]: 1
+2020/05/27-21:50:25.197865 7f8ae2ffd700 Options.max_bytes_for_level_multiplier_addtl[2]: 1
+2020/05/27-21:50:25.197867 7f8ae2ffd700 Options.max_bytes_for_level_multiplier_addtl[3]: 1
+2020/05/27-21:50:25.197869 7f8ae2ffd700 Options.max_bytes_for_level_multiplier_addtl[4]: 1
+2020/05/27-21:50:25.197899 7f8ae2ffd700 Options.max_bytes_for_level_multiplier_addtl[5]: 1
+2020/05/27-21:50:25.197902 7f8ae2ffd700 Options.max_bytes_for_level_multiplier_addtl[6]: 1
+2020/05/27-21:50:25.197905 7f8ae2ffd700       Options.max_sequential_skip_in_iterations: 8
+2020/05/27-21:50:25.197907 7f8ae2ffd700              Options.expanded_compaction_factor: 25
+2020/05/27-21:50:25.197910 7f8ae2ffd700                Options.source_compaction_factor: 1
+2020/05/27-21:50:25.197912 7f8ae2ffd700          Options.max_grandparent_overlap_factor: 10
+2020/05/27-21:50:25.197915 7f8ae2ffd700                        Options.arena_block_size: 524288
+2020/05/27-21:50:25.197917 7f8ae2ffd700                       Options.soft_rate_limit: 0.00
+2020/05/27-21:50:25.197924 7f8ae2ffd700   Options.hard_pending_compaction_bytes_limit: 0
+2020/05/27-21:50:25.197926 7f8ae2ffd700       Options.rate_limit_delay_max_milliseconds: 1000
+2020/05/27-21:50:25.197928 7f8ae2ffd700                Options.disable_auto_compactions: 0
+2020/05/27-21:50:25.197930 7f8ae2ffd700                           Options.filter_deletes: 0
+2020/05/27-21:50:25.197931 7f8ae2ffd700           Options.verify_checksums_in_compaction: 1
+2020/05/27-21:50:25.197933 7f8ae2ffd700                         Options.compaction_style: 0
+2020/05/27-21:50:25.197935 7f8ae2ffd700                           Options.compaction_pri: 0
+2020/05/27-21:50:25.197936 7f8ae2ffd700  Options.compaction_options_universal.size_ratio: 1
+2020/05/27-21:50:25.197938 7f8ae2ffd700 Options.compaction_options_universal.min_merge_width: 2
+2020/05/27-21:50:25.197940 7f8ae2ffd700 Options.compaction_options_universal.max_merge_width: 4294967295
+2020/05/27-21:50:25.197942 7f8ae2ffd700 Options.compaction_options_universal.max_size_amplification_percent: 200
+2020/05/27-21:50:25.197943 7f8ae2ffd700 Options.compaction_options_universal.compression_size_percent: -1
+2020/05/27-21:50:25.197945 7f8ae2ffd700 Options.compaction_options_fifo.max_table_files_size: 1073741824
+2020/05/27-21:50:25.197947 7f8ae2ffd700                   Options.table_properties_collectors: 
+2020/05/27-21:50:25.197949 7f8ae2ffd700                   Options.inplace_update_support: 0
+2020/05/27-21:50:25.197951 7f8ae2ffd700                 Options.inplace_update_num_locks: 10000
+2020/05/27-21:50:25.197953 7f8ae2ffd700               Options.min_partial_merge_operands: 2
+2020/05/27-21:50:25.197954 7f8ae2ffd700               Options.memtable_prefix_bloom_bits: 0
+2020/05/27-21:50:25.197956 7f8ae2ffd700             Options.memtable_prefix_bloom_probes: 6
+2020/05/27-21:50:25.197958 7f8ae2ffd700   Options.memtable_prefix_bloom_huge_page_tlb_size: 0
+2020/05/27-21:50:25.197959 7f8ae2ffd700                           Options.bloom_locality: 0
+2020/05/27-21:50:25.197961 7f8ae2ffd700                    Options.max_successive_merges: 0
+2020/05/27-21:50:25.197963 7f8ae2ffd700                Options.optimize_fllters_for_hits: 0
+2020/05/27-21:50:25.197964 7f8ae2ffd700                Options.paranoid_file_checks: 0
+2020/05/27-21:50:25.197966 7f8ae2ffd700                Options.compaction_measure_io_stats: 0
+2020/05/27-21:50:25.198008 7f8ae2ffd700 Recovered from manifest file:./app/labyrinth/labyrinths.rdb/MANIFEST-000001 succeeded,manifest_file_number is 1, next_file_number is 3, last_sequence is 0, log_number is 0,prev_log_number is 0,max_column_family is 0
+2020/05/27-21:50:25.198012 7f8ae2ffd700 Column family [default] (ID 0), log number is 0
+2020/05/27-21:50:25.199807 7f8ae2ffd700 DB pointer 0x7f8a80006910

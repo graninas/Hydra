@@ -410,8 +410,8 @@ labyrinthApp :: AppState -> AppL ()
 labyrinthApp st = do
   scenario $ putStrLn "Labyrinth (aka Terra Incognita) game"
   scenario $ putStrLn "start <lab_size>   to start a new game"
-  scenario $ putStrLn "load <idx>         to load a game from KV DB (file by default)"
-  scenario $ putStrLn "save <idx>         to save a game to KV DB (file by default)"
+  scenario $ putStrLn "load-kvdb <idx>    to load a game from KV DB (file by default)"
+  scenario $ putStrLn "save-kvdb <idx>    to save a game to KV DB (file by default)"
 
   cliToken <- cli (onStep st) (onUnknownCommand st) $ do
     cmd "help"     $ help

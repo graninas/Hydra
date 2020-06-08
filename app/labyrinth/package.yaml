@@ -86,7 +86,6 @@ dependencies:
 - resourcet
 - triplesec
 - yaml
-- newtype-generics
 - regex-posix
 - safe-exceptions
 - unliftio
