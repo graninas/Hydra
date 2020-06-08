@@ -15,6 +15,7 @@ type Chance = Int
 getRandomDirection :: LangL Direction
 getRandomDirection = toEnum <$> getRandomInt (0, 3)
 
+-- | Generates a full grid of cells with walls.
 generateGrid :: Bounds -> LangL Labyrinth
 generateGrid (xSize, ySize) = pure $ Map.fromList $ do
   x' <- [0..xSize-1]
@@ -25,27 +26,94 @@ generateGrid (xSize, ySize) = pure $ Map.fromList $ do
   let downW  = if y' == ySize-1 then (Monolith False) else Wall
   pure ((x', y'), (Cell leftW rightW upW downW, NoContent))
 
+-- | Starts generating the labyrinth itself by removing random walls.
+-- Uses a depth-first algorithm.
 generatePaths :: Bounds -> Labyrinth -> LangL Labyrinth
 generatePaths bounds@(xSize, ySize) grid = do
   let lst = [(x,y) | x <- [0..xSize - 1], y <- [0..ySize - 1]]
+  -- Max probability of a wall leading to the nearest visited path.
+  -- When 100, removes a lot of walls and makes a lot of loops.
+  -- When 10, removes a small amount of walls => creates a few loops.
+  let wallMaxChance = 10
   visitedVar    <- evalIO $ newIORef Set.empty
   nonVisitedVar <- evalIO $ newIORef $ Set.fromList lst
-  generatePaths'' grid 10 visitedVar nonVisitedVar
-  where
-    generatePaths''
-      :: Labyrinth
-      -> Chance
-      -> IORef (Set.Set Pos)
-      -> IORef (Set.Set Pos)
-      -> LangL Labyrinth
-    generatePaths'' lab chance visitedVar nonVisitedVar = do
-      nonVisited <- evalIO $ readIORef nonVisitedVar
-      case Set.lookupMin nonVisited of
-        Nothing -> pure lab
-        Just p  -> do
-          pathVar <- evalIO $ newIORef (p, [])
-          lab' <- generatePaths' bounds lab chance pathVar visitedVar nonVisitedVar
-          generatePaths'' lab' 100 visitedVar nonVisitedVar
+  startPathGeneration grid bounds wallMaxChance visitedVar nonVisitedVar
+
+-- | Generates a new path.
+startPathGeneration
+  :: Labyrinth
+  -> Bounds
+  -> Chance
+  -> IORef (Set.Set Pos)
+  -> IORef (Set.Set Pos)
+  -> LangL Labyrinth
+startPathGeneration lab bounds chance visitedVar nonVisitedVar = do
+  nonVisited <- evalIO $ readIORef nonVisitedVar
+  case Set.lookupMin nonVisited of
+    Nothing -> pure lab
+    Just p  -> do
+      pathVar <- evalIO $ newIORef (p, [])
+      lab' <- generatePathway bounds lab chance pathVar visitedVar nonVisitedVar
+      -- Generate the next path starting from a non-visited cell.
+      -- 100% probabilty to make a wall to the already visited path.
+      startPathGeneration lab' bounds 100 visitedVar nonVisitedVar
+
+-- | Falls back to the previous cell of the path.
+backtrack
+  :: Bounds
+  -> Labyrinth
+  -> Chance
+  -> IORef (Pos, [Pos])
+  -> IORef (Set.Set Pos)
+  -> IORef (Set.Set Pos)
+  -> LangL Labyrinth
+backtrack bounds lab maxChance pathVar visitedVar nonVisitedVar = do
+  (_, ps) <- evalIO $ readIORef pathVar
+  case ps of
+    []         -> pure lab
+    (p' : ps') -> do
+      evalIO $ writeIORef pathVar (p', ps')
+      generatePathway bounds lab maxChance pathVar visitedVar nonVisitedVar
+
+-- | Generates a pathway (the algorithm)
+generatePathway
+  :: Bounds
+  -> Labyrinth
+  -> Chance
+  -> IORef (Pos, [Pos])
+  -> IORef (Set.Set Pos)
+  -> IORef (Set.Set Pos)
+  -> LangL Labyrinth
+generatePathway bounds lab maxChance pathVar visitedVar nonVisitedVar = do
+  (p, ps) <- evalIO $ readIORef pathVar
+  evalIO $ modifyIORef' visitedVar    (Set.insert p)
+  evalIO $ modifyIORef' nonVisitedVar (Set.delete p)
+  visited <- evalIO $ readIORef visitedVar
+  let wDirs = getWallDirs lab p
+  case wDirs of
+    [] -> backtrack bounds lab maxChance pathVar visitedVar nonVisitedVar
+    _ -> do
+      rndWIdx <- getRandomInt (0, length wDirs - 1)
+      -- probabilty of walls removing to the visited cell
+      chance <- getRandomInt (0, 100)
+      let rndWDir = wDirs !! rndWIdx
+      let p'      = calcNextPos p rndWDir
+      case (Set.member p' visited, chance < maxChance) of
+        -- Next cell not visited, removing wall
+        (False, _) -> do
+          lab' <- removeWalls' lab p rndWDir
+          evalIO $ writeIORef pathVar (p', p:ps)
+          generatePathway bounds lab' maxChance pathVar visitedVar nonVisitedVar
+        -- Next cell is visited already, but still removing wall
+        (True, True) -> do
+          lab' <- removeWalls' lab p rndWDir
+          evalIO $ writeIORef pathVar (p, ps)
+          generatePathway bounds lab' maxChance pathVar visitedVar nonVisitedVar
+        -- Next cell is visited, do not remove wall
+        (True, False) -> do
+          evalIO $ writeIORef pathVar (p, ps)
+          backtrack bounds lab maxChance pathVar visitedVar nonVisitedVar
+
 
 generateTreasure :: Bounds -> Labyrinth -> LangL Labyrinth
 generateTreasure (xSize, ySize) lab = generateTreasure' 10
@@ -100,60 +168,6 @@ getWallDirs lab pos = case Map.lookup pos lab of
     <> [ DirUp    | isWall u ]
     <> [ DirDown  | isWall d ]
 
-backtrack
-  :: Bounds
-  -> Labyrinth
-  -> Chance
-  -> IORef (Pos, [Pos])
-  -> IORef (Set.Set Pos)
-  -> IORef (Set.Set Pos)
-  -> LangL Labyrinth
-backtrack bounds lab maxChance pathVar visitedVar nonVisitedVar = do
-  (_, ps) <- evalIO $ readIORef pathVar
-  case ps of
-    []         -> pure lab
-    (p' : ps') -> do
-      evalIO $ writeIORef pathVar (p', ps')
-      generatePaths' bounds lab maxChance pathVar visitedVar nonVisitedVar
-
-generatePaths'
-  :: Bounds
-  -> Labyrinth
-  -> Chance
-  -> IORef (Pos, [Pos])
-  -> IORef (Set.Set Pos)
-  -> IORef (Set.Set Pos)
-  -> LangL Labyrinth
-generatePaths' bounds lab maxChance pathVar visitedVar nonVisitedVar = do
-  (p, ps) <- evalIO $ readIORef pathVar
-  evalIO $ modifyIORef' visitedVar    (Set.insert p)
-  evalIO $ modifyIORef' nonVisitedVar (Set.delete p)
-  visited <- evalIO $ readIORef visitedVar
-  let wDirs = getWallDirs lab p
-  case wDirs of
-    [] -> backtrack bounds lab maxChance pathVar visitedVar nonVisitedVar
-    _ -> do
-      rndWIdx <- getRandomInt (0, length wDirs - 1)
-      -- probabilty of walls removing to the visited cell
-      chance <- getRandomInt (0, 100)
-      let rndWDir = wDirs !! rndWIdx
-      let p'      = calcNextPos p rndWDir
-      case (Set.member p' visited, chance < maxChance) of
-        -- Next cell not visited, removing wall
-        (False, _) -> do
-          lab' <- removeWalls' lab p rndWDir
-          evalIO $ writeIORef pathVar (p', p:ps)
-          generatePaths' bounds lab' maxChance pathVar visitedVar nonVisitedVar
-        -- Next cell is visited already, but still removing wall
-        (True, True) -> do
-          lab' <- removeWalls' lab p rndWDir
-          evalIO $ writeIORef pathVar (p, ps)
-          generatePaths' bounds lab' maxChance pathVar visitedVar nonVisitedVar
-        -- Next cell is visited, do not remove wall
-        (True, False) -> do
-          evalIO $ writeIORef pathVar (p, ps)
-          backtrack bounds lab maxChance pathVar visitedVar nonVisitedVar
-
 removeWalls' :: Labyrinth -> Pos -> Direction -> LangL Labyrinth
 removeWalls' lab pos dir = do
   let coPos = calcNextPos pos dir
@@ -182,6 +196,11 @@ removeWalls' lab pos dir = do
           <> ", cells:"
           <> show (mbC1, mbC2)
 
+validateBoundsOrFail :: Bounds -> Int -> LangL ()
+validateBoundsOrFail (x, y) maxSize = do
+  let failCond = x <= 0 || y <= 0 || x > maxSize || y > maxSize
+  when failCond $ throwException $ GenerationError $ "Bounds not supported: " <> show (x, y)
+
 generateRndLabyrinth :: LangL Labyrinth
 generateRndLabyrinth = do
   xSize     <- getRandomInt (4, 10)
@@ -190,19 +209,14 @@ generateRndLabyrinth = do
   wormholes <- getRandomInt (2, 5)
   generateLabyrinth (xSize, ySize) exits wormholes
 
+type Tries = Int
+
 generateLabyrinth :: Bounds -> Int -> Int -> LangL Labyrinth
-generateLabyrinth bounds@(x,y) exits wormholes
-  | x <= 0 || y <= 0 || x > 10 || y > 10 = throwException $ GenerationError $ "Bounds not supported: " <> show bounds
-  | otherwise = generateLabyrinth' 10
-  where
-    generateLabyrinth' :: Int -> LangL Labyrinth
-    generateLabyrinth' 0 = throwException $ GenerationError "Failed to generate labyrinth after 10 tries."
-    generateLabyrinth' n = do
-      eLab <- runSafely $ generateGrid bounds
-            >>= generatePaths bounds
-            >>= generateExits bounds exits
-            >>= generateTreasure bounds
-            >>= generateWormholes bounds wormholes
-      case eLab of
-        Left _    -> generateLabyrinth' (n - 1)
-        Right lab -> pure lab
+generateLabyrinth bounds exits wormholes = do
+  validateBoundsOrFail bounds 10
+  lab1 <- generateGrid bounds
+  lab2 <- generatePaths bounds lab1
+  lab3 <- generateExits bounds exits lab2
+  lab4 <- generateTreasure bounds lab3
+  lab5 <- generateWormholes bounds wormholes lab4
+  pure lab5
