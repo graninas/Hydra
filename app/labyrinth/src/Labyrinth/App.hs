@@ -415,10 +415,10 @@ labyrinthApp st = do
 
   cliToken <- cli (onStep st) (onUnknownCommand st) $ do
     cmd "help"     $ help
-    cmd "go up"    $ onPlayerMove st $ makeMove st DirUp
-    cmd "go down"  $ onPlayerMove st $ makeMove st DirDown
-    cmd "go left"  $ onPlayerMove st $ makeMove st DirLeft
-    cmd "go right" $ onPlayerMove st $ makeMove st DirRight
+    cmd "go up"    $ onPlayerMove st $ makePlayerMove st DirUp
+    cmd "go down"  $ onPlayerMove st $ makePlayerMove st DirDown
+    cmd "go left"  $ onPlayerMove st $ makePlayerMove st DirLeft
+    cmd "go right" $ onPlayerMove st $ makePlayerMove st DirRight
 
     cmd "up"       $ onPlayerMove st $ makePlayerMove st DirUp
     cmd "down"     $ onPlayerMove st $ makePlayerMove st DirDown
