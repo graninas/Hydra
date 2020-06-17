@@ -282,7 +282,7 @@ loadGame st idx = do
       writeVarIO (st ^. playerInventory . treasureState) $ treasureFound gePlayerInventory
       writeVarIO (st ^. bearPos) geBearPos
       writeVarIO (st ^. gameState) PlayerMove
-      pure "Game succesfully loaded from KV DB."
+      pure "Game successfully loaded from KV DB."
 
 startRndGame :: AppState -> LangL ()
 startRndGame st = do
