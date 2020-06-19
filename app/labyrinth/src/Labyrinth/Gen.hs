@@ -174,6 +174,22 @@ placeWormholes cnt emptyCells lab
       placeWormholes  (cnt - 1) emptyCells' lab'
     _ -> pure lab
 
+---- how to delete rest -- see labyrinth file map test.. --
+placeTrailpoints :: Int -> Set.Set Pos -> Labyrinth -> LangL Labyrinth
+placeTrailpoints cnt emptyCells lab
+    | Set.null emptyCells || cnt == 0 = pure lab
+    | otherwise = do
+  rndPosIdx <- getRandomInt (0, Set.size emptyCells - 1)
+  let pos = Set.elemAt rndPosIdx emptyCells
+  case Map.lookup pos lab of
+    Just (c, NoContent) -> do
+      let lab'        = Map.insert pos (c, Trailpoint cnt) lab
+      let emptyCells' = Set.deleteAt rndPosIdx emptyCells
+      placeTrailpoints  (cnt - 1) emptyCells' lab'
+    _ -> pure lab
+---- how to delete rest -- see labyrinth file map test.. -- 
+
+
 getWallDirs :: Labyrinth -> Pos -> [Direction]
 getWallDirs lab pos = case Map.lookup pos lab of
   Nothing -> []

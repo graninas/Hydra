@@ -85,14 +85,14 @@ setPlayerPos st newPos = writeVarIO (st ^. playerPos) newPos
 -------- Want to add to list ---- how?
 updateTrail :: Trailpoints -> Int -> Int -> Int
 updateTrail st = writeVarIO (st ^. playerPos) playerPos
-
+-------- Want to add to list ---- how?
 executeTrailpoint :: AppState -> Int -> LangL ()
 executeTrailpoint st playerPos = do
   trailpoints <- readVarIO $ st ^. labTrailpoints
   let n = updateTrail trailpoints newPos playerPos
   case Map.lookup n trailpoints  of
     Nothing  -> throwException $ InvalidOperation $ "Move the player to start a trail"
-    Just pos -> updateTrail st playerPos 
+    Just pos -> updateTrail st playerPos
 
 
 getPlayerThreasureState :: AppState -> LangL Bool
@@ -410,6 +410,7 @@ initAppState tr plPos plHP brPos lab gst kvdbCfg = do
   labVar            <- newVarIO lab
   labBoundsVar      <- newVarIO liBounds
   wormholesVar      <- newVarIO liWormholes
+  trailpointsVar    <- newVarIO liTrailpoints
   posVar            <- newVarIO plPos
   playerHPVar       <- newVarIO plHP
   bearPosVar        <- newVarIO brPos
@@ -423,6 +424,7 @@ initAppState tr plPos plHP brPos lab gst kvdbCfg = do
     renderTemplateVar
     renderVar
     wormholesVar
+    trailpointsVar
     posVar
     playerHPVar
     bearPosVar
