@@ -49,6 +49,7 @@ mergeCellContent content Nothing = "!" <> show content
 mergeCellContent NoContent _ = fullSpace
 mergeCellContent Treasure _ = "T   "
 mergeCellContent TheMap _ = "M   "
+mergeCellContent (Trailpoint n) _ | n = " " <> show n <> "* "
 mergeCellContent (Wormhole n) _ | n < 10 = "  W" <> show n
 mergeCellContent (Wormhole n) _ | n >= 10 = "  W?"
 mergeCellContent content renderedContent = error $ "mergeCellContent: unexpected arguments: " <> show content <> ", " <> show renderedContent

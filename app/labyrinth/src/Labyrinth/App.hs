@@ -82,9 +82,18 @@ getPlayerPos st = readVarIO $ st ^. playerPos
 setPlayerPos :: AppState -> Pos -> LangL ()
 setPlayerPos st newPos = writeVarIO (st ^. playerPos) newPos
 
+-------- Want to add to list ---- how?
+updateTrail :: Trailpoints -> Int -> Int -> Int
+updateTrail st = writeVarIO (st ^. playerPos) playerPos
 
--- ?? updateTrail :: AppState -> Pos -> LangL ()
--- setTrail st trail = readVarIO (st ^. playerPos)
+executeTrailpoint :: AppState -> Int -> LangL ()
+executeTrailpoint st playerPos = do
+  trailpoints <- readVarIO $ st ^. labTrailpoints
+  let n = updateTrail trailpoints newPos playerPos
+  case Map.lookup n trailpoints  of
+    Nothing  -> throwException $ InvalidOperation $ "Move the player to start a trail"
+    Just pos -> updateTrail st playerPos 
+
 
 getPlayerThreasureState :: AppState -> LangL Bool
 getPlayerThreasureState st = readVarIO (st ^. playerInventory . treasureState)

@@ -35,3 +35,27 @@ testLabyrinth2 = Map.fromList
 --      ┠    ┼────┼    ┨
 --  2   ┃  W1      M   ┃
 --      ┗━━━━┷━━━━┷━━━━┛
+
+testTrail :: Labyrinth
+testTrail = Map.fromTrailList
+  [ ((0, 0), (Cell (Monolith False) Wall (Monolith False) NoWall, (Trailpoint 1)))
+  , ((1, 0), (Cell Wall NoWall (Monolith False) NoWall, NoContent))
+  , ((2, 0), (Cell NoWall (Monolith False) (Monolith False) NoWall, (Trailpoint 0)))
+
+  , ((0, 1), (Cell (Monolith False) NoWall NoWall NoWall, (Trailpoint 1)))
+  , ((1, 1), (Cell NoWall Wall NoWall Wall, NoContent))
+  , ((2, 1), (Cell Wall (Monolith True) NoWall NoWall, (Trailpoint 1)))
+
+  , ((0, 2), (Cell (Monolith False) NoWall NoWall (Monolith False), (Trailpoint 1)))
+  , ((1, 2), (Cell NoWall NoWall Wall (Monolith False), NoContent))
+  , ((2, 2), (Cell NoWall (Monolith False) NoWall (Monolith False), NoContent))
+  ]
+
+-- x ->    0    1    2
+--      ┏━━━━┯━━━━┯━━━━┓
+--  0   ┃ *1 │      *1 ┃
+--      ┠    ┼    ┼    ┨
+--  1   ┃ *1      │ *1
+--      ┠    ┼────┼    ┨
+--  2   ┃ *0        @  ┃
+--      ┗━━━━┷━━━━┷━━━━┛

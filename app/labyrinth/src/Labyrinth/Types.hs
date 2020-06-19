@@ -32,6 +32,7 @@ data AppState = AppState
   , _labRenderTemplate    :: StateVar LabRender
   , _labRenderVar         :: StateVar LabRender
   , _labWormholes         :: StateVar Wormholes
+  , _labTrailpoints       :: StateVar Trailpoints
   , _playerPos            :: StateVar PlayerPos
   , _playerHP             :: StateVar PlayerHP
   , _bearPos              :: StateVar BearPos

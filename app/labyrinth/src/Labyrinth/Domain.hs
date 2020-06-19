@@ -9,6 +9,7 @@ import Labyrinth.Prelude
 type Pos = (Int, Int)
 type Bounds = (Int, Int)
 type Wormholes = Map Int Pos
+type Trailpoints = Map Int Pos
 type Exit = (Pos, Direction)
 type Exits = Set.Set Exit
 
@@ -40,6 +41,7 @@ data Content
   = NoContent
   | Treasure
   | TheMap
+  | Trailpoint Int
   | Wormhole Int
   deriving (Show, Read, Eq, Ord, Generic, ToJSON, FromJSON)
 
@@ -57,4 +59,5 @@ data LabyrinthInfo = LabyrinthInfo
   , liExits     :: Exits
   , liTreasure  :: Maybe Pos
   , liTheMap    :: Maybe Pos
+  , liTrailpoints :: Trailpoints
   }

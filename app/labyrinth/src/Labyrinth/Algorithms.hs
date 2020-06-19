@@ -38,6 +38,8 @@ analyzeLabyrinth lab = Map.foldrWithKey f emptyLabyrinthInfo lab
 analyzeContent :: Pos -> Content -> LabyrinthInfo -> LabyrinthInfo
 analyzeContent p (Wormhole n) labInfo
   = labInfo { liWormholes = Map.insert n p $ liWormholes labInfo }
+  analyzeContent p (Trailpoint n) labInfo
+    = labInfo { liTrailpoints = Map.insert n p $ liTrailpoints labInfo }
 analyzeContent p Treasure labInfo = labInfo { liTreasure = Just p }
 analyzeContent p TheMap labInfo = labInfo { liTheMap = Just p }
 analyzeContent _ _ labInfo = labInfo
