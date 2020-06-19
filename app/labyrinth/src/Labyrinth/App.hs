@@ -83,23 +83,44 @@ setPlayerPos :: AppState -> Pos -> LangL ()
 setPlayerPos st newPos = writeVarIO (st ^. playerPos) newPos
 
 -------- Want to add to list ---- how?
-updateTrail :: Trailpoints -> Int -> Int -> Int
-updateTrail st = writeVarIO (st ^. playerPos) playerPos
+-- updateTrail :: Trailpoints -> Int -> Int -> Int
+-- updateTrail st = writeVarIO (st ^. playerPos) playerPos
 -------- Want to add to list ---- how?
-executeTrailpoint :: AppState -> Int -> LangL ()
-executeTrailpoint st playerPos = do
+
+-- insert :: k -> a -> Map k a -> Map k a
+-- lookup :: k -> Map k a -> Maybe a
+
+updateTrail :: AppState -> (Int, Int) -> LangL ()
+updateTrail st playerPos = do
   trailpoints <- readVarIO $ st ^. labTrailpoints
-  let n = updateTrail trailpoints newPos playerPos
-  case Map.lookup n trailpoints  of
-    Nothing  -> throwException $ InvalidOperation $ "Move the player to start a trail"
-    Just pos -> updateTrail st playerPos
+  cur         <- readVarIO $ st ^. labCurrentTrailPoint
+  lab         <- readVarIO $ st ^. labyrinth
+
+  let mbCellAndContent :: Maybe (Cell, Contet) = Map.lookup playerPos lab
+
+  case mbCellAndContent of
+    Nothing -> throwException $ InvalidOperation $ "Unknown player pos: " <> show playerPos
+    Just (cell, _) -> do
+        let trailpoints2 = Map.insert playerPos (cell, Trailpoint (cur + 1))
+        writeVarIO (st ^. labTrailpoints) trailpoints2
+        writeVarIO (st ^. labCurrentTrailPoint) (cur + 1)
+
+-- executeTrailpoint :: AppState -> (Int, Int) -> LangL ()
+-- executeTrailpoint st playerPos = do
+--   trailpoints <- readVarIO $ st ^. labTrailpoints
+--   let n = updateTrail trailpoints newPos playerPos
+--   case Map.lookup n trailpoints  of
+--     Nothing  -> throwException $ InvalidOperation $ "Move the player to start a trail"
+--     Just pos -> updateTrail st playerPos
+
+
 
 
 getPlayerThreasureState :: AppState -> LangL Bool
 getPlayerThreasureState st = readVarIO (st ^. playerInventory . treasureState)
 
 getPlayerTheMapState :: AppState -> LangL Bool
-getPlayerTheMapState st = readVarIO (st ^. playerInventory . the_mapState)
+getPlayerTheMapState st = readVarIO (st ^. playerInventory . theMapState)
 
 setCellContent :: AppState -> Pos -> Content -> LangL ()
 setCellContent st pos content = do
@@ -181,6 +202,7 @@ makePlayerMove st dir = do
     LeavingLabyrinthMove   -> setGameState st PlayerIsAboutLeaving
     SuccessfullMove newPos -> do
       addGameMessage st "Step executed."
+      updateTrail st newPos
       setPlayerPos st newPos
       performPlayerContentEvent st
 
@@ -219,6 +241,11 @@ printLab st = do
 
   printLabRender' $ renderLabyrinth' template lab plPos brPos
 
+printTheMap :: AppState -> LangL ()
+printTheMap = do
+  template   <- readVarIO $ st ^. labRenderTemplate
+  printLabRender' $ renderLabyrinth' template testTrail (0, 0) (0, 0)
+
 moveBear :: AppState -> LangL ()
 moveBear st = do
   dir   <- getRandomDirection
@@ -236,7 +263,8 @@ onStep :: AppState -> () -> AppL D.CliAction
 onStep st _ = do
   gameSt   <- scenario $ getGameState st
   treasure <- scenario $ getPlayerThreasureState st
-  the_map  <- scenario $ getPlayerTheMapState st
+  theMap   <- scenario $ getPlayerTheMapState st
+
   isFinished <- scenario $ case gameSt of
     PlayerIsAboutLeaving -> do
       when treasure $ addGameMessage st winning
@@ -250,6 +278,9 @@ onStep st _ = do
       throwException $ InvalidOperation "OnStep: Invalid state: PlayerIsAboutLossLeavingConfirmation"
     PlayerMove   -> do
       moveBear st
+
+
+
       pure False
     GameFinished -> pure True
     GameStart    -> pure False

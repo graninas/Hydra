@@ -187,7 +187,7 @@ placeTrailpoints cnt emptyCells lab
       let emptyCells' = Set.deleteAt rndPosIdx emptyCells
       placeTrailpoints  (cnt - 1) emptyCells' lab'
     _ -> pure lab
----- how to delete rest -- see labyrinth file map test.. -- 
+---- how to delete rest -- see labyrinth file map test.. --
 
 
 getWallDirs :: Labyrinth -> Pos -> [Direction]
@@ -250,7 +250,7 @@ generateLabyrinth bounds exits wormholes = do
   lab3 <- generateExits bounds exits lab2
   lab4 <- generateTreasure lab3
   lab5 <- generateTheMap lab4
-  lab5 <- generateWormholes wormholes lab5
+  lab6 <- generateWormholes wormholes lab5
   pure lab6
 
 

@@ -15,7 +15,7 @@ type PlayerHasTheMap = Bool
 
 data InventoryState = InventoryState
   { _treasureState :: StateVar PlayerHasTreasure
-    _the_mapState  :: StateVar PlayerHasTheMap
+    _theMapState   :: StateVar PlayerHasTheMap
   }
 
 data GameState
@@ -33,6 +33,7 @@ data AppState = AppState
   , _labRenderVar         :: StateVar LabRender
   , _labWormholes         :: StateVar Wormholes
   , _labTrailpoints       :: StateVar Trailpoints
+  , _labCurrentTrailPoint :: StateVar Int
   , _playerPos            :: StateVar PlayerPos
   , _playerHP             :: StateVar PlayerHP
   , _bearPos              :: StateVar BearPos

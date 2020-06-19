@@ -36,8 +36,8 @@ testLabyrinth2 = Map.fromList
 --  2   ┃  W1      M   ┃
 --      ┗━━━━┷━━━━┷━━━━┛
 
-testTrail :: Labyrinth
-testTrail = Map.fromTrailList
+testTrail :: Trailpoints
+testTrail = Map.fromList
   [ ((0, 0), (Cell (Monolith False) Wall (Monolith False) NoWall, (Trailpoint 1)))
   , ((1, 0), (Cell Wall NoWall (Monolith False) NoWall, NoContent))
   , ((2, 0), (Cell NoWall (Monolith False) (Monolith False) NoWall, (Trailpoint 0)))
@@ -51,11 +51,72 @@ testTrail = Map.fromTrailList
   , ((2, 2), (Cell NoWall (Monolith False) NoWall (Monolith False), NoContent))
   ]
 
--- x ->    0    1    2
---      ┏━━━━┯━━━━┯━━━━┓
---  0   ┃ *1 │      *1 ┃
---      ┠    ┼    ┼    ┨
---  1   ┃ *1      │ *1
---      ┠    ┼────┼    ┨
---  2   ┃ *0        @  ┃
---      ┗━━━━┷━━━━┷━━━━┛
+--  x ->    0    1    2
+--       ┏━━━━┯━━━━┯━━━━┓
+--   0   ┃ @  │       W0┃
+--       ┠    ┼    ┼    ┨
+--   1   ┃     T   │
+--       ┠    ┼────┼    ┨
+--   2   ┃  W1      M   ┃
+--       ┗━━━━┷━━━━┷━━━━┛
+--
+--  x ->    0    1    2
+--       ┏━━━━┯━━━━┯━━━━┓
+--   0   ┃ *1 │      *1 ┃
+--       ┠    ┼    ┼    ┨
+--   1   ┃ *1      │ *1
+--       ┠    ┼────┼    ┨
+--   2   ┃ *0        @  ┃
+--       ┗━━━━┷━━━━┷━━━━┛
+--
+--
+--
+--  x ->    0    1    2
+--       ┏━━━━┯━━━━┯━━━━┓
+--   0   ┃    │         ┃
+--       ┠    ┼    ┼    ┨
+--   1   ┃         │
+--       ┠    ┼────┼    ┨
+--   2   ┃              ┃
+--       ┗━━━━┷━━━━┷━━━━┛
+--
+--
+-- (0, 0)
+-- up
+-- down
+-- left
+-- right
+-- right
+-- up
+-- right
+--
+-- "A blind player senses a room around"
+--
+--  x ->    0    1    2
+--         ━━━━
+--   0|
+--    |
+--   1|    ┃
+--    |
+--   2|
+--
+-- "Breadcrubs"
+--
+-- x ->      0    1    2
+--
+--   0|      1    4    5w0
+--    |
+--   1|      2    3T
+--    |
+--   2|      5w1
+--
+--
+-- "Player observes a room around"
+--
+--    x ->    0    1    2
+--          ┏━━━━┯
+--     0|   ┃ 1  │
+--      |   ┠    ┼
+--     1|   ┃ 2
+--      |   ┠    ┼
+--     2|
