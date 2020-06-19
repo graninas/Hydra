@@ -39,6 +39,7 @@ data Cell = Cell
 data Content
   = NoContent
   | Treasure
+  | TheMap
   | Wormhole Int
   deriving (Show, Read, Eq, Ord, Generic, ToJSON, FromJSON)
 
@@ -46,6 +47,7 @@ type Labyrinth = Map Pos (Cell, Content)
 
 data Inventory = Inventory
   { treasureFound :: Bool
+  ,  the_mapFound  :: Bool
   }
   deriving (Show, Read, Eq, Ord, Generic, ToJSON, FromJSON)
 
@@ -54,4 +56,5 @@ data LabyrinthInfo = LabyrinthInfo
   , liWormholes :: Wormholes
   , liExits     :: Exits
   , liTreasure  :: Maybe Pos
+  , liTheMap    :: Maybe Pos
   }

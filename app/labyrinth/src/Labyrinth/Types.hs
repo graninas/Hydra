@@ -11,9 +11,11 @@ type PlayerPos = Pos
 type PlayerHP = Int
 type BearPos = Pos
 type PlayerHasTreasure = Bool
+type PlayerHasTheMap = Bool
 
 data InventoryState = InventoryState
   { _treasureState :: StateVar PlayerHasTreasure
+    _the_mapState  :: StateVar PlayerHasTheMap
   }
 
 data GameState

@@ -8,6 +8,7 @@ import           Labyrinth.Domain
 testLabyrinth1 :: Labyrinth
 testLabyrinth1 = Map.fromList
   [ ((0, 0), (Cell (Monolith False) (Monolith False) (Monolith False) (Monolith True), Treasure))
+  , ((0, 1), (Cell (Monolith False) (Monolith False) (Monolith False) (Monolith True), TheMap))
   ]
 
 -- l r u d
@@ -23,7 +24,7 @@ testLabyrinth2 = Map.fromList
 
   , ((0, 2), (Cell (Monolith False) NoWall NoWall (Monolith False), (Wormhole 1)))
   , ((1, 2), (Cell NoWall NoWall Wall (Monolith False), NoContent))
-  , ((2, 2), (Cell NoWall (Monolith False) NoWall (Monolith False), NoContent))
+  , ((2, 2), (Cell NoWall (Monolith False) NoWall (Monolith False), TheMap))
   ]
 
 -- x ->    0    1    2
@@ -32,5 +33,5 @@ testLabyrinth2 = Map.fromList
 --      ┠    ┼    ┼    ┨
 --  1   ┃     T   │
 --      ┠    ┼────┼    ┨
---  2   ┃  W1          ┃
+--  2   ┃  W1      M   ┃
 --      ┗━━━━┷━━━━┷━━━━┛

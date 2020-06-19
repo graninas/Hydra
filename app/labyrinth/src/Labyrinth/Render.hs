@@ -48,6 +48,7 @@ mergeCellContent :: Content -> Maybe String -> String
 mergeCellContent content Nothing = "!" <> show content
 mergeCellContent NoContent _ = fullSpace
 mergeCellContent Treasure _ = "T   "
+mergeCellContent TheMap _ = "M   "
 mergeCellContent (Wormhole n) _ | n < 10 = "  W" <> show n
 mergeCellContent (Wormhole n) _ | n >= 10 = "  W?"
 mergeCellContent content renderedContent = error $ "mergeCellContent: unexpected arguments: " <> show content <> ", " <> show renderedContent
@@ -182,6 +183,11 @@ renderLabyrinth lab plPos bearPos = renderLabyrinth' skeleton lab plPos bearPos
     LabyrinthInfo {liBounds} = analyzeLabyrinth lab
     skeleton = renderSkeleton liBounds
 
+renderTheLabMap :: Labyrinth -> Pos -> LabRender
+renderTheLabMap lab plPos plTrail =
+  renderPlayer plPos
+    $ renderTrail trailMap
+
 printLabRender' :: LabRender -> LangL ()
 printLabRender' ((rendMaxX, rendMaxY), labRender) = do
 
@@ -198,5 +204,10 @@ printLabRender' ((rendMaxX, rendMaxY), labRender) = do
   let outputRows row = putStrLn row
   mapM_ outputRows printedRows
 
+-- printTheMapRender' :: LabRender -> LangL ()
+
 printLabyrinth :: Labyrinth -> LangL ()
 printLabyrinth lab = printLabRender' $ renderLabyrinth lab (0, 0) (0, 0)
+
+-- printTheMap :: Labyrinth -> LangL ()
+-- printTheMap lab = printTheMapRender' $ renderTheLabMap lab (0, 0) (0, 0)

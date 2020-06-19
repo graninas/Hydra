@@ -7,13 +7,19 @@ import Labyrinth.Prelude
 import Labyrinth.Domain
 
 emptyLabyrinthInfo :: LabyrinthInfo
-emptyLabyrinthInfo = LabyrinthInfo (0, 0) Map.empty Set.empty Nothing
+emptyLabyrinthInfo = LabyrinthInfo (0, 0) Map.empty Set.empty Nothing Nothing
 
 calcNextPos :: Pos -> Direction -> Pos
 calcNextPos (x, y) DirUp    = (x, y - 1)
 calcNextPos (x, y) DirDown  = (x, y + 1)
 calcNextPos (x, y) DirLeft  = (x - 1, y)
 calcNextPos (x, y) DirRight = (x + 1, y)
+
+calcPreviousPos :: Pos -> Direction -> Pos
+calcPreviousPos (x, y) DirUp    = (x, y)
+calcPreviousPos (x, y) DirDown  = (x, y)
+calcPreviousPos (x, y) DirLeft  = (x, y)
+calcPreviousPos (x, y) DirRight = (x, y)
 
 increaseBounds :: Bounds -> Pos -> Bounds
 increaseBounds (x', y') (x, y) = (max x' (x + 1), max y' (y + 1))
@@ -33,6 +39,7 @@ analyzeContent :: Pos -> Content -> LabyrinthInfo -> LabyrinthInfo
 analyzeContent p (Wormhole n) labInfo
   = labInfo { liWormholes = Map.insert n p $ liWormholes labInfo }
 analyzeContent p Treasure labInfo = labInfo { liTreasure = Just p }
+analyzeContent p TheMap labInfo = labInfo { liTheMap = Just p }
 analyzeContent _ _ labInfo = labInfo
 
 analyzeCell :: Pos -> Cell -> LabyrinthInfo -> LabyrinthInfo

@@ -82,8 +82,15 @@ getPlayerPos st = readVarIO $ st ^. playerPos
 setPlayerPos :: AppState -> Pos -> LangL ()
 setPlayerPos st newPos = writeVarIO (st ^. playerPos) newPos
 
+
+-- ?? updateTrail :: AppState -> Pos -> LangL ()
+-- setTrail st trail = readVarIO (st ^. playerPos)
+
 getPlayerThreasureState :: AppState -> LangL Bool
 getPlayerThreasureState st = readVarIO (st ^. playerInventory . treasureState)
+
+getPlayerTheMapState :: AppState -> LangL Bool
+getPlayerTheMapState st = readVarIO (st ^. playerInventory . the_mapState)
 
 setCellContent :: AppState -> Pos -> Content -> LangL ()
 setCellContent st pos content = do
@@ -142,6 +149,10 @@ performPlayerContentEvent' st pos Treasure = do
 performPlayerContentEvent' st _ (Wormhole n) = do
   addGameMessage st $ "You found a wormhole. You have been moved to the next wormhole."
   executeWormhole st n
+performPlayerContentEvent' st pos TheMap = do
+  addGameMessage st "You found the map!"
+  writeVarIO (st ^. playerInventory . the_mapState) True
+  setCellContent st pos NoContent
 
 addGameMessage :: AppState -> String -> LangL ()
 addGameMessage st msg = do
@@ -216,6 +227,7 @@ onStep :: AppState -> () -> AppL D.CliAction
 onStep st _ = do
   gameSt   <- scenario $ getGameState st
   treasure <- scenario $ getPlayerThreasureState st
+  the_map  <- scenario $ getPlayerTheMapState st
   isFinished <- scenario $ case gameSt of
     PlayerIsAboutLeaving -> do
       when treasure $ addGameMessage st winning
@@ -253,6 +265,7 @@ saveGame st idx = do
   plPos <- readVarIO $ st ^. playerPos
   plHP  <- readVarIO $ st ^. playerHP
   tr    <- readVarIO $ st ^. playerInventory . treasureState
+  mp    <- readVarIO $ st ^. playerInventory . the_mapState
   brPos <- readVarIO $ st ^. bearPos
 
   let plInv = Inventory tr
@@ -280,6 +293,7 @@ loadGame st idx = do
       writeVarIO (st ^. playerPos) gePlayerPos
       writeVarIO (st ^. playerHP) gePlayerHP
       writeVarIO (st ^. playerInventory . treasureState) $ treasureFound gePlayerInventory
+      writeVarIO (st ^. playerInventory . the_mapState) $ the_mapFound gePlayerInventory
       writeVarIO (st ^. bearPos) geBearPos
       writeVarIO (st ^. gameState) PlayerMove
       pure "Game successfully loaded from KV DB."
@@ -310,6 +324,7 @@ startGame' st lab = do
   writeVarIO (st ^. playerHP) 100
   writeVarIO (st ^. bearPos) (bearX, bearY)
   writeVarIO (st ^. playerInventory . treasureState) False
+  writeVarIO (st ^. playerInventory . the_mapState) False
   writeVarIO (st ^. gameState) PlayerMove
 
   pure "New game started."
@@ -363,6 +378,7 @@ help = do
    putStrLn " @:                  player"
    putStrLn " W(n):               worm hole that first tries to direct player to W(n+1), then to W0"
    putStrLn " T:                  treasure"
+   putStrLn " M:                  map"
    putStrLn " B:                  bear"
 
 
@@ -436,6 +452,7 @@ labyrinthApp st = do
     cmd "q"        $ quit st
 
     cmd "print"    $ printLab st
+    cmd "map"      $ printTheMap st
 
   atomically $ do
     finished <- readVar $ D.cliFinishedToken cliToken

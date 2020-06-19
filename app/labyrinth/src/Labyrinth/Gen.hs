@@ -126,6 +126,18 @@ generateTreasure lab = do
     Just _              -> throwException $ GenerationError $ "Unexpected non empty cell found: " <> show pos
     Nothing             -> throwException $ GenerationError "Unable to obtain a cell for the treasure."
 
+-- | Generates the map.
+generateTheMap :: Labyrinth -> LangL Labyrinth
+generateTheMap lab = do
+  let emptyCells = getEmptyCells lab
+  when (Set.null emptyCells) $ throwException $ GenerationError "No empty cells found to place the map."
+  rndPosIdx <- getRandomInt (0, Set.size emptyCells - 1)
+  let pos = Set.elemAt rndPosIdx emptyCells
+  case Map.lookup pos lab of
+    Just (c, NoContent) -> pure $ Map.insert pos (c, TheMap) lab
+    Just _              -> throwException $ GenerationError $ "Unexpected non empty cell found: " <> show pos
+    Nothing             -> throwException $ GenerationError "Unable to obtain a cell for the map."
+
 generateExits :: Bounds -> Int -> Labyrinth -> LangL Labyrinth
 generateExits (xSize, ySize) cnt lab = do
   edgeTags <- replicateM (cnt * 5) (toEnum <$> getRandomInt (0, 3))
@@ -221,5 +233,6 @@ generateLabyrinth bounds exits wormholes = do
   lab2 <- generatePaths bounds lab1
   lab3 <- generateExits bounds exits lab2
   lab4 <- generateTreasure lab3
-  lab5 <- generateWormholes wormholes lab4
-  pure lab5
+  lab5 <- generateTheMap lab4
+  lab5 <- generateWormholes wormholes lab5
+  pure lab6
