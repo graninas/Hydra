@@ -1,3 +1,9 @@
+{-|
+Convergence of attributes and layout of the shape of labyrinth,
+such as walls and exits, and objects placed within the labyrinth,
+such as Bears, Treasures, and The Map.
+-}
+
 module Labyrinth.Render where
 
 import           Labyrinth.Prelude

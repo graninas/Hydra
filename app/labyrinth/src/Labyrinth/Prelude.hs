@@ -1,3 +1,5 @@
+
+
 module Labyrinth.Prelude
   ( module X
   , putStrLn

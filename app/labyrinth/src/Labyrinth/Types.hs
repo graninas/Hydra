@@ -1,3 +1,8 @@
+{-|
+States that are dependent on labyrinth shape,
+player's previous actions, and state of player's inventory.
+-}
+
 {-# LANGUAGE DeriveAnyClass #-}
 
 module Labyrinth.Types where

@@ -1,7 +1,14 @@
+{-|
+Resulting actions, states, and effects
+of when a player moves within the game.
+-}
+
+
 module Labyrinth.App where
 
 import qualified Data.Map      as Map
 import qualified Data.String   as Str
+import qualified Data.List     as List
 
 import qualified Hydra.Domain  as D
 import Labyrinth.Prelude       as L
@@ -73,7 +80,7 @@ testMove pos dir lab = res
         (MonolithWall, _)    -> ImpossibleMove "Step impossible: monolith wall"
         (RegularWall, _)     -> ImpossibleMove "Step impossible: wall"
         (Passage, Nothing)   -> InvalidMove $ "Cell not found: " +|| nextPos ||+ ""
-        (Passage, Just _)    -> SuccessfullMove nextPos
+        (Passage, Just _)    -> SuccessfullMove nextPos -- trail pos?
         (Exit, _)            -> LeavingLabyrinthMove
 
 getPlayerPos :: AppState -> LangL Pos
@@ -82,38 +89,13 @@ getPlayerPos st = readVarIO $ st ^. playerPos
 setPlayerPos :: AppState -> Pos -> LangL ()
 setPlayerPos st newPos = writeVarIO (st ^. playerPos) newPos
 
--------- Want to add to list ---- how?
--- updateTrail :: Trailpoints -> Int -> Int -> Int
--- updateTrail st = writeVarIO (st ^. playerPos) playerPos
--------- Want to add to list ---- how?
 
 -- insert :: k -> a -> Map k a -> Map k a
 -- lookup :: k -> Map k a -> Maybe a
 
 updateTrail :: AppState -> (Int, Int) -> LangL ()
-updateTrail st playerPos = do
-  trailpoints <- readVarIO $ st ^. labTrailpoints
-  cur         <- readVarIO $ st ^. labCurrentTrailPoint
-  lab         <- readVarIO $ st ^. labyrinth
-
-  let mbCellAndContent :: Maybe (Cell, Contet) = Map.lookup playerPos lab
-
-  case mbCellAndContent of
-    Nothing -> throwException $ InvalidOperation $ "Unknown player pos: " <> show playerPos
-    Just (cell, _) -> do
-        let trailpoints2 = Map.insert playerPos (cell, Trailpoint (cur + 1))
-        writeVarIO (st ^. labTrailpoints) trailpoints2
-        writeVarIO (st ^. labCurrentTrailPoint) (cur + 1)
-
--- executeTrailpoint :: AppState -> (Int, Int) -> LangL ()
--- executeTrailpoint st playerPos = do
---   trailpoints <- readVarIO $ st ^. labTrailpoints
---   let n = updateTrail trailpoints newPos playerPos
---   case Map.lookup n trailpoints  of
---     Nothing  -> throwException $ InvalidOperation $ "Move the player to start a trail"
---     Just pos -> updateTrail st playerPos
-
-
+updateTrail st newPos = do
+  trailList <- List.insert getPlayerPos newPos : updateTrail st playerPos
 
 
 getPlayerThreasureState :: AppState -> LangL Bool
@@ -183,6 +165,9 @@ performPlayerContentEvent' st pos TheMap = do
   addGameMessage st "You found the map!"
   writeVarIO (st ^. playerInventory . the_mapState) True
   setCellContent st pos NoContent
+performPlayerContentEvent' st _ (Trailpoint n) = do
+  addGameMessage st $ "You added a point to your trail."
+  updateTrail st n
 
 addGameMessage :: AppState -> String -> LangL ()
 addGameMessage st msg = do
@@ -202,7 +187,7 @@ makePlayerMove st dir = do
     LeavingLabyrinthMove   -> setGameState st PlayerIsAboutLeaving
     SuccessfullMove newPos -> do
       addGameMessage st "Step executed."
-      updateTrail st newPos
+      updateTrail st pos
       setPlayerPos st newPos
       performPlayerContentEvent st
 

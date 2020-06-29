@@ -1,3 +1,9 @@
+{-|
+Functions used for assessment of cell space occupation or
+player options with regard to cell space limitations.  
+-}
+
+
 module Labyrinth.Algorithms where
 
 import qualified Data.Map as Map

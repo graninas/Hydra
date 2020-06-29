@@ -1,3 +1,8 @@
+{-|
+Set of test-labyrinths to ensure functionality of code.
+-}
+
+
 module Labyrinth.Labyrinths where
 
 import qualified Data.Map  as Map
