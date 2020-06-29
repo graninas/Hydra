@@ -1,4 +1,6 @@
-
+{-|
+under lib Hydra src prelude file ... 
+-}
 
 module Labyrinth.Prelude
   ( module X

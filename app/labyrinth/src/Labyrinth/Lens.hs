@@ -1,3 +1,8 @@
+{-|
+" ^. "  -- implicit hidden behaviors of these -- goes through with compiler
+-}
+
+
 {-# LANGUAGE DuplicateRecordFields  #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE TemplateHaskell        #-}
