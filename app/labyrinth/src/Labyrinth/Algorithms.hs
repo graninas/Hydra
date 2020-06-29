@@ -1,6 +1,6 @@
 {-|
 Functions used for assessment of cell space occupation or
-player options with regard to cell space limitations.  
+player options with regard to cell space limitations.
 -}
 
 
@@ -13,7 +13,15 @@ import Labyrinth.Prelude
 import Labyrinth.Domain
 
 emptyLabyrinthInfo :: LabyrinthInfo
-emptyLabyrinthInfo = LabyrinthInfo (0, 0) Map.empty Set.empty Nothing Nothing
+-- emptyLabyrinthInfo = LabyrinthInfo (0, 0) Map.empty Set.empty Nothing Nothing Map.empty
+emptyLabyrinthInfo = LabyrinthInfo
+  { liBounds      = (0, 0)
+  , liWormholes   = Map.empty
+  , liExits       = Set.empty
+  , liTreasure    = Nothing
+  , liTheMap      = Nothing
+  , liTrailpoints = Map.empty
+  }
 
 calcNextPos :: Pos -> Direction -> Pos
 calcNextPos (x, y) DirUp    = (x, y - 1)
@@ -43,9 +51,12 @@ analyzeLabyrinth lab = Map.foldrWithKey f emptyLabyrinthInfo lab
 
 analyzeContent :: Pos -> Content -> LabyrinthInfo -> LabyrinthInfo
 analyzeContent p (Wormhole n) labInfo
-  = labInfo { liWormholes = Map.insert n p $ liWormholes labInfo }
-  analyzeContent p (Trailpoint n) labInfo
-    = labInfo { liTrailpoints = Map.insert n p $ liTrailpoints labInfo }
+    = labInfo { liWormholes = Map.insert n p $ liWormholes labInfo }
+analyzeContent p (Trailpoint n) labInfo
+    = let
+        curTrailpoints = liTrailpoints labInfo
+        newTrailpoints = Map.insert n p curTrailpoints
+      in labInfo { liTrailpoints = newTrailpoints }
 analyzeContent p Treasure labInfo = labInfo { liTreasure = Just p }
 analyzeContent p TheMap labInfo = labInfo { liTheMap = Just p }
 analyzeContent _ _ labInfo = labInfo

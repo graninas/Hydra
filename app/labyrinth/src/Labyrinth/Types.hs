@@ -20,7 +20,7 @@ type PlayerHasTheMap = Bool
 
 data InventoryState = InventoryState
   { _treasureState :: StateVar PlayerHasTreasure
-    _theMapState   :: StateVar PlayerHasTheMap
+  , _theMapState   :: StateVar PlayerHasTheMap
   }
 
 data GameState

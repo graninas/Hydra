@@ -54,10 +54,10 @@ data Inventory = Inventory
   deriving (Show, Read, Eq, Ord, Generic, ToJSON, FromJSON)
 
 data LabyrinthInfo = LabyrinthInfo
-  { liBounds    :: Bounds
-  , liWormholes :: Wormholes
-  , liExits     :: Exits
-  , liTreasure  :: Maybe Pos
-  , liTheMap    :: Maybe Pos
-  , liTrailpoints :: Trailpoints
+  { liBounds      :: Bounds
+  , liWormholes   :: Wormholes
+  , liExits       :: Exits
+  , liTreasure    :: Maybe Pos
+  , liTheMap      :: Maybe Pos
+  , liTrailpoints :: Map Int Pos
   }

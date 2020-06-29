@@ -15,3 +15,14 @@ import           Labyrinth.Types (InventoryState, AppState)
 
 makeFieldsNoPrefix ''AppState
 makeFieldsNoPrefix ''InventoryState
+
+
+-- uses _playerInventory
+-- playerInventory :: Lens AppState InventoryState
+-- playerInventory = ...
+
+
+
+-- uses _theMapState
+-- theMapState :: Lens InventoryState (StateVar PlayerHasTheMap)
+-- theMapState = ...
