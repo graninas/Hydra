@@ -18,7 +18,6 @@ import Labyrinth.Render
 import Labyrinth.Algorithms
 import Labyrinth.Gen
 import Labyrinth.Lens
-import Labyrinth.Labyrinths
 import qualified Labyrinth.KVDB.Model as KVDB
 import qualified Labyrinth.KVDB.Repository as KVDB
 
@@ -94,10 +93,15 @@ setPlayerPos st newPos = writeVarIO (st ^. playerPos) newPos
 -- insert :: k -> a -> Map k a -> Map k a
 -- lookup :: k -> Map k a -> Maybe a
 
-updateTrail :: AppState -> (Int, Int) -> LangL ()
-updateTrail st newPos = do
---  trailList <- List.insert getPlayerPos newPos : updateTrail st playerPos
-  error "Not implemented yet."
+updateTrail :: AppState -> (Int, Int) -> [(Int,Int)] -> LangL ()
+updateTrail pos trailList = case (pos, trailList) of
+                             (_, []) = []
+                             (p, l) = 
+
+
+st pos = do
+  nextPos <- List.lookup
+  trailList <- List.insert getPlayerPos newPos : updateTrail st playerPos
 
 
 getPlayerThreasureState :: AppState -> LangL Bool
@@ -155,26 +159,21 @@ performPlayerContentEvent st = do
   performPlayerContentEvent' st pos content
 
 performPlayerContentEvent' :: AppState -> Pos -> Content -> LangL ()
-
 performPlayerContentEvent' _ _ NoContent = pure ()
-
 performPlayerContentEvent' st pos Treasure = do
   addGameMessage st "You found a treasure!"
   writeVarIO (st ^. playerInventory . treasureState) True
   setCellContent st pos NoContent
-
 performPlayerContentEvent' st _ (Wormhole n) = do
   addGameMessage st $ "You found a wormhole. You have been moved to the next wormhole."
   executeWormhole st n
-
 performPlayerContentEvent' st pos TheMap = do
   addGameMessage st "You found the map!"
   writeVarIO (st ^. playerInventory . theMapState) True
   setCellContent st pos NoContent
-
-performPlayerContentEvent' st pos (Trailpoint n) = do
+performPlayerContentEvent' st _ (Trailpoint n) = do
   addGameMessage st $ "You added a point to your trail."
-  updateTrail st pos
+  updateTrail st n
 
 addGameMessage :: AppState -> String -> LangL ()
 addGameMessage st msg = do
@@ -194,7 +193,7 @@ makePlayerMove st dir = do
     LeavingLabyrinthMove   -> setGameState st PlayerIsAboutLeaving
     SuccessfullMove newPos -> do
       addGameMessage st "Step executed."
-      updateTrail st newPos  -- ?? newPos or plPos
+      updateTrail st pos
       setPlayerPos st newPos
       performPlayerContentEvent st
 
@@ -233,11 +232,9 @@ printLab st = do
 
   printLabRender' $ renderLabyrinth' template lab plPos brPos
 
-
--- | Print a map. For now using testTrail which is a temporary data
 printTheMap :: AppState -> LangL ()
-printTheMap st = do
-  template <- readVarIO $ st ^. labRenderTemplate
+printTheMap = do
+  template   <- readVarIO $ st ^. labRenderTemplate
   printLabRender' $ renderLabyrinth' template testTrail (0, 0) (0, 0)
 
 moveBear :: AppState -> LangL ()
@@ -302,7 +299,7 @@ saveGame st idx = do
   mp    <- readVarIO $ st ^. playerInventory . theMapState
   brPos <- readVarIO $ st ^. bearPos
 
-  let plInv = Inventory tr mp
+  let plInv = Inventory tr
 
   eRes <- KVDB.saveGameState (st ^. kvdbConfig)
     $ KVDB.GameEntity idx lab plPos plHP plInv brPos
@@ -419,59 +416,44 @@ help = do
 
 initAppState
   :: PlayerHasTreasure
-  -> Bool
   -> PlayerPos
   -> PlayerHP
   -> BearPos
   -> Labyrinth
   -> GameState
   -> KVDBConfig KVDB.LabKVDB
-  -> AppL AppState
-initAppState playeHasTreasure playerHasMap plPos plHP brPos lab gst kvdbCfg = do
-  let labInfo        = analyzeLabyrinth lab
-  let renderTemplate = renderSkeleton (liBounds labInfo)
+--  -> AppL AppState
+initAppState tr plPos plHP brPos lab gst kvdbCfg = do
+  let LabyrinthInfo {liBounds, liWormholes} = analyzeLabyrinth lab
+  let renderTemplate = renderSkeleton liBounds
 
   renderTemplateVar <- newVarIO renderTemplate
   renderVar         <- newVarIO renderTemplate
   labVar            <- newVarIO lab
-  labBoundsVar      <- newVarIO (liBounds labInfo)
-  wormholesVar      <- newVarIO (liWormholes labInfo)
-  trailpointsVar    <- newVarIO Map.empty
-  trailPointVar     <- newVarIO 0
+  labBoundsVar      <- newVarIO liBounds
+  wormholesVar      <- newVarIO liWormholes
+  trailpointsVar    <- newVarIO liTrailpoints
   posVar            <- newVarIO plPos
   playerHPVar       <- newVarIO plHP
   bearPosVar        <- newVarIO brPos
-
-  -- inv               <- InventoryState <$> newVarIO playeHasTreasure <*> newVarIO playerHasMap
-
-  -- inv               <- do
-  --   var1 <- newVarIO playeHasTreasure
-  --   var2 <- newVarIO playerHasMap
-  --   pure (InventoryState var1 var2)
-
-  var1 <- newVarIO playeHasTreasure
-  var2 <- newVarIO playerHasMap
-  let inventory = InventoryState var1 var2
-
+  inv               <- InventoryState <$> newVarIO tr
   gameStateVar      <- newVarIO gst
   moveMsgsVar       <- newVarIO []
 
   pure $ AppState
-    { _labyrinth            = labVar
-    , _labBounds            = labBoundsVar
-    , _labRenderTemplate    = renderTemplateVar
-    , _labRenderVar         = renderVar
-    , _labWormholes         = wormholesVar
-    , _labTrailpoints       = trailpointsVar
-    , _labCurrentTrailPoint = trailPointVar
-    , _playerPos            = posVar
-    , _playerHP             = playerHPVar
-    , _bearPos              = bearPosVar
-    , _playerInventory      = inventory
-    , _gameState            = gameStateVar
-    , _gameMessages         = moveMsgsVar
-    , _kvdbConfig           = kvdbCfg
-    }
+    labVar
+    labBoundsVar
+    renderTemplateVar
+    renderVar
+    wormholesVar
+    trailpointsVar
+    posVar
+    playerHPVar
+    bearPosVar
+    inv
+    gameStateVar
+    moveMsgsVar
+    kvdbCfg
 
 labyrinthApp :: AppState -> AppL ()
 labyrinthApp st = do
