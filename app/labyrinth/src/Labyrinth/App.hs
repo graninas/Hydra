@@ -35,6 +35,21 @@ data MovingResult
   | LeavingLabyrinthMove
   deriving (Show, Read, Eq)
 
+data Visual
+  = Direction
+  | NoPassageOption
+  | PassageOption
+
+
+data CellVisual
+  = PassageOptions
+    { up    :: Visual
+    , down  :: Visual
+    , left  :: Visual
+    , right :: Visual
+    }
+    deriving (Show, Read, Eq, Ord, Generic, ToJSON, FromJSON)
+
 getPassage :: Cell -> Direction -> Passage
 getPassage (Cell _ _ NoWall _) DirUp    = Passage
 getPassage (Cell _ _ _ NoWall) DirDown  = Passage
@@ -83,6 +98,30 @@ testMove pos dir lab = res
         (Passage, Just _)    -> SuccessfullMove nextPos -- trail pos?
         (Exit, _)            -> LeavingLabyrinthMove
 
+
+cellVisualization :: MovingResult -> Visual
+cellVisualisation pos lab = visual
+where
+  resUp    = if (testMove pos DirUp lab = (SuccessfullMove OR LeavingLabyrinthMove))
+             then PassageOption else NoPassageOption
+  resDown  = if testMove pos DirDown lab = (SuccessfullMove OR LeavingLabyrinthMove))
+             then PassageOption else NoPassageOption
+  resLeft  = if testMove pos DirLeft lab = (SuccessfullMove OR LeavingLabyrinthMove))
+             then PassageOption else NoPassageOption
+  resRight = if testMove pos DirRight lab = (SuccessfullMove OR LeavingLabyrinthMove))
+             then PassageOption else NoPassageOption
+
+  visual   = generateCellVisual (resUp, resDown, resLeft, resRight)
+
+{-|
+cellVisualisation pos lab = visual
+where
+  resUp    = getPassage cell DirUp
+  resDown  = getPassage cell DirDown
+  resLeft  = getPassage cell DirLeft
+  resRight = getPassage cell DirRight
+-}
+
 getPlayerPos :: AppState -> LangL Pos
 getPlayerPos st = readVarIO $ st ^. playerPos
 
@@ -93,16 +132,24 @@ setPlayerPos st newPos = writeVarIO (st ^. playerPos) newPos
 -- insert :: k -> a -> Map k a -> Map k a
 -- lookup :: k -> Map k a -> Maybe a
 
+nextTrailpoint :: Trailpoints -> Int -> Int
+nextTrailpoint trailpoint n | (n + 1 < Map.size (? -- validateBoundsOrFail (x, y) maxSize) ?)) = n + 1
+                            | otherwise = 0
+
 updateTrail :: AppState -> (Int, Int) -> [(Int,Int)] -> LangL ()
-updateTrail pos trailList = case (pos, trailList) of
-                             (_, []) = []
-                             (p, l) = 
+updateTrail (appState :: AppState) (pos :: (Int, Int)) (trailList :: [(Int, Int)])  =
+  do
+  let (trailPointsVar :: Statevar Trailpoints)  = (_labTrailpoints :: Statevar Trailpoints) (appState :: AppState)
+  (trailPoints :: Trailpoints) <- readVarIO (trailPointsVar :: Statevar Trailpoints)
+  let visual = Cell Wall Wall Wall Wall
+  let newTrailpoints = Map.insert ((pos :: (Int, Int) -- cell,content? ) (cell, ((nextTrailpoint:: Trailpoints -> Int -> Int) Trailpoint n ))) (trailPoints :: Trailpoints)
+  writeVarIO trailPointsVar newTrailpoints
 
 
-st pos = do
-  nextPos <- List.lookup
-  trailList <- List.insert getPlayerPos newPos : updateTrail st playerPos
-
+-- HOMEWORK:  Write out all the types to make it more clear.
+-- What is n (written as 0), above?
+-- trailPointVar :: StateVar Trailpoints
+-- trailPoints   :: Trailpoints :: Labyrinth :: Map Pos (Cell, Content)
 
 getPlayerThreasureState :: AppState -> LangL Bool
 getPlayerThreasureState st = readVarIO (st ^. playerInventory . treasureState)
@@ -193,7 +240,7 @@ makePlayerMove st dir = do
     LeavingLabyrinthMove   -> setGameState st PlayerIsAboutLeaving
     SuccessfullMove newPos -> do
       addGameMessage st "Step executed."
-      updateTrail st pos
+      updateTrail st pos trailList
       setPlayerPos st newPos
       performPlayerContentEvent st
 

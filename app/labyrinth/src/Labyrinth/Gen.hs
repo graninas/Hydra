@@ -244,5 +244,9 @@ generateLabyrinth bounds exits wormholes = do
   lab6 <- generateWormholes wormholes lab5
   pure lab6
 
+----------- ****---------
+generateCellVisual :: CellVisual ->
+generateCellVisual (resUp, resDown, resLeft, resRight) = do
+  
 
--- Task:  Make "map" functionality for game
+----------- ****---------
