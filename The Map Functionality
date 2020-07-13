@@ -1,4 +1,216 @@
 
+data User = User
+  { firstName  :: String
+  , secondName :: String
+  }
+
+-- The User data type has field firstName, it's a string.
+
+-- firstName :: User -> String
+-- secondName :: User -> String
+
+greetingToUser :: User -> String
+greetingToUser user = "Hello, " ++ (firstName user) ++ " " ++ (secondName user)
+
+data AppState = AppState
+  { _labTrailpoints       :: StateVar Trailpoints
+  , _labCurrentTrailPoint :: StateVar Int
+  }
+
+-- 1) _labTrailpoints is a field name; StateVar Trailpoints
+-- 2) _labTrailpoints is an accessor; (AppState -> StateVar Trailpoints)
+
+
+-- f :: AppState -> StateVar Trailpoints
+-- AppState
+
+(_labTrailpoints :: AppState -> StateVar Trailpoints) (appState :: AppState)
+
+(_labTrailpoints appState)
+
+-- Map - datatype (dictionary)
+-- Map.toList     :: Map k a -> [(k, a)]
+-- Map.toAscList  :: Map k a -> [(k, a)]
+-- Map.toDescList :: Map k a -> [(k, a)]
+-- Map.fold       :: (a -> b -> b) -> b -> Map k a -> b
+-- Map.foldrWithKey :: (k -> a -> b -> b) -> b -> Map k a -> b
+
+--    k1 a1
+--    /      \
+--  k2 a2     k3 a3
+--           /     \
+--         k4 a4    k5 a5
+
+
+-- foldr :: (a -> b -> b) -> b -> [a] -> b
+-- snd :: (a, b) -> b
+
+-- "mapping", "traversing"
+-- map :: (a -> b) -> [a] -> [b]
+
+import qualified Data.Map as Map
+
+type Trailpoints = Map.Map Pos (Cell, Content)
+
+-- With lists and foldr
+nextTrailpoint :: Trailpoints -> Int
+nextTrailpoint trailpoint = let
+  listOfPosAndCells     :: [(Pos, (Cell, Content))] = Map.toList trailpoint
+  listOfCellsAndContent :: [(Cell, Content)]        = map snd listOfPosAndCells
+  listOfContent         :: [Content]                = map snd listOfCellsAndContent
+  maxTrailPoint :: Int = foldr f 0 listOfContent
+  in maxTrailPoint
+  where
+    f :: Content -> Int -> Int
+    f (Trailpoint n) nPrev | n > nPrev = n
+    f _ nPrev = nPrev
+
+-- With Map.fold
+nextTrailpoint' :: Trailpoints -> Int
+nextTrailpoint' trailpoint = Map.fold f 0 trailpoint
+  where
+    f :: (Cell, Content) -> Int -> Int
+    f (_, Trailpoint n) nPrev | n > nPrev = n
+    f _ nPrev = nPrev
+
+-- With Map.foldrWithKey
+nextTrailpoint'' :: Trailpoints -> Int
+nextTrailpoint'' trailpoint = Map.foldrWithKey f 0 trailpoint
+  where
+    f :: Pos -> (Cell, Content) -> Int -> Int
+    f _ (_, Trailpoint n) nPrev | n > nPrev = n
+    f _ _ nPrev = nPrev
+
+-- With lists and explicit recursion
+nextTrailpoint :: Trailpoints -> Int
+nextTrailpoint trailpoint = let
+  listOfPosAndCells     :: [(Pos, (Cell, Content))] = Map.toList trailpoint
+  listOfCellsAndContent :: [(Cell, Content)]        = map snd listOfPosAndCells
+  listOfContent         :: [Content]                = map snd listOfCellsAndContent
+  maxTrailPoint :: Int = f 0 listOfContent
+  in maxTrailPoint
+  where
+    f :: Int -> [Content] -> Int
+    f nPrev [] = nPrev
+    f nPrev (Trailpoint n : ts) | n > nPrev = f n ts
+    f nPrev (_: ts) = f nPrev ts
+
+
+-- Hydra function
+readVarIO :: StateVar s -> LangL s
+
+-- updateTrail :: AppState -> (Int, Int) -> [(Int, Int)] -> LangL ()
+-- updateTrail appState pos trailList  =
+--   do
+--   let (trailPointsVar :: StateVar Trailpoints)  = (_labTrailpoints :: AppState -> StateVar Trailpoints) (appState :: AppState)
+--   (trailPoints :: Trailpoints) <- readVarIO (trailPointsVar :: Statevar Trailpoints)
+--   let visual = Cell Wall Wall Wall Wall
+--   let newTrailpoints = Map.insert (pos :: (Int, Int)) (cell, ((nextTrailpoint :: Trailpoints -> Int -> Int) Trailpoint n ))) (trailPoints :: Trailpoints)
+--   writeVarIO trailPointsVar newTrailpoints
+
+--
+
+updateTrail :: AppState -> (Int, Int) -> [(Int, Int)] -> LangL ()
+updateTrail appState pos trailList = do
+  let trailPointsVar = _labTrailpoints appState
+  let labyrinthVar   = _labyrinth appState
+
+  trailPoints :: Map Pos (Cell, Content) <- readVarIO trailPointsVar
+  lab         :: Map Pos (Cell, Content) <- readVarIO labyrinthVar
+
+  let mbLabCell = Map.lookup pos lab
+
+  case mbLabCell of
+    Nothing -> error $ "The cell is not found on pos" ++ show pos
+    Just (cell, _) -> do
+      let n = nextTrailpoint trailPoints
+      let newTrailpoints = Map.insert pos (cell, Trailpoint n) trailPoints
+      writeVarIO trailPointsVar newTrailpoints
+
+--------------------------------------------------------------------------------
+
+-- 1) What is a trailpoint?
+--    A: a list of places where player was.
+-- 2) What is initial state?
+--    A: empty map
+-- 3) What are the rules to change it?
+-- 4) What moment to change it?
+
+
+
+
+-- Trailpoint
+type Trailpoints = Map Pos (Cell, Content)
+
+-- someTrailpoints = Map.fromList
+--   [ (p1, (cell1, Trailpoint 0) )
+--   , (p2, (cell2, Trailpoint 1) )
+--   , (p3, (cell3, Trailpoint 2) )
+--   ]
+
+-- x ->    0    1    2
+--      ┏━━━━┯━━━━┯━━━━┓
+--  0   ┃    │       W0┃
+--      ┠    ┼    ┼    ┨
+--  1   ┃     T@  │
+--      ┠    ┼────┼    ┨
+--  2   ┃  W1      M   ┃
+--      ┗━━━━┷━━━━┷━━━━┛
+
+-- "Player observes a room around"
+--
+--    x ->    0    1    2
+--          ┏━━━━┯
+--     0|   ┃ 1  │
+--      |   ┠    ┼    ┼
+--     1|   ┃ 2    3@ │
+--      |   ┠    ┼────┼
+--     2|
+
+-- 2 cases:
+-- 1) When the game starts, trailpoints is initialized by a cell where the player is.
+-- 2) Update trailpoint on a player's move.
+--    Update a trailpoint by obtaining the next trailpoint number (it will be Content)
+--    and copying a cell from the labyrinth to the trailpoint (it will be Cell)
+
+
+-- Rendering:
+--  Use either renderLabyrinth or printLabyrinth
+
+
+-- x ->    0    1    2
+--      ┏    ┯━━━━┯━━━━┓
+--  0                  ┃
+--      ┠    ┼    ┼    ┨
+--  1                  │
+--      ┠    ┼────┼────┨
+--  2   ┃    │    │    ┃
+--      ┗━━━━┷━━━━┷━━━━┛
+
+--
+-- x ->    0    1    2
+--      ┏━━━━┯━━━━┯━━━━┓
+--  0   ┃    │    │    ┃
+--      ┠────┼────┼────┨
+--  1   ┃    │    │    │
+--      ┠────┼────┼────┨
+--  2   ┃    │    │    ┃
+--      ┗━━━━┷━━━━┷━━━━┛
+
+
+-- map command produces pictures like this:
+
+--    x ->    0    1    2
+--          ┏━━━━┯
+--     0|   ┃ 1  │
+--      |   ┠    ┼    ┼
+--     1|   ┃ 2    3@ │
+--      |   ┠    ┼────┼
+--     2|
+
+
+
+
 
 On the start of the game:
 - The initial cell should be included into the trailpoints
