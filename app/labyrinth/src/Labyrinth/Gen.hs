@@ -145,7 +145,7 @@ generateTheMap appState pos trailList = do
   trailPoints :: Map Pos (Cell, Content) <- readVarIO trailPointsVar
   lab         :: Map Pos (Cell, Content) <- readVarIO labyrinthVar
 
-  cellRender :: Pos -> (Cell, Content) -> LabRender -> LabRender
+  genMap = foldl Render.cellRender pos trailpoints :: Pos -> (Cell, Content) -> LabRender -> LabRender
   cellRender (x0, y0) (cell, content) (bounds, labRender)  where
     resUp    = if (App.testMove pos DirUp lab = (SuccessfullMove OR LeavingLabyrinthMove))
                then PassageOption else NoPassageOption

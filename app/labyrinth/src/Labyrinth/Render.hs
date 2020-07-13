@@ -178,11 +178,19 @@ renderBear (x0, y0) (bounds, lab) = (bounds, lab')
               Nothing   -> Map.insert (0, 0) ("!Bear:" <> show (x0, y0)) lab
               Just curW -> Map.insert (x, y) (take 1 curW <> "B" <> (take 2 $ drop 2 curW)) lab
 
+
 renderLabyrinth' :: Skeleton -> Labyrinth -> Pos -> Pos -> LabRender
 renderLabyrinth' skeleton lab plPos bearPos =
   renderPlayer plPos
     $ renderBear bearPos
     $ Map.foldrWithKey cellRender skeleton lab
+
+renderTheMap' :: Skeleton -> Trailpoints -> Pos -> Pos -> LabRender
+renderTheMap' skeleton trailPoints plPos bearPos =
+  renderPlayer plPos
+    $ renderBear bearPos
+    $ Map.foldrWithKey cellRender skeleton trailPoints
+
 
 renderLabyrinth :: Labyrinth -> Pos -> Pos -> LabRender
 renderLabyrinth lab plPos bearPos = renderLabyrinth' skeleton lab plPos bearPos
@@ -190,10 +198,12 @@ renderLabyrinth lab plPos bearPos = renderLabyrinth' skeleton lab plPos bearPos
     LabyrinthInfo {liBounds} = analyzeLabyrinth lab
     skeleton = renderSkeleton liBounds
 
--- renderTheLabMap :: Labyrinth -> Pos -> LabRender
--- renderTheLabMap lab plPos plTrail =
---   renderPlayer plPos
---     $ renderTrail trailMap
+renderTheMap :: Trailpoints -> Pos -> Pos -> LabRender
+renderLabyrinth trailPoints plPos bearPos = renderLabyrinth' skeleton trailPoints plPos bearPos
+  where
+    LabyrinthInfo {liBounds} = analyzeLabyrinth trailPoints
+    skeleton = renderSkeleton liBounds
+
 
 printLabRender' :: LabRender -> LangL ()
 printLabRender' ((rendMaxX, rendMaxY), labRender) = do
@@ -211,10 +221,8 @@ printLabRender' ((rendMaxX, rendMaxY), labRender) = do
   let outputRows row = putStrLn row
   mapM_ outputRows printedRows
 
-printTheMapRender' :: LabRender -> LangL ()
-
 printLabyrinth :: Labyrinth -> LangL ()
 printLabyrinth lab = printLabRender' $ renderLabyrinth lab (0, 0) (0, 0)
 
-printTheMap :: Labyrinth -> LangL ()
-printTheMap lab = printTheMapRender' $ renderTheLabMap lab (0, 0) (0, 0)
+printTheMap :: Trailpoints -> LangL ()
+printTheMap trailPoints = printTheMapRender' $ renderTheMap trailPoints (0, 0) (0, 0)
