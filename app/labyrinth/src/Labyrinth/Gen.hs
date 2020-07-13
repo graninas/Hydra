@@ -16,6 +16,7 @@ import Labyrinth.Domain
 import Labyrinth.Types
 import Labyrinth.Algorithms
 import Labyrinth.Render
+import Labyrinth.App
 
 type Chance = Int
 
@@ -133,10 +134,46 @@ generateTreasure lab = do
     Just _              -> throwException $ GenerationError $ "Unexpected non empty cell found: " <> show pos
     Nothing             -> throwException $ GenerationError "Unable to obtain a cell for the treasure."
 
+
+
+
+generateTheMap :: AppState -> (Int, Int) -> [(Int, Int)] ->
+generateTheMap appState pos trailList = do
+  let trailPointsVar = _labTrailpoints appState
+  let labyrinthVar   = _labyrinth appState
+
+  trailPoints :: Map Pos (Cell, Content) <- readVarIO trailPointsVar
+  lab         :: Map Pos (Cell, Content) <- readVarIO labyrinthVar
+
+  cellRender :: Pos -> (Cell, Content) -> LabRender -> LabRender
+  cellRender (x0, y0) (cell, content) (bounds, labRender)  where
+    resUp    = if (App.testMove pos DirUp lab = (SuccessfullMove OR LeavingLabyrinthMove))
+               then PassageOption else NoPassageOption
+    resDown  = if App.testMove pos DirDown lab = (SuccessfullMove OR LeavingLabyrinthMove))
+               then PassageOption else NoPassageOption
+    resLeft  = if App.testMove pos DirLeft lab = (SuccessfullMove OR LeavingLabyrinthMove))
+               then PassageOption else NoPassageOption
+    resRight = if App.testMove pos DirRight lab = (SuccessfullMove OR LeavingLabyrinthMove))
+               then PassageOption else NoPassageOption
+
+    visual   = (resUp, resDown, resLeft, resRight)
+
+
 -- | Generates the map.
-generateTheMap :: Labyrinth -> LangL Labyrinth
-generateTheMap lab = do
-  let emptyCells = getEmptyCells lab
+
+
+
+  case maybeLabCell of
+    Nothing -> error $ "The cell is not found on pos" ++ show pos
+    Just (cell, _) -> do
+      let n = nextTrailpoint trailPoints
+      let newTrailpoints = Map.insert pos (cell, Trailpoint n) trailPoints
+      writeVarIO trailPointsVar newTrailpoints
+
+
+  let
+
+  emptyCells = getEmptyCells lab
   when (Set.null emptyCells) $ throwException $ GenerationError "No empty cells found to place the map."
   rndPosIdx <- getRandomInt (0, Set.size emptyCells - 1)
   let pos = Set.elemAt rndPosIdx emptyCells
@@ -144,6 +181,9 @@ generateTheMap lab = do
     Just (c, NoContent) -> pure $ Map.insert pos (c, TheMap) lab
     Just _              -> throwException $ GenerationError $ "Unexpected non empty cell found: " <> show pos
     Nothing             -> throwException $ GenerationError "Unable to obtain a cell for the map."
+
+
+
 
 generateExits :: Bounds -> Int -> Labyrinth -> LangL Labyrinth
 generateExits (xSize, ySize) cnt lab = do
@@ -243,10 +283,3 @@ generateLabyrinth bounds exits wormholes = do
   lab5 <- generateTheMap lab4
   lab6 <- generateWormholes wormholes lab5
   pure lab6
-
------------ ****---------
-generateCellVisual :: CellVisual ->
-generateCellVisual (resUp, resDown, resLeft, resRight) = do
-  
-
------------ ****---------

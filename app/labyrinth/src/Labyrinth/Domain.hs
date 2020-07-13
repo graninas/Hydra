@@ -32,8 +32,9 @@ data Cell = Cell
   { leftWall  :: Wall
   , rightWall :: Wall
   , upWall    :: Wall
-  , downWall  :: Wall
-  }
+  , downWall  :: Wall                 --  _
+  }                                   -- | |
+                                      --  -
   deriving (Show, Read, Eq, Ord, Generic, ToJSON, FromJSON)
 
 data Content

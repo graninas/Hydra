@@ -211,10 +211,10 @@ printLabRender' ((rendMaxX, rendMaxY), labRender) = do
   let outputRows row = putStrLn row
   mapM_ outputRows printedRows
 
--- printTheMapRender' :: LabRender -> LangL ()
+printTheMapRender' :: LabRender -> LangL ()
 
 printLabyrinth :: Labyrinth -> LangL ()
 printLabyrinth lab = printLabRender' $ renderLabyrinth lab (0, 0) (0, 0)
 
--- printTheMap :: Labyrinth -> LangL ()
--- printTheMap lab = printTheMapRender' $ renderTheLabMap lab (0, 0) (0, 0)
+printTheMap :: Labyrinth -> LangL ()
+printTheMap lab = printTheMapRender' $ renderTheLabMap lab (0, 0) (0, 0)
