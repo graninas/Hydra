@@ -23,7 +23,7 @@ loggerCfg = D.LoggerConfig
 
 startApp :: AppL ()
 startApp = do
-  st <- Lab.initAppState False False (0,0) 100 (0,0) Lab.testLabyrinth2 Lab.GameStart kvdbConfig
+  st <- Lab.initAppState False (0,0) 100 (0,0) Lab.testLabyrinth2 Lab.GameStart kvdbConfig
   Lab.labyrinthApp st
 
 main :: IO ()

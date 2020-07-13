@@ -50,7 +50,7 @@ type Trailpoints = Labyrinth
 
 data Inventory = Inventory
   { treasureFound :: Bool
-  , the_mapFound  :: Bool
+  , theMapFound  :: Bool
   }
   deriving (Show, Read, Eq, Ord, Generic, ToJSON, FromJSON)
 

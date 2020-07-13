@@ -16,9 +16,9 @@ import Labyrinth.Domain
 import Labyrinth.Types
 import Labyrinth.Algorithms
 import Labyrinth.Render
-import Labyrinth.App
 
 type Chance = Int
+
 
 getRandomDirection :: LangL Direction
 getRandomDirection = toEnum <$> getRandomInt (0, 3)
@@ -144,7 +144,7 @@ generateTheMap lab = do
   rndPosIdx <- getRandomInt (0, Set.size emptyCells - 1)
   let pos = Set.elemAt rndPosIdx emptyCells
   case Map.lookup pos lab of
-    Just (c, NoContent) -> pure $ Map.insert pos (c, Treasure) lab
+    Just (c, NoContent) -> pure $ Map.insert pos (c, TheMap) lab
     Just _              -> throwException $ GenerationError $ "Unexpected non empty cell found: " <> show pos
     Nothing             -> throwException $ GenerationError "Unable to obtain a cell for the map."
 

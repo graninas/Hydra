@@ -35,21 +35,6 @@ data MovingResult
   | LeavingLabyrinthMove
   deriving (Show, Read, Eq)
 
-data Visual
-  = Direction
-  | NoPassageOption
-  | PassageOption
-
-
-data CellVisual
-  = PassageOptions
-    { up    :: Visual
-    , down  :: Visual
-    , left  :: Visual
-    , right :: Visual
-    }
-    deriving (Show, Read, Eq, Ord, Generic, ToJSON, FromJSON)
-
 getPassage :: Cell -> Direction -> Passage
 getPassage (Cell _ _ NoWall _) DirUp    = Passage
 getPassage (Cell _ _ _ NoWall) DirDown  = Passage
@@ -67,6 +52,7 @@ getPassage (Cell (Monolith False) _ _ _) DirLeft  = MonolithWall
 getPassage (Cell _ (Monolith False) _ _) DirRight = MonolithWall
 
 getPassage _ _ = RegularWall
+
 
 leaveWithoutTreasure :: String
 leaveWithoutTreasure = "You didn't find a treasure. Leaving means failure. Do you want to leave the labyrinth? (yes / no)"
@@ -123,8 +109,8 @@ nextTrailpoint trailpoint = let
     f nPrev (_: ts) = f nPrev ts
 
 
-updateTrail :: AppState -> (Int, Int) -> [(Int, Int)] -> LangL ()
-updateTrail appState pos trailList = do
+updateTrail :: AppState -> (Int, Int) -> LangL ()
+updateTrail appState pos = do
   let trailPointsVar = _labTrailpoints appState
   let labyrinthVar   = _labyrinth appState
 
@@ -134,12 +120,11 @@ updateTrail appState pos trailList = do
   let maybeLabCell = Map.lookup pos lab
 
   case maybeLabCell of
-    Nothing -> error $ "The cell is not found on pos" ++ show pos
+    Nothing -> throwException $ InvalidOperation $ "The cell is not found on pos" ++ show pos
     Just (cell, _) -> do
       let n = nextTrailpoint trailPoints
       let newTrailpoints = Map.insert pos (cell, Trailpoint n) trailPoints
       writeVarIO trailPointsVar newTrailpoints
-
 
 getPlayerThreasureState :: AppState -> LangL Bool
 getPlayerThreasureState st = readVarIO (st ^. playerInventory . treasureState)
@@ -195,6 +180,7 @@ performPlayerContentEvent st = do
   (_, content) <- getCell st pos
   performPlayerContentEvent' st pos content
 
+-- | Interaction with labyrinth objects
 performPlayerContentEvent' :: AppState -> Pos -> Content -> LangL ()
 performPlayerContentEvent' _ _ NoContent = pure ()
 performPlayerContentEvent' st pos Treasure = do
@@ -208,9 +194,8 @@ performPlayerContentEvent' st pos TheMap = do
   addGameMessage st "You found the map!"
   writeVarIO (st ^. playerInventory . theMapState) True
   setCellContent st pos NoContent
-performPlayerContentEvent' st _ (Trailpoint n) = do
-  addGameMessage st $ "You added a point to your trail."
-  updateTrail st n
+performPlayerContentEvent' st _ (Trailpoint n) =
+  throwException $ InvalidOperation "Performing a player content event on Trailpoint."
 
 addGameMessage :: AppState -> String -> LangL ()
 addGameMessage st msg = do
@@ -230,7 +215,7 @@ makePlayerMove st dir = do
     LeavingLabyrinthMove   -> setGameState st PlayerIsAboutLeaving
     SuccessfullMove newPos -> do
       addGameMessage st "Step executed."
-      updateTrail st pos trailList
+      updateTrail st newPos
       setPlayerPos st newPos
       performPlayerContentEvent st
 
@@ -270,9 +255,9 @@ printLab st = do
   printLabRender' $ renderLabyrinth' template lab plPos brPos
 
 printTheMap :: AppState -> LangL ()
-printTheMap = do
-  template   <- readVarIO $ st ^. labRenderTemplate
-  printLabRender' $ renderLabyrinth' template testTrail (0, 0) (0, 0)
+printTheMap st = do
+  trailpoints <- readVarIO $ st ^. labTrailpoints
+  printTrailpoints trailpoints
 
 moveBear :: AppState -> LangL ()
 moveBear st = do
@@ -336,7 +321,7 @@ saveGame st idx = do
   mp    <- readVarIO $ st ^. playerInventory . theMapState
   brPos <- readVarIO $ st ^. bearPos
 
-  let plInv = Inventory tr
+  let plInv = Inventory tr mp
 
   eRes <- KVDB.saveGameState (st ^. kvdbConfig)
     $ KVDB.GameEntity idx lab plPos plHP plInv brPos
@@ -361,7 +346,7 @@ loadGame st idx = do
       writeVarIO (st ^. playerPos) gePlayerPos
       writeVarIO (st ^. playerHP) gePlayerHP
       writeVarIO (st ^. playerInventory . treasureState) $ treasureFound gePlayerInventory
-      writeVarIO (st ^. playerInventory . theMapState) $ the_mapFound gePlayerInventory
+      writeVarIO (st ^. playerInventory . theMapState) $ theMapFound gePlayerInventory
       writeVarIO (st ^. bearPos) geBearPos
       writeVarIO (st ^. gameState) PlayerMove
       pure "Game successfully loaded from KV DB."
@@ -449,8 +434,6 @@ help = do
    putStrLn " M:                  map"
    putStrLn " B:                  bear"
 
-
-
 initAppState
   :: PlayerHasTreasure
   -> PlayerPos
@@ -459,38 +442,39 @@ initAppState
   -> Labyrinth
   -> GameState
   -> KVDBConfig KVDB.LabKVDB
---  -> AppL AppState
+  -> AppL AppState
 initAppState tr plPos plHP brPos lab gst kvdbCfg = do
-  let LabyrinthInfo {liBounds, liWormholes} = analyzeLabyrinth lab
-  let renderTemplate = renderSkeleton liBounds
+  let labInfo = analyzeLabyrinth lab
+  let renderTemplate = renderSkeleton (liBounds labInfo)
 
   renderTemplateVar <- newVarIO renderTemplate
   renderVar         <- newVarIO renderTemplate
   labVar            <- newVarIO lab
-  labBoundsVar      <- newVarIO liBounds
-  wormholesVar      <- newVarIO liWormholes
-  trailpointsVar    <- newVarIO liTrailpoints
+  labBoundsVar      <- newVarIO (liBounds labInfo)
+  wormholesVar      <- newVarIO (liWormholes labInfo)
+  trailpointsVar    <- newVarIO Map.empty
   posVar            <- newVarIO plPos
   playerHPVar       <- newVarIO plHP
   bearPosVar        <- newVarIO brPos
-  inv               <- InventoryState <$> newVarIO tr
+  inv               <- InventoryState <$> newVarIO tr <*> newVarIO False
   gameStateVar      <- newVarIO gst
   moveMsgsVar       <- newVarIO []
 
   pure $ AppState
-    labVar
-    labBoundsVar
-    renderTemplateVar
-    renderVar
-    wormholesVar
-    trailpointsVar
-    posVar
-    playerHPVar
-    bearPosVar
-    inv
-    gameStateVar
-    moveMsgsVar
-    kvdbCfg
+    {  _labyrinth          = labVar
+    ,  _labBounds          = labBoundsVar
+    ,  _labRenderTemplate  = renderTemplateVar
+    ,  _labRenderVar       = renderVar
+    ,  _labWormholes       = wormholesVar
+    ,  _labTrailpoints     = trailpointsVar
+    ,  _playerPos          = posVar
+    ,  _playerHP           = playerHPVar
+    ,  _bearPos            = bearPosVar
+    ,  _playerInventory    = inv
+    ,  _gameState          = gameStateVar
+    ,  _gameMessages       = moveMsgsVar
+    ,  _kvdbConfig         = kvdbCfg
+    }
 
 labyrinthApp :: AppState -> AppL ()
 labyrinthApp st = do

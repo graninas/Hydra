@@ -199,7 +199,7 @@ renderLabyrinth lab plPos bearPos = renderLabyrinth' skeleton lab plPos bearPos
     skeleton = renderSkeleton liBounds
 
 renderTheMap :: Trailpoints -> Pos -> Pos -> LabRender
-renderLabyrinth trailPoints plPos bearPos = renderLabyrinth' skeleton trailPoints plPos bearPos
+renderTheMap trailPoints plPos bearPos = renderTheMap' skeleton trailPoints plPos bearPos
   where
     LabyrinthInfo {liBounds} = analyzeLabyrinth trailPoints
     skeleton = renderSkeleton liBounds
@@ -224,5 +224,5 @@ printLabRender' ((rendMaxX, rendMaxY), labRender) = do
 printLabyrinth :: Labyrinth -> LangL ()
 printLabyrinth lab = printLabRender' $ renderLabyrinth lab (0, 0) (0, 0)
 
-printTheMap :: Trailpoints -> LangL ()
-printTheMap trailPoints = printTheMapRender' $ renderTheMap trailPoints (0, 0) (0, 0)
+printTrailpoints :: Trailpoints -> LangL ()
+printTrailpoints trailPoints = printLabRender' $ renderTheMap trailPoints (0, 0) (0, 0)

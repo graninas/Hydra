@@ -1,0 +1,10 @@
+
+
+On the start of the game:
+- The initial cell should be included into the trailpoints
+- Perform a player's event on the initial cell (wormholes, bear, map, treasure)
+
+Fix rendering:
+- !Player:(0,0) - this is an indication of a bug in a render (exclamation mark is indicating about a bug)
+-- Reason: the rendering function assumes that the player position is always available in the Labyrinth data structure.
+   This is true for the labyrinth, but not true for trailpoints.
