@@ -20,7 +20,7 @@ import           Labyrinth
 
 
 testKvdbConfig :: KVDBConfig KVDB.LabKVDB
-testKvdbConfig = RocksDBConfig "./labyrinths/" True False
+testKvdbConfig = RocksDBConfig "./test/Labyrinth/TestData/labyrinths.rdb" True False
 
 withAppState :: Labyrinth -> R.AppRuntime -> (AppState -> IO a) -> IO a
 withAppState lab rt act = do
