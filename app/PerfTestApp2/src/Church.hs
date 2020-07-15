@@ -7,9 +7,8 @@ module Church where
 import           Control.Monad
 import           Hydra.Prelude
 
-import qualified Hydra.ChurchL  as L
+import "hydra-church-free" qualified Hydra.Language as L
 import qualified Hydra.Runtime as R
-
 
 flow :: IORef Int -> L.AppL ()
 flow ref = L.scenario $ do

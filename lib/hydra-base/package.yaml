@@ -1,5 +1,5 @@
-name:                PerfTestApp2
-version:             1.0.0.0
+name:                hydra-base
+version:             1.1.0.0
 github:              "graninas/Hydra"
 license:             BSD3
 author:              "Alexander Granin"
@@ -7,7 +7,7 @@ maintainer:          "graninas@gmail.com"
 copyright:           "Granin A.S. 2020"
 
 description:
-  PerfTestApp2
+  All-in-one framework for writing web backends and cli applications.
 
 default-extensions:
 - NoImplicitPrelude
@@ -110,39 +110,9 @@ dependencies:
 - http-client-tls
 - data-default
 - generic-lens
-- hydra-base
-- hydra-free
-- hydra-church-free
 
 library:
   source-dirs:
-  - src
+    - src
   ghc-options:
   - -Wall
-  - -Wcompat
-  - -Widentities
-  - -fhide-source-paths
-
-executables:
-  PerfTestApp2:
-    main:                Main.hs
-    source-dirs:         src/
-    ghc-options:
-    - -threaded
-    - -rtsopts
-    - -with-rtsopts=-N
-    - -Wall
-    # - -O2
-
-#
-# tests:
-#   functional-tests:
-#     main: Spec.hs
-#     source-dirs:
-#     - test/spec
-#     ghc-options:
-#     - -threaded
-#     - -rtsopts
-#     - -with-rtsopts=-N
-#     dependencies:
-#     - Hydra

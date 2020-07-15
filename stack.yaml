@@ -1,7 +1,9 @@
 resolver: lts-14.4
 
 packages:
-- lib/Hydra
+- lib/hydra-free
+- lib/hydra-church-free
+# - lib/hydra-final-tagless
 - app/astro
 - app/labyrinth
 - app/MeteorCounter
