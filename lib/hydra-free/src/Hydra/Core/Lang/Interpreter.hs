@@ -9,15 +9,14 @@ import           Control.Exception (throwIO)
 
 import           Hydra.Core.ControlFlow.Interpreter         (runControlFlowL)
 import qualified Hydra.Core.Language                        as L
-import           Hydra.Core.Logger.Impl.HsLoggerInterpreter (runLoggerL)
+import           Hydra.Core.Logger.Impl.HsLoggerInterpreter (runLoggerL, flushStmLogger)
 import           Hydra.Core.Random.Interpreter              (runRandomL)
 import qualified Hydra.Core.RLens                           as RLens
-import qualified Hydra.Core.Runtime                         as R
-import qualified Hydra.Core.Domain                          as D
+import qualified Hydra.Runtime                              as R
+import qualified Hydra.Domain                               as D
 import           Hydra.Core.State.Interpreter               (runStateL)
 import           Hydra.Core.KVDB.Interpreter                (runAsRocksDBL, runAsRedisL)
 import           Hydra.Core.SqlDB.Interpreter               (runSqlDBL)
-import qualified Hydra.Core.SqlDBRuntime                    as R
 import qualified Servant.Client                             as S
 
 evalRocksKVDB'
@@ -54,10 +53,10 @@ evalKVDB' coreRt (D.DBHandle D.Redis   dbname) act =
 
 interpretLangF :: R.CoreRuntime -> L.LangF a -> IO a
 interpretLangF coreRt (L.EvalStateAtomically action next) = do
-    let stateRt  = coreRt ^. RLens.stateRuntime
-    let loggerRt = coreRt ^. RLens.loggerRuntime
+    let stateRt = coreRt ^. RLens.stateRuntime
+    let logHndl = coreRt ^. RLens.loggerRuntime . RLens.hsLoggerHandle
     res <- atomically $ runStateL stateRt action
-    R.flushStmLogger stateRt loggerRt
+    flushStmLogger (stateRt ^. RLens.stmLog) logHndl
     pure $ next res
 interpretLangF coreRt (L.EvalLogger loggerAct next) =
     next <$> runLoggerL (coreRt ^. RLens.loggerRuntime . RLens.hsLoggerHandle) loggerAct

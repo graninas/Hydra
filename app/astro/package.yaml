@@ -116,7 +116,9 @@ dependencies:
 - generic-lens
 - optparse-applicative
 - network-uri
-- Hydra
+- hydra-base
+- hydra-free
+- hydra-church-free
 
 
 library:
@@ -138,16 +140,3 @@ executables:
     - -with-rtsopts=-N
     - -Wall
     # - -O2
-
-#
-# tests:
-#   functional-tests:
-#     main: Spec.hs
-#     source-dirs:
-#     - test/spec
-#     ghc-options:
-#     - -threaded
-#     - -rtsopts
-#     - -with-rtsopts=-N
-#     dependencies:
-#     - Hydra

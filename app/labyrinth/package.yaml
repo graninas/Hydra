@@ -109,7 +109,9 @@ dependencies:
 - http-client-tls
 - data-default
 - generic-lens
-- Hydra
+- hydra-base
+- hydra-free
+- hydra-church-free
 
 library:
   source-dirs:
@@ -145,5 +147,4 @@ tests:
     - HUnit
     - QuickCheck
     - hspec-contrib
-    - Hydra
     - labyrinth

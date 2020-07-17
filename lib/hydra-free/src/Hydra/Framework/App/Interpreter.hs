@@ -8,12 +8,9 @@ import qualified Hydra.Core.Domain        as D
 import qualified Hydra.Core.Interpreters  as Impl
 import qualified Hydra.Core.Language      as L
 import qualified Hydra.Core.RLens         as RLens
-import qualified Hydra.Core.Runtime       as R
-import qualified Hydra.Core.KVDBRuntime   as R
-import qualified Hydra.Core.SqlDBRuntime  as R
+import qualified Hydra.Runtime            as R
 import qualified Hydra.Framework.Language as L
 import qualified Hydra.Framework.RLens    as RLens
-import qualified Hydra.Framework.Runtime  as R
 
 import qualified System.Console.Haskeline         as HS
 
@@ -110,3 +107,6 @@ interpretAppF appRt (L.CliF completeFunc onStep onUnknownCommand handlers cliTok
 
 runAppL :: R.AppRuntime -> L.AppL a -> IO a
 runAppL appRt = foldFree (interpretAppF appRt)
+
+instance R.StartApp L.AppL where
+  startApp = runAppL

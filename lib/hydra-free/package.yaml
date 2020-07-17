@@ -7,7 +7,7 @@ maintainer:          "graninas@gmail.com"
 copyright:           "Granin A.S. 2020"
 
 description:
-  All-in-one framework for writing web backends and cli applications.
+  All-in-one framework for writing web backends and cli applications. Free monad engine.
 
 default-extensions:
 - NoImplicitPrelude
@@ -113,14 +113,15 @@ dependencies:
 
 library:
   source-dirs:
-    - src
-    - test-framework
+  - src
+  - test-framework
   ghc-options:
   - -Wall
   dependencies:
   - hspec
   - hspec-contrib
   - QuickCheck
+  - hydra-base
 
 
 tests:
@@ -136,4 +137,5 @@ tests:
     - hspec
     - hspec-contrib
     - QuickCheck
+    - hydra-base
     - hydra-free

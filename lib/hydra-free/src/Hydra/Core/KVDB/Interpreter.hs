@@ -2,11 +2,11 @@ module Hydra.Core.KVDB.Interpreter where
 
 import           Hydra.Prelude
 
-import qualified Hydra.Core.Language as L
-import qualified Hydra.Core.KVDBRuntime as R
 
+import qualified Hydra.Core.Language as L
 import qualified Database.RocksDB as Rocks
 import qualified Database.Redis as Redis
+import qualified Hydra.Runtime as R
 import qualified Hydra.Core.KVDB.Impl.RocksDB as RocksDBImpl
 import qualified Hydra.Core.KVDB.Impl.Redis as RedisImpl
 

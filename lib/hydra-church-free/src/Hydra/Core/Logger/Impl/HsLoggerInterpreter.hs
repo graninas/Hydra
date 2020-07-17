@@ -29,5 +29,5 @@ interpretLoggerF _ (L.LogMessage level msg next) = do
     pure $ next ()
 
 runLoggerL :: Maybe HsLoggerHandle -> L.LoggerL () -> IO ()
-runLoggerL (Just h) l = foldFree (interpretLoggerF h) l
+runLoggerL (Just h) l = foldF (interpretLoggerF h) l
 runLoggerL Nothing  _ = pure ()

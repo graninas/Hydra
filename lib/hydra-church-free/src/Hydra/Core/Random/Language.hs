@@ -14,7 +14,7 @@ instance Functor RandomF where
   fmap f (GetRandomInt range next) = GetRandomInt range (f . next)
 
 
-type RandomL = Free RandomF
+type RandomL = F RandomF
 
 instance C.Random RandomL where
-  getRandomInt range = liftF $ GetRandomInt range id
+  getRandomInt range = liftFC $ GetRandomInt range id

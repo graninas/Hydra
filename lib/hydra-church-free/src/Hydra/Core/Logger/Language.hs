@@ -8,7 +8,6 @@ import           Hydra.Prelude
 import qualified Hydra.Core.Domain       as D
 import qualified Hydra.Core.Logger.Class as C
 
-
 -- | Language for logging.
 data LoggerF next where
   -- | Log message with a predefined level.
@@ -17,8 +16,7 @@ data LoggerF next where
 instance Functor LoggerF where
   fmap f (LogMessage lvl msg next) = LogMessage lvl msg (f . next)
 
-
-type LoggerL = Free LoggerF
+type LoggerL = F LoggerF
 
 instance C.Logger LoggerL where
-  logMessage level msg = liftF $ LogMessage level msg id
+  logMessage level msg = liftFC $ LogMessage level msg id

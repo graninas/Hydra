@@ -1,6 +1,7 @@
 resolver: lts-14.4
 
 packages:
+- lib/hydra-base
 - lib/hydra-free
 - lib/hydra-church-free
 # - lib/hydra-final-tagless

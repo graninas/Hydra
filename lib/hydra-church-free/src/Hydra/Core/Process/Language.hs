@@ -5,7 +5,7 @@ module Hydra.Core.Process.Language where
 
 import           Hydra.Prelude
 
-import qualified Hydra.Core.Domain as D
+import qualified Hydra.Core.Domain               as D
 
 
 -- | Language for Process.
@@ -25,20 +25,20 @@ instance Functor (ProcessF m') where
     fmap f (TryGetResult pPtr next)  = TryGetResult pPtr (f . next)
     fmap f (AwaitResult pPtr next)   = AwaitResult pPtr (f . next)
 
-type ProcessL m = Free (ProcessF m)
+type ProcessL m = F (ProcessF m)
 
 -- | Fork a process.
 forkProcess' :: m a -> ProcessL m (D.ProcessPtr a)
-forkProcess' action = liftF $ ForkProcess action id
+forkProcess' action = liftFC $ ForkProcess action id
 
 -- | Hardly kill a process.
 killProcess' :: D.ProcessPtr a -> ProcessL m ()
-killProcess' processPtr = liftF $ KillProcess processPtr id
+killProcess' processPtr = liftFC $ KillProcess processPtr id
 
 -- | Try get result from a process (non-blocking).
 tryGetResult' :: D.ProcessPtr a -> ProcessL m (Maybe a)
-tryGetResult' handle = liftF $ TryGetResult handle id
+tryGetResult' handle = liftFC $ TryGetResult handle id
 
 -- | Await for result from a process (blocking).
 awaitResult' :: D.ProcessPtr a -> ProcessL m a
-awaitResult' handle = liftF $ AwaitResult handle id
+awaitResult' handle = liftFC $ AwaitResult handle id

@@ -4,7 +4,7 @@ import           Hydra.Prelude
 
 import qualified Hydra.Core.FTL                  as L
 import qualified Hydra.Core.RLens                as RLens
-import qualified Hydra.Core.Runtime              as R
+import qualified Hydra.Runtime                   as R
 
 import qualified Data.Text                       as TXT (unpack)
 import qualified Hydra.Core.Logger.Impl.HsLogger as Hs

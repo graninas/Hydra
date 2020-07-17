@@ -5,6 +5,10 @@ import           Hydra.Prelude
 import qualified Hydra.Core.Domain  as D
 import qualified Hydra.Core.Runtime as R
 
+class StartApp m where
+  startApp :: AppRuntime -> m a -> IO a
+
+
 -- | App runtime data.
 data AppRuntime = AppRuntime
     { _coreRuntime    :: R.CoreRuntime

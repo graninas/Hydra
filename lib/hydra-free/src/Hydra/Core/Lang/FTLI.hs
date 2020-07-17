@@ -6,17 +6,18 @@ import qualified Hydra.Core.FTL               as L
 import           Hydra.Core.Logger.FTLI       ()
 import           Hydra.Core.Random.FTLI       ()
 import qualified Hydra.Core.RLens             as RLens
-import qualified Hydra.Core.Runtime           as R
+import qualified Hydra.Runtime                as R
 import qualified Hydra.Core.State.Interpreter as Impl
+import           Hydra.Core.Logger.Impl.HsLoggerInterpreter (flushStmLogger)
 
 instance L.LangL (ReaderT R.CoreRuntime IO) where
 -- instance MonadIO m => L.LangL (ReaderT R.CoreRuntime m) where
   evalStateAtomically action = do
     coreRt <- ask
-    let stateRt  = coreRt ^. RLens.stateRuntime
-    let loggerRt = coreRt ^. RLens.loggerRuntime
+    let stateRt = coreRt ^. RLens.stateRuntime
+    let logHndl = coreRt ^. RLens.loggerRuntime . RLens.hsLoggerHandle
     res <- liftIO $ atomically $ Impl.runStateL stateRt action
-    liftIO $ R.flushStmLogger stateRt loggerRt
+    liftIO $ flushStmLogger (stateRt ^. RLens.stmLog) logHndl
     pure res
 
 -- Compiles but wrong.

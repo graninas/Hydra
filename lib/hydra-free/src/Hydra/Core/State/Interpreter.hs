@@ -8,7 +8,7 @@ import           Hydra.Prelude
 import qualified Hydra.Core.Domain                as D
 import qualified Hydra.Core.Language              as L
 import qualified Hydra.Core.RLens                 as RLens
-import qualified Hydra.Core.Runtime               as R
+import qualified Hydra.Runtime                    as R
 import           Hydra.Core.State.STM
 
 import           Hydra.Core.Logger.Impl.StmLogger (runStmLoggerL)
