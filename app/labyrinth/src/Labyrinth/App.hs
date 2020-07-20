@@ -202,6 +202,17 @@ addGameMessage st msg = do
   msgs <- readVarIO $ st ^. gameMessages
   writeVarIO (st ^. gameMessages) $ msgs ++ [msg]
 
+
+makePlayerInit :: AppState -> LangL ()
+makePlayerInit st = do
+  cancelPlayerLeaving st
+
+  plPos       <- readVarIO $ st ^. playerPos
+
+  updateTrail st plPos
+  performPlayerContentEvent st
+
+
 makePlayerMove :: AppState -> Direction -> LangL ()
 makePlayerMove st dir = do
   cancelPlayerLeaving st
@@ -215,6 +226,7 @@ makePlayerMove st dir = do
     LeavingLabyrinthMove   -> setGameState st PlayerIsAboutLeaving
     SuccessfullMove newPos -> do
       addGameMessage st "Step executed."
+--      updateTrail st plPos
       updateTrail st newPos
       setPlayerPos st newPos
       performPlayerContentEvent st
@@ -356,6 +368,7 @@ startRndGame st = do
   lab <- generateRndLabyrinth
   msg <- startGame' st lab
   addGameMessage st msg
+  makePlayerInit st
 
 startGame' :: AppState -> Labyrinth -> LangL String
 startGame' st lab = do
@@ -381,6 +394,7 @@ startGame' st lab = do
   writeVarIO (st ^. gameState) PlayerMove
 
   pure "New game started."
+
 
 
 onUnknownCommand :: AppState -> String -> AppL CliAction
@@ -501,6 +515,7 @@ labyrinthApp st = do
     cmd "skip"     $ onPlayerMove st $ evalSkip st
 
     cmd "start"    $ startRndGame st
+--    cmd "start"    $ startRndGame st $ makePlayerInit st
 
     cmd "quit"     $ quit st
     cmd "q"        $ quit st

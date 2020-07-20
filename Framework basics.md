@@ -52,3 +52,10 @@ interpret newVarIO ---->  newTVar    (real STM calls)
 
 STM (Software Transactional Memory)
 treads
+
+
+
+distinction between pure functions and monadic functions;
+langL and monadL
+
+being able to recognize when you need to replace left arrows and let clauses.  

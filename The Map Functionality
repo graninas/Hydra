@@ -220,3 +220,11 @@ Fix rendering:
 - !Player:(0,0) - this is an indication of a bug in a render (exclamation mark is indicating about a bug)
 -- Reason: the rendering function assumes that the player position is always available in the Labyrinth data structure.
    This is true for the labyrinth, but not true for trailpoints.
+
+HINTS:
+appState
+
+For engines:
+
+interpretor and language are from the original monad
+importing into different syntax: https://ghc.gitlab.haskell.org/ghc/doc/users_guide/exts/package_qualified_imports.html

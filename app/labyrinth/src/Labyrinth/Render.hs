@@ -221,8 +221,26 @@ printLabRender' ((rendMaxX, rendMaxY), labRender) = do
   let outputRows row = putStrLn row
   mapM_ outputRows printedRows
 
+
+printTheMapRender' :: LabRender -> LangL ()
+printTheMapRender' ((rendTMaxX, rendTMaxY), trailpointsRender) = do
+
+  let printAndMergeCells y row x = case Map.lookup (x, y) trailpointsRender of
+        Nothing -> row <> "!" <> show (x, y)
+        Just c  -> row <> c
+
+  let printAndMergeRows y rows =
+        let row = foldl' (printAndMergeCells y) "" [0..rendTMaxX]
+        in row : rows
+
+  let printedRows = foldr printAndMergeRows [] [0..rendTMaxY]
+
+  let outputRows row = putStrLn row
+  mapM_ outputRows printedRows
+
+
 printLabyrinth :: Labyrinth -> LangL ()
 printLabyrinth lab = printLabRender' $ renderLabyrinth lab (0, 0) (0, 0)
 
 printTrailpoints :: Trailpoints -> LangL ()
-printTrailpoints trailPoints = printLabRender' $ renderTheMap trailPoints (0, 0) (0, 0)
+printTrailpoints trailPoints = printTheMapRender' $ renderTheMap trailPoints (0, 0) (0, 0)
