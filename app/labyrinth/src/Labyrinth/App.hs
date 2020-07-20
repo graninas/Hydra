@@ -153,8 +153,8 @@ getGameState :: AppState -> LangL GameState
 getGameState st = readVarIO $ st ^. gameState
 
 nextWormhole :: Wormholes -> Int -> Int
-nextWormhole wms n | (n + 1 < Map.size wms) = n + 1
-                   | otherwise = 0
+nextWormhole wms n | (n + 1 <= Map.size wms) = n + 1
+                   | otherwise = 1
 
 executeWormhole :: AppState -> Int -> LangL ()
 executeWormhole st prevWormhole = do
