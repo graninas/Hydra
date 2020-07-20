@@ -228,3 +228,21 @@ For engines:
 
 interpretor and language are from the original monad
 importing into different syntax: https://ghc.gitlab.haskell.org/ghc/doc/users_guide/exts/package_qualified_imports.html
+
+
+Bugs & fixes:
+
+- When the 'map' command is called on the start of the game, a rendering error is occurred:
+  > map
+  !Player:(0,0)
+
+- Probably, another bug: on the start of the game we don't have a map flag set on True, but the 'map' command tries to do something.
+
+- Thread blocking when hitting a wormhole:
+  labyrinth: InvalidOperation "Wormhole not found: 0"
+  labyrinth: thread blocked indifinitely in an STM transaction
+
+- Trailpoint: points are being added successfully but the trail number is not being enumerated (or maybe is not being rendered correctly):
+
+1) Print "You don't have a map" when the map flag is not set (but the trailpoint should be calculated under the hood anyway)
+2) 
