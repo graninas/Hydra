@@ -1,13 +1,14 @@
+{-# LANGUAGE PackageImports #-}
 {-# LANGUAGE AllowAmbiguousTypes #-}
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
 module Main where
 
-import           Hydra.Prelude
+import           "hydra-base" Hydra.Prelude
 
-import qualified Hydra.Runtime              as R
-import qualified Hydra.Interpreters         as R
+import qualified "hydra-base" Hydra.Runtime              as R
+import qualified "hydra-free" Hydra.Interpreters         as R
 
 import           Astro.Config               (loggerCfg)
 import           Astro.ConsoleOptions

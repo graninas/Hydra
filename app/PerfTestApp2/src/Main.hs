@@ -1,3 +1,4 @@
+{-# LANGUAGE PackageImports      #-}
 {-# LANGUAGE AllowAmbiguousTypes #-}
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE ScopedTypeVariables #-}
@@ -11,9 +12,9 @@ import qualified Free          as Free
 import qualified FTL           as FTL
 import qualified Church        as Church
 import qualified IO            as IO
-import qualified Hydra.Domain  as D
-import qualified Hydra.Runtime as R
-import qualified Hydra.Framework.RLens as RLens
+import qualified "hydra-base" Hydra.Domain  as D
+import qualified "hydra-base" Hydra.Runtime as R
+import qualified "hydra-base" Hydra.Framework.RLens as RLens
 
 data Method = FT | FreeM | ChurchM | IO
   deriving (Show, Read, Eq, Ord)

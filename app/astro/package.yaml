@@ -118,7 +118,6 @@ dependencies:
 - network-uri
 - hydra-base
 - hydra-free
-- hydra-church-free
 
 
 library:

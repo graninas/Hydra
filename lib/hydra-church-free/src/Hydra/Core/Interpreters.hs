@@ -1,4 +1,4 @@
-module Hydra.Core.Interpreter
+module Hydra.Core.Interpreters
   ( module X
   ) where
 

@@ -1,11 +1,14 @@
+{-# LANGUAGE PackageImports #-}
+
 module Free where
 
 import qualified Data.Map       as Map
 import qualified Data.Set       as Set
 
-import qualified Hydra.Language as L
+import qualified "hydra-free" Hydra.Language as L
 import           Hydra.Prelude
-import qualified Hydra.Runtime  as R
+import qualified "hydra-free" Hydra.Runtime  as R
+import qualified "hydra-free" Hydra.Interpreters as R
 import           Types
 
 initState :: AppConfig -> L.StateL AppState

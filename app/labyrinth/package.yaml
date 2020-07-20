@@ -111,7 +111,6 @@ dependencies:
 - generic-lens
 - hydra-base
 - hydra-free
-- hydra-church-free
 
 library:
   source-dirs:

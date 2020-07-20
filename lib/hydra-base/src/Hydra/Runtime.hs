@@ -2,8 +2,6 @@ module Hydra.Runtime
   ( module X
   ) where
 
-import           Hydra.Prelude
-
 import           Hydra.Core.Runtime              as X
 import           Hydra.Core.KVDBRuntime          as X
 import           Hydra.Core.SqlDBRuntime         as X

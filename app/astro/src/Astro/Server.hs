@@ -1,3 +1,4 @@
+{-# LANGUAGE PackageImports      #-}
 {-# LANGUAGE AllowAmbiguousTypes #-}
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE ScopedTypeVariables #-}
@@ -14,9 +15,9 @@ import           Network.Wai.Handler.Warp (run)
 import           Servant
 
 import           Hydra.Prelude
-import qualified Hydra.Runtime as R
-import qualified Hydra.Interpreters as R
-import qualified Hydra.Language     as L
+import qualified "hydra-free" Hydra.Runtime as R
+import qualified "hydra-free" Hydra.Interpreters as R
+import qualified "hydra-free" Hydra.Language     as L
 
 import           Astro.Config (loggerCfg, dbConfig)
 import           Astro.ConsoleOptions (ServerOptions (..))

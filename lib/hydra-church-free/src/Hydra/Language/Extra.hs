@@ -6,7 +6,6 @@ module Hydra.Language.Extra where
 
 import           Hydra.Prelude
 
-import qualified Hydra.Domain              as D
 import qualified Hydra.Core.Language       as L
 import qualified Hydra.Framework.Language  as L
 

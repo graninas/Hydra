@@ -2,7 +2,7 @@ module Hydra.Framework.App.Interpreter where
 
 import           Hydra.Prelude
 
-import qualified Hydra.Core.Interpreter   as I
+import qualified Hydra.Core.Interpreters  as I
 import qualified Hydra.Core.Language      as L
 import qualified Hydra.Core.RLens         as RLens
 import qualified Hydra.Core.Runtime       as R
@@ -28,3 +28,6 @@ interpretAppF appRt (L.EvalProcess action next) = do
 
 runAppL :: R.AppRuntime -> L.AppL a -> IO a
 runAppL appRt = foldF (interpretAppF appRt)
+
+instance R.StartApp L.AppL where
+  startApp = runAppL

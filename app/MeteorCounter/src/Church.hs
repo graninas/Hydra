@@ -1,11 +1,14 @@
+{-# LANGUAGE PackageImports #-}
+
 module Church where
 
+import           Hydra.Prelude
 import qualified Data.Map      as Map
 import qualified Data.Set      as Set
 
-import qualified Hydra.ChurchL as L
-import           Hydra.Prelude
-import qualified Hydra.Runtime as R
+import qualified "hydra-church-free" Hydra.Language as L
+import qualified "hydra-church-free" Hydra.Runtime as R
+import qualified "hydra-church-free" Hydra.Interpreters as R
 import           Types
 
 initState :: AppConfig -> L.StateL AppState

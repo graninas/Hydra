@@ -1,3 +1,4 @@
+{-# LANGUAGE PackageImports      #-}
 {-# LANGUAGE AllowAmbiguousTypes #-}
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE ScopedTypeVariables #-}
@@ -8,7 +9,7 @@ import           Control.Monad
 import           Hydra.Prelude
 
 import qualified Hydra.FTL     as FTL
-import qualified Hydra.Runtime as R
+import qualified "hydra-base" Hydra.Runtime as R
 import           PerfTypes
 
 import           Hydra.FTLI    ()

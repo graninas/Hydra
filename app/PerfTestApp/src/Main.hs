@@ -1,3 +1,4 @@
+{-# LANGUAGE PackageImports      #-}
 {-# LANGUAGE AllowAmbiguousTypes #-}
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE ScopedTypeVariables #-}
@@ -10,9 +11,9 @@ import           Hydra.Prelude
 import qualified PerfFree          as Free
 import qualified PerfFTL           as FTL
 import qualified PerfChurch        as Church
-import qualified Hydra.Domain  as D
-import qualified Hydra.Runtime as R
-import qualified Hydra.Framework.RLens as RLens
+import qualified "hydra-base" Hydra.Domain  as D
+import qualified "hydra-base" Hydra.Runtime as R
+import qualified "hydra-base" Hydra.Framework.RLens as RLens
 
 data Method = FT | FreeM | ChurchM
   deriving (Show, Read, Eq, Ord)

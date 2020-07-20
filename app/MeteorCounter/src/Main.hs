@@ -1,3 +1,4 @@
+{-# LANGUAGE PackageImports      #-}
 {-# LANGUAGE AllowAmbiguousTypes #-}
 {-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE ScopedTypeVariables #-}
@@ -11,9 +12,9 @@ import qualified Free          as Free
 import           Types
 import qualified FTL           as FTL
 import qualified Church        as Church
-import qualified Hydra.Domain  as D
-import qualified Hydra.Runtime as R
-import qualified Hydra.Framework.RLens as RLens
+import qualified "hydra-base" Hydra.Domain  as D
+import qualified "hydra-base" Hydra.Runtime as R
+import qualified "hydra-base" Hydra.Framework.RLens as RLens
 
 data Method = FT | FreeM | ChurchM
   deriving (Show, Read, Eq, Ord)
@@ -43,7 +44,7 @@ main = do
   putStrLn @String $ "Method: " <> show (method cfg)
 
   let mbLoggerCfg = if useLog cfg then Just loggerCfg else Nothing
-  
+
   R.withAppRuntime mbLoggerCfg $ \appRt -> do
     when (method cfg == FT)
       $ FTL.scenario (appRt ^. RLens.coreRuntime)

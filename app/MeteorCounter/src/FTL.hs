@@ -1,4 +1,5 @@
-{-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE PackageImports             #-}
+{-# LANGUAGE UndecidableInstances       #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
 module FTL where
@@ -9,7 +10,7 @@ import qualified Data.Set                as Set
 import           FTLTypes
 import qualified Hydra.FTL               as L
 import           Hydra.Prelude
-import qualified Hydra.Runtime           as R
+import qualified "hydra-base" Hydra.Runtime           as R
 import           Types
 
 import           Hydra.FTLI              ()

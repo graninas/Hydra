@@ -1,10 +1,12 @@
+{-# LANGUAGE PackageImports #-}
+
 module Main where
 
 import           Labyrinth.Prelude
 
-import qualified Hydra.Domain               as D
-import qualified Hydra.Runtime              as R
-import qualified Hydra.Interpreters         as R
+import qualified "hydra-base" Hydra.Domain               as D
+import qualified "hydra-base" Hydra.Runtime              as R
+import qualified "hydra-free" Hydra.Interpreters         as R
 
 import qualified Labyrinth as Lab
 import           Labyrinth.KVDB.Model (LabKVDB)
