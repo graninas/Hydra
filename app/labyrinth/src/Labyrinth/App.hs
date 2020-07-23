@@ -54,6 +54,9 @@ getPassage (Cell _ (Monolith False) _ _) DirRight = MonolithWall
 getPassage _ _ = RegularWall
 
 
+noMapYet :: String
+noMapYet = "You didn't find the map yet. You can print the map after you find it."
+
 leaveWithoutTreasure :: String
 leaveWithoutTreasure = "You didn't find a treasure. Leaving means failure. Do you want to leave the labyrinth? (yes / no)"
 
@@ -95,8 +98,8 @@ setPlayerPos st newPos = writeVarIO (st ^. playerPos) newPos
 -- insert :: k -> a -> Map k a -> Map k a
 -- lookup :: k -> Map k a -> Maybe a
 
-nextTrailpoint :: Trailpoints -> Int
-nextTrailpoint trailpoint = let
+maxTrailpoint :: Trailpoints -> Int
+maxTrailpoint trailpoint = let
   listOfPosAndCells     :: [(Pos, (Cell, Content))] = Map.toList trailpoint
   listOfCellsAndContent :: [(Cell, Content)]        = map snd listOfPosAndCells
   listOfContent         :: [Content]                = map snd listOfCellsAndContent
@@ -122,8 +125,8 @@ updateTrail appState pos = do
   case maybeLabCell of
     Nothing -> throwException $ InvalidOperation $ "The cell is not found on pos" ++ show pos
     Just (cell, _) -> do
-      let n = nextTrailpoint trailPoints
-      let newTrailpoints = Map.insert pos (cell, Trailpoint n) trailPoints
+      let n = maxTrailpoint trailPoints
+      let newTrailpoints = Map.insert pos (cell, Trailpoint (n+1)) trailPoints
       writeVarIO trailPointsVar newTrailpoints
 
 getPlayerThreasureState :: AppState -> LangL Bool
@@ -206,10 +209,6 @@ addGameMessage st msg = do
 makePlayerInit :: AppState -> LangL ()
 makePlayerInit st = do
   cancelPlayerLeaving st
-
-  plPos       <- readVarIO $ st ^. playerPos
-
-  updateTrail st plPos
   performPlayerContentEvent st
 
 
@@ -268,8 +267,21 @@ printLab st = do
 
 printTheMap :: AppState -> LangL ()
 printTheMap st = do
+  theMap      <- getPlayerTheMapState st
   trailpoints <- readVarIO $ st ^. labTrailpoints
-  printTrailpoints trailpoints
+  plPos       <- readVarIO $ st ^. playerPos
+
+  unless theMap $ addGameMessage st noMapYet
+  when   theMap $ printTrailpoints trailpoints plPos
+
+
+printCheatMap :: AppState -> LangL ()
+printCheatMap st = do
+  trailpoints <- readVarIO $ st ^. labTrailpoints
+  plPos       <- readVarIO $ st ^. playerPos
+  printTrailpoints trailpoints plPos
+
+
 
 moveBear :: AppState -> LangL ()
 moveBear st = do
@@ -288,7 +300,6 @@ onStep :: AppState -> () -> AppL D.CliAction
 onStep st _ = do
   gameSt   <- scenario $ getGameState st
   treasure <- scenario $ getPlayerThreasureState st
-  theMap   <- scenario $ getPlayerTheMapState st
 
   isFinished <- scenario $ case gameSt of
     PlayerIsAboutLeaving -> do
@@ -392,6 +403,8 @@ startGame' st lab = do
   writeVarIO (st ^. playerInventory . treasureState) False
   writeVarIO (st ^. playerInventory . theMapState) False
   writeVarIO (st ^. gameState) PlayerMove
+
+  updateTrail st (playerX, playerY)
 
   pure "New game started."
 
@@ -515,13 +528,13 @@ labyrinthApp st = do
     cmd "skip"     $ onPlayerMove st $ evalSkip st
 
     cmd "start"    $ startRndGame st
---    cmd "start"    $ startRndGame st $ makePlayerInit st
 
     cmd "quit"     $ quit st
     cmd "q"        $ quit st
 
     cmd "print"    $ printLab st
     cmd "map"      $ printTheMap st
+    cmd "cheatmap" $ printCheatMap st
 
   atomically $ do
     finished <- readVar $ D.cliFinishedToken cliToken
