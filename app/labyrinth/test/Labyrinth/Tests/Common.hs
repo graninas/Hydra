@@ -1,3 +1,5 @@
+{-# LANGUAGE PackageImports #-}
+
 module Labyrinth.Tests.Common where
 
 import qualified Control.Exception as E
@@ -10,7 +12,7 @@ import           Test.QuickCheck (arbitrary, property, verbose, withMaxSuccess)
 import           Test.QuickCheck.Monadic (assert, monadicIO, pick, pre, run)
 
 import qualified Hydra.Domain               as D
-import qualified Hydra.Runtime              as R
+import qualified "hydra-free" Hydra.Runtime as R
 import qualified Hydra.Interpreters         as R
 
 import           Labyrinth.Prelude

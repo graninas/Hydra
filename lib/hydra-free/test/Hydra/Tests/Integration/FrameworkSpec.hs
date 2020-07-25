@@ -9,7 +9,7 @@ import qualified Control.Exception as E
 import           Hydra.Prelude
 import qualified Hydra.Domain                as D
 import qualified Hydra.Language              as L
-import qualified Hydra.Runtime               as R
+import qualified "hydra-free" Hydra.Runtime  as R
 import qualified Hydra.Interpreters          as R
 import           Hydra.Testing.Integrational
 import           Hydra.Testing.Wrappers
