@@ -185,25 +185,11 @@ renderLabyrinth' skeleton lab plPos bearPos =
     $ renderBear bearPos
     $ Map.foldrWithKey cellRender skeleton lab
 
-renderTheMap' :: Skeleton -> Trailpoints -> Pos -> Pos -> LabRender
-renderTheMap' skeleton trailPoints plPos bearPos =
-  renderPlayer plPos
-    $ renderBear bearPos
-    $ Map.foldrWithKey cellRender skeleton trailPoints
-
-
 renderLabyrinth :: Labyrinth -> Pos -> Pos -> LabRender
 renderLabyrinth lab plPos bearPos = renderLabyrinth' skeleton lab plPos bearPos
   where
     LabyrinthInfo {liBounds} = analyzeLabyrinth lab
     skeleton = renderSkeleton liBounds
-
-renderTheMap :: Trailpoints -> Pos -> Pos -> LabRender
-renderTheMap trailPoints plPos bearPos = renderTheMap' skeleton trailPoints plPos bearPos
-  where
-    LabyrinthInfo {liBounds} = analyzeLabyrinth trailPoints
-    skeleton = renderSkeleton liBounds
-
 
 printLabRender' :: LabRender -> LangL ()
 printLabRender' ((rendMaxX, rendMaxY), labRender) = do
@@ -221,8 +207,39 @@ printLabRender' ((rendMaxX, rendMaxY), labRender) = do
   let outputRows row = putStrLn row
   mapM_ outputRows printedRows
 
+
+
+renderTheMap' :: Skeleton -> Trailpoints -> Pos -> Pos -> LabRender
+renderTheMap' skeleton trailPoints plPos bearPos =
+  renderPlayer plPos
+    $ renderBear bearPos
+    $ Map.foldrWithKey cellRender skeleton trailPoints
+
+renderTheMap :: Trailpoints -> Pos -> Pos -> LabRender
+renderTheMap trailPoints plPos bearPos = renderTheMap' skeleton trailPoints plPos bearPos
+  where
+    LabyrinthInfo {liBounds} = analyzeLabyrinth trailPoints
+    skeleton = renderSkeleton liBounds
+
+printTheMapRender' :: LabRender -> LangL ()
+printTheMapRender' ((rendTMaxX, rendTMaxY), trailpointsRender) = do
+
+  let printAndMergeCells y row x = case Map.lookup (x, y) trailpointsRender of
+        Nothing -> row <> "!" <> show (x, y)
+        Just c  -> row <> c
+
+  let printAndMergeRows y rows =
+        let row = foldl' (printAndMergeCells y) "" [0..rendTMaxX]
+        in row : rows
+
+  let printedRows = foldr printAndMergeRows [] [0..rendTMaxY]
+
+  let outputRows row = putStrLn row
+  mapM_ outputRows printedRows
+
+
 printLabyrinth :: Labyrinth -> LangL ()
 printLabyrinth lab = printLabRender' $ renderLabyrinth lab (0, 0) (0, 0)
 
-printTrailpoints :: Trailpoints -> LangL ()
-printTrailpoints trailPoints = printLabRender' $ renderTheMap trailPoints (0, 0) (0, 0)
+printTrailpoints :: Trailpoints -> Pos -> LangL ()
+printTrailpoints trailPoints plPos = printTheMapRender' $ renderTheMap trailPoints plPos (0, 0)

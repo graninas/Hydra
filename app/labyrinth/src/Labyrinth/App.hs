@@ -54,6 +54,9 @@ getPassage (Cell _ (Monolith False) _ _) DirRight = MonolithWall
 getPassage _ _ = RegularWall
 
 
+noMapYet :: String
+noMapYet = "You didn't find the map yet. You can print the map after you find it."
+
 leaveWithoutTreasure :: String
 leaveWithoutTreasure = "You didn't find a treasure. Leaving means failure. Do you want to leave the labyrinth? (yes / no)"
 
@@ -95,8 +98,8 @@ setPlayerPos st newPos = writeVarIO (st ^. playerPos) newPos
 -- insert :: k -> a -> Map k a -> Map k a
 -- lookup :: k -> Map k a -> Maybe a
 
-nextTrailpoint :: Trailpoints -> Int
-nextTrailpoint trailpoint = let
+maxTrailpoint :: Trailpoints -> Int
+maxTrailpoint trailpoint = let
   listOfPosAndCells     :: [(Pos, (Cell, Content))] = Map.toList trailpoint
   listOfCellsAndContent :: [(Cell, Content)]        = map snd listOfPosAndCells
   listOfContent         :: [Content]                = map snd listOfCellsAndContent
@@ -122,8 +125,8 @@ updateTrail appState pos = do
   case maybeLabCell of
     Nothing -> throwException $ InvalidOperation $ "The cell is not found on pos" ++ show pos
     Just (cell, _) -> do
-      let n = nextTrailpoint trailPoints
-      let newTrailpoints = Map.insert pos (cell, Trailpoint n) trailPoints
+      let n = maxTrailpoint trailPoints
+      let newTrailpoints = Map.insert pos (cell, Trailpoint (n+1)) trailPoints
       writeVarIO trailPointsVar newTrailpoints
 
 getPlayerThreasureState :: AppState -> LangL Bool
@@ -153,8 +156,8 @@ getGameState :: AppState -> LangL GameState
 getGameState st = readVarIO $ st ^. gameState
 
 nextWormhole :: Wormholes -> Int -> Int
-nextWormhole wms n | (n + 1 < Map.size wms) = n + 1
-                   | otherwise = 0
+nextWormhole wms n | (n + 1 <= Map.size wms) = n + 1
+                   | otherwise = 1
 
 executeWormhole :: AppState -> Int -> LangL ()
 executeWormhole st prevWormhole = do
@@ -202,6 +205,13 @@ addGameMessage st msg = do
   msgs <- readVarIO $ st ^. gameMessages
   writeVarIO (st ^. gameMessages) $ msgs ++ [msg]
 
+
+makePlayerInit :: AppState -> LangL ()
+makePlayerInit st = do
+  cancelPlayerLeaving st
+  performPlayerContentEvent st
+
+
 makePlayerMove :: AppState -> Direction -> LangL ()
 makePlayerMove st dir = do
   cancelPlayerLeaving st
@@ -215,6 +225,7 @@ makePlayerMove st dir = do
     LeavingLabyrinthMove   -> setGameState st PlayerIsAboutLeaving
     SuccessfullMove newPos -> do
       addGameMessage st "Step executed."
+--      updateTrail st plPos
       updateTrail st newPos
       setPlayerPos st newPos
       performPlayerContentEvent st
@@ -256,8 +267,21 @@ printLab st = do
 
 printTheMap :: AppState -> LangL ()
 printTheMap st = do
+  theMap      <- getPlayerTheMapState st
   trailpoints <- readVarIO $ st ^. labTrailpoints
-  printTrailpoints trailpoints
+  plPos       <- readVarIO $ st ^. playerPos
+
+  unless theMap $ addGameMessage st noMapYet
+  when   theMap $ printTrailpoints trailpoints plPos
+
+
+printCheatMap :: AppState -> LangL ()
+printCheatMap st = do
+  trailpoints <- readVarIO $ st ^. labTrailpoints
+  plPos       <- readVarIO $ st ^. playerPos
+  printTrailpoints trailpoints plPos
+
+
 
 moveBear :: AppState -> LangL ()
 moveBear st = do
@@ -276,7 +300,6 @@ onStep :: AppState -> () -> AppL D.CliAction
 onStep st _ = do
   gameSt   <- scenario $ getGameState st
   treasure <- scenario $ getPlayerThreasureState st
-  theMap   <- scenario $ getPlayerTheMapState st
 
   isFinished <- scenario $ case gameSt of
     PlayerIsAboutLeaving -> do
@@ -356,6 +379,7 @@ startRndGame st = do
   lab <- generateRndLabyrinth
   msg <- startGame' st lab
   addGameMessage st msg
+  makePlayerInit st
 
 startGame' :: AppState -> Labyrinth -> LangL String
 startGame' st lab = do
@@ -380,7 +404,10 @@ startGame' st lab = do
   writeVarIO (st ^. playerInventory . theMapState) False
   writeVarIO (st ^. gameState) PlayerMove
 
+  updateTrail st (playerX, playerY)
+
   pure "New game started."
+
 
 
 onUnknownCommand :: AppState -> String -> AppL CliAction
@@ -507,6 +534,7 @@ labyrinthApp st = do
 
     cmd "print"    $ printLab st
     cmd "map"      $ printTheMap st
+    cmd "cheatmap" $ printCheatMap st
 
   atomically $ do
     finished <- readVar $ D.cliFinishedToken cliToken
