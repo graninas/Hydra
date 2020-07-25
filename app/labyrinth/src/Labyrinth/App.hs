@@ -156,8 +156,8 @@ getGameState :: AppState -> LangL GameState
 getGameState st = readVarIO $ st ^. gameState
 
 nextWormhole :: Wormholes -> Int -> Int
-nextWormhole wms n | (n + 1 <= Map.size wms) = n + 1
-                   | otherwise = 1
+nextWormhole wms n | (n + 1 < Map.size wms) = n + 1
+                   | otherwise = 0
 
 executeWormhole :: AppState -> Int -> LangL ()
 executeWormhole st prevWormhole = do
@@ -256,8 +256,8 @@ handleNo st = do
     PlayerIsAboutLossLeavingConfirmation -> cancelPlayerLeaving st
     _ -> addGameMessage st $ unknownCommand "no"
 
-printLab :: AppState -> LangL ()
-printLab st = do
+cheatPrintLabyrinth :: AppState -> LangL ()
+cheatPrintLabyrinth st = do
   lab        <- readVarIO $ st ^. labyrinth
   plPos      <- readVarIO $ st ^. playerPos
   brPos      <- readVarIO $ st ^. bearPos
@@ -275,8 +275,8 @@ printTheMap st = do
   when   theMap $ printTrailpoints trailpoints plPos
 
 
-printCheatMap :: AppState -> LangL ()
-printCheatMap st = do
+cheatPrintMap :: AppState -> LangL ()
+cheatPrintMap st = do
   trailpoints <- readVarIO $ st ^. labTrailpoints
   plPos       <- readVarIO $ st ^. playerPos
   printTrailpoints trailpoints plPos
@@ -526,15 +526,15 @@ labyrinthApp st = do
     cmd "no"       $ handleNo st
 
     cmd "skip"     $ onPlayerMove st $ evalSkip st
+    cmd "map"      $ printTheMap st
 
     cmd "start"    $ startRndGame st
 
     cmd "quit"     $ quit st
     cmd "q"        $ quit st
 
-    cmd "print"    $ printLab st
-    cmd "map"      $ printTheMap st
-    cmd "cheatmap" $ printCheatMap st
+    cmd "cheatprint" $ cheatPrintLabyrinth st
+    cmd "cheatmap"   $ cheatPrintMap st
 
   atomically $ do
     finished <- readVar $ D.cliFinishedToken cliToken

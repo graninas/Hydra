@@ -180,7 +180,7 @@ placeWormholes cnt emptyCells lab
   let pos = Set.elemAt rndPosIdx emptyCells
   case Map.lookup pos lab of
     Just (c, NoContent) -> do
-      let lab'        = Map.insert pos (c, Wormhole cnt) lab
+      let lab'        = Map.insert pos (c, Wormhole (cnt - 1)) lab
       let emptyCells' = Set.deleteAt rndPosIdx emptyCells
       placeWormholes  (cnt - 1) emptyCells' lab'
     _ -> pure lab

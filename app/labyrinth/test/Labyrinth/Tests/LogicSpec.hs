@@ -88,12 +88,12 @@ spec = do
 
       it "performPlayerContentEvent no content" $ \rt -> do
         (pos, tr, gs) <- runLabMethod (0, 0) testLabyrinth2 rt (\st -> do
-          scenario $ performPlayerContentEvent st
+            scenario $ performPlayerContentEvent st
 
-          pos <- readVarIO $ st ^. playerPos
-          tr  <- readVarIO $ st ^. playerInventory . treasureState
-          gs  <- readVarIO $ st ^. gameState
-          pure (pos, tr, gs))
+            pos <- readVarIO $ st ^. playerPos
+            tr  <- readVarIO $ st ^. playerInventory . treasureState
+            gs  <- readVarIO $ st ^. gameState
+            pure (pos, tr, gs))
 
         pos `shouldBe` (0, 0)
         tr `shouldBe` False
@@ -101,12 +101,12 @@ spec = do
 
       it "performPlayerContentEvent wormhole" $ \rt -> do
         (pos, tr, gs) <- runLabMethod (0, 2) testLabyrinth2 rt (\st -> do
-          scenario $ performPlayerContentEvent st
+            scenario $ performPlayerContentEvent st
 
-          pos <- readVarIO $ st ^. playerPos
-          tr  <- readVarIO $ st ^. playerInventory . treasureState
-          gs  <- readVarIO $ st ^. gameState
-          pure (pos, tr, gs))
+            pos <- readVarIO $ st ^. playerPos
+            tr  <- readVarIO $ st ^. playerInventory . treasureState
+            gs  <- readVarIO $ st ^. gameState
+            pure (pos, tr, gs))
 
         pos `shouldBe` (2, 0)
         tr `shouldBe` False
