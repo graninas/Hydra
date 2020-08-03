@@ -1,0 +1,311 @@
+cabal-version: 1.12
+
+-- This file has been generated from package.yaml by hpack version 0.33.0.
+--
+-- see: https://github.com/sol/hpack
+--
+-- hash: f607560888323859c75863174809c88d92f57b47dc5396714d520812e1c7817c
+
+name:           labyrinth
+version:        1.0.0.0
+description:    Labyrinth game (aka Terra Incognita)
+homepage:       https://github.com/graninas/Hydra#readme
+bug-reports:    https://github.com/graninas/Hydra/issues
+author:         Alexander Granin
+maintainer:     graninas@gmail.com
+copyright:      Granin A.S. 2020
+license:        BSD3
+build-type:     Simple
+
+source-repository head
+  type: git
+  location: https://github.com/graninas/Hydra
+
+library
+  exposed-modules:
+      Labyrinth
+      Labyrinth.Algorithms
+      Labyrinth.App
+      Labyrinth.Domain
+      Labyrinth.Gen
+      Labyrinth.KVDB.Model
+      Labyrinth.KVDB.Repository
+      Labyrinth.Labyrinths
+      Labyrinth.Lens
+      Labyrinth.Prelude
+      Labyrinth.Render
+      Labyrinth.Types
+      Main
+  other-modules:
+      Paths_labyrinth
+  hs-source-dirs:
+      src
+  default-extensions: NoImplicitPrelude GADTs RankNTypes DeriveFunctor DeriveGeneric OverloadedStrings LambdaCase MultiParamTypeClasses ExplicitNamespaces TypeApplications ScopedTypeVariables TypeOperators TypeFamilies DataKinds FlexibleContexts FlexibleInstances PatternSynonyms PolyKinds DefaultSignatures ConstraintKinds NamedFieldPuns TupleSections ViewPatterns MultiWayIf RecordWildCards
+  ghc-options: -Wall -Wcompat -Widentities -fhide-source-paths
+  build-depends:
+      MonadRandom
+    , aeson
+    , aeson-pretty
+    , arithmoi
+    , async
+    , base >=4.7 && <5
+    , base16-bytestring
+    , base58-bytestring
+    , base64-bytestring
+    , beam-core
+    , beam-migrate
+    , beam-postgres
+    , beam-sqlite
+    , bytestring
+    , bytestring-conversion
+    , cereal
+    , clock
+    , containers
+    , cryptohash-sha256
+    , cryptonite
+    , data-default
+    , directory
+    , entropy
+    , extra
+    , filepath
+    , fmt
+    , free
+    , generic-lens
+    , haskeline
+    , hedis
+    , hslogger
+    , http-client
+    , http-client-tls
+    , hydra-base
+    , hydra-free
+    , iproute
+    , lens
+    , lens-aeson
+    , memory
+    , mtl
+    , network
+    , newtype-generics
+    , process
+    , random
+    , regex-posix
+    , resource-pool
+    , resourcet
+    , rocksdb-haskell
+    , safe-exceptions
+    , scientific
+    , servant
+    , servant-client
+    , servant-docs
+    , servant-server
+    , servant-swagger
+    , silently
+    , sqlite-simple
+    , stm
+    , template-haskell
+    , text
+    , th-abstraction
+    , time
+    , time-units
+    , transformers
+    , triplesec
+    , universum
+    , unliftio
+    , unliftio-core
+    , uuid
+    , validation
+    , vector
+    , wai
+    , warp
+    , yaml
+  default-language: Haskell2010
+
+executable labyrinth
+  main-is: Main.hs
+  other-modules:
+      Labyrinth
+      Labyrinth.Algorithms
+      Labyrinth.App
+      Labyrinth.Domain
+      Labyrinth.Gen
+      Labyrinth.KVDB.Model
+      Labyrinth.KVDB.Repository
+      Labyrinth.Labyrinths
+      Labyrinth.Lens
+      Labyrinth.Prelude
+      Labyrinth.Render
+      Labyrinth.Types
+      Paths_labyrinth
+  hs-source-dirs:
+      src/
+  default-extensions: NoImplicitPrelude GADTs RankNTypes DeriveFunctor DeriveGeneric OverloadedStrings LambdaCase MultiParamTypeClasses ExplicitNamespaces TypeApplications ScopedTypeVariables TypeOperators TypeFamilies DataKinds FlexibleContexts FlexibleInstances PatternSynonyms PolyKinds DefaultSignatures ConstraintKinds NamedFieldPuns TupleSections ViewPatterns MultiWayIf RecordWildCards
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall
+  build-depends:
+      MonadRandom
+    , aeson
+    , aeson-pretty
+    , arithmoi
+    , async
+    , base >=4.7 && <5
+    , base16-bytestring
+    , base58-bytestring
+    , base64-bytestring
+    , beam-core
+    , beam-migrate
+    , beam-postgres
+    , beam-sqlite
+    , bytestring
+    , bytestring-conversion
+    , cereal
+    , clock
+    , containers
+    , cryptohash-sha256
+    , cryptonite
+    , data-default
+    , directory
+    , entropy
+    , extra
+    , filepath
+    , fmt
+    , free
+    , generic-lens
+    , haskeline
+    , hedis
+    , hslogger
+    , http-client
+    , http-client-tls
+    , hydra-base
+    , hydra-free
+    , iproute
+    , lens
+    , lens-aeson
+    , memory
+    , mtl
+    , network
+    , newtype-generics
+    , process
+    , random
+    , regex-posix
+    , resource-pool
+    , resourcet
+    , rocksdb-haskell
+    , safe-exceptions
+    , scientific
+    , servant
+    , servant-client
+    , servant-docs
+    , servant-server
+    , servant-swagger
+    , silently
+    , sqlite-simple
+    , stm
+    , template-haskell
+    , text
+    , th-abstraction
+    , time
+    , time-units
+    , transformers
+    , triplesec
+    , universum
+    , unliftio
+    , unliftio-core
+    , uuid
+    , validation
+    , vector
+    , wai
+    , warp
+    , yaml
+  default-language: Haskell2010
+
+test-suite functional-tests
+  type: exitcode-stdio-1.0
+  main-is: Spec.hs
+  other-modules:
+      Labyrinth.Tests.Common
+      Labyrinth.Tests.KVDBSpec
+      Labyrinth.Tests.LogicSpec
+      Paths_labyrinth
+  hs-source-dirs:
+      test/
+  default-extensions: NoImplicitPrelude GADTs RankNTypes DeriveFunctor DeriveGeneric OverloadedStrings LambdaCase MultiParamTypeClasses ExplicitNamespaces TypeApplications ScopedTypeVariables TypeOperators TypeFamilies DataKinds FlexibleContexts FlexibleInstances PatternSynonyms PolyKinds DefaultSignatures ConstraintKinds NamedFieldPuns TupleSections ViewPatterns MultiWayIf RecordWildCards
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      HUnit
+    , MonadRandom
+    , QuickCheck
+    , aeson
+    , aeson-pretty
+    , arithmoi
+    , async
+    , base >=4.7 && <5
+    , base16-bytestring
+    , base58-bytestring
+    , base64-bytestring
+    , beam-core
+    , beam-migrate
+    , beam-postgres
+    , beam-sqlite
+    , bytestring
+    , bytestring-conversion
+    , cereal
+    , clock
+    , containers
+    , cryptohash-sha256
+    , cryptonite
+    , data-default
+    , directory
+    , entropy
+    , extra
+    , filepath
+    , fmt
+    , free
+    , generic-lens
+    , haskeline
+    , hedis
+    , hslogger
+    , hspec
+    , hspec-contrib
+    , http-client
+    , http-client-tls
+    , hydra-base
+    , hydra-free
+    , iproute
+    , labyrinth
+    , lens
+    , lens-aeson
+    , memory
+    , mtl
+    , network
+    , newtype-generics
+    , process
+    , random
+    , regex-posix
+    , resource-pool
+    , resourcet
+    , rocksdb-haskell
+    , safe-exceptions
+    , scientific
+    , servant
+    , servant-client
+    , servant-docs
+    , servant-server
+    , servant-swagger
+    , silently
+    , sqlite-simple
+    , stm
+    , template-haskell
+    , text
+    , th-abstraction
+    , time
+    , time-units
+    , transformers
+    , triplesec
+    , universum
+    , unliftio
+    , unliftio-core
+    , uuid
+    , validation
+    , vector
+    , wai
+    , warp
+    , yaml
+  default-language: Haskell2010

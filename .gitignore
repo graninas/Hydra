@@ -6,7 +6,6 @@ cabal-helper*build/
 log.txt
 *.csv
 .hspec-failures
-*.cabal
 .vscode
 stack.yaml.lock
 
@@ -37,7 +36,6 @@ cabal.project.local~
 dist-newstyle
 .stack-work
 stack.yaml.lock
-*.cabal
 
 .ghci
 .ghcid

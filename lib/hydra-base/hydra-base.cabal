@@ -1,0 +1,135 @@
+cabal-version: 1.12
+
+-- This file has been generated from package.yaml by hpack version 0.33.0.
+--
+-- see: https://github.com/sol/hpack
+--
+-- hash: 9329fa0d97a5093eed7a97bf52a51f12aeefb147a42e0bcd1191685d0856d061
+
+name:           hydra-base
+version:        1.1.0.0
+description:    Base package for Hydra framework.
+homepage:       https://github.com/graninas/Hydra#readme
+bug-reports:    https://github.com/graninas/Hydra/issues
+author:         Alexander Granin
+maintainer:     graninas@gmail.com
+copyright:      Granin A.S. 2020
+license:        BSD3
+build-type:     Simple
+
+source-repository head
+  type: git
+  location: https://github.com/graninas/Hydra
+
+library
+  exposed-modules:
+      Hydra.Class
+      Hydra.Core.Class
+      Hydra.Core.ControlFlow.Class
+      Hydra.Core.Domain
+      Hydra.Core.Domain.Cli
+      Hydra.Core.Domain.DB
+      Hydra.Core.Domain.KVDB
+      Hydra.Core.Domain.Logger
+      Hydra.Core.Domain.Process
+      Hydra.Core.Domain.SQLDB
+      Hydra.Core.Domain.State
+      Hydra.Core.KVDB.Impl.Redis
+      Hydra.Core.KVDB.Impl.RocksDB
+      Hydra.Core.KVDBRuntime
+      Hydra.Core.Lang.Class
+      Hydra.Core.Logger.Class
+      Hydra.Core.Logger.Impl.HsLogger
+      Hydra.Core.Process.Class
+      Hydra.Core.Process.Impl
+      Hydra.Core.Random.Class
+      Hydra.Core.RLens
+      Hydra.Core.Runtime
+      Hydra.Core.SqlDBRuntime
+      Hydra.Core.State.Class
+      Hydra.Core.State.STM
+      Hydra.Domain
+      Hydra.Framework.RLens
+      Hydra.Framework.Runtime
+      Hydra.Prelude
+      Hydra.Runtime
+  other-modules:
+      Paths_hydra_base
+  hs-source-dirs:
+      src
+  default-extensions: NoImplicitPrelude GADTs RankNTypes DeriveFunctor DeriveGeneric OverloadedStrings LambdaCase MultiParamTypeClasses ExplicitNamespaces TypeApplications ScopedTypeVariables TypeOperators TypeFamilies DataKinds FlexibleContexts FlexibleInstances PatternSynonyms PolyKinds DefaultSignatures ConstraintKinds NamedFieldPuns TupleSections ViewPatterns MultiWayIf RecordWildCards
+  ghc-options: -Wall
+  build-depends:
+      MonadRandom
+    , aeson
+    , aeson-pretty
+    , arithmoi
+    , async
+    , base >=4.7 && <5
+    , base16-bytestring
+    , base58-bytestring
+    , base64-bytestring
+    , beam-core
+    , beam-migrate
+    , beam-postgres
+    , beam-sqlite
+    , bytestring
+    , bytestring-conversion
+    , cereal
+    , clock
+    , containers
+    , cryptohash-sha256
+    , cryptonite
+    , data-default
+    , directory
+    , entropy
+    , extra
+    , filepath
+    , fmt
+    , free
+    , generic-lens
+    , haskeline
+    , hedis
+    , hslogger
+    , http-client
+    , http-client-tls
+    , iproute
+    , lens
+    , lens-aeson
+    , memory
+    , mtl
+    , network
+    , newtype-generics
+    , process
+    , random
+    , regex-posix
+    , resource-pool
+    , resourcet
+    , rocksdb-haskell
+    , safe-exceptions
+    , scientific
+    , servant
+    , servant-client
+    , servant-docs
+    , servant-server
+    , servant-swagger
+    , silently
+    , sqlite-simple
+    , stm
+    , template-haskell
+    , text
+    , th-abstraction
+    , time
+    , time-units
+    , transformers
+    , triplesec
+    , universum
+    , unliftio
+    , unliftio-core
+    , uuid
+    , validation
+    , vector
+    , wai
+    , warp
+    , yaml
+  default-language: Haskell2010

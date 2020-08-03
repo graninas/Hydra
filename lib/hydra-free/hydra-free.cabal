@@ -1,0 +1,262 @@
+cabal-version: 1.12
+
+-- This file has been generated from package.yaml by hpack version 0.33.0.
+--
+-- see: https://github.com/sol/hpack
+--
+-- hash: df52f80088680a5faf7a59abef2318df8a2c4a1a1dc8f86b5dc029bb50e3af26
+
+name:           hydra-free
+version:        1.1.0.0
+description:    All-in-one framework for writing web backends and cli applications. Free monad engine.
+homepage:       https://github.com/graninas/Hydra#readme
+bug-reports:    https://github.com/graninas/Hydra/issues
+author:         Alexander Granin
+maintainer:     graninas@gmail.com
+copyright:      Granin A.S. 2020
+license:        BSD3
+build-type:     Simple
+
+source-repository head
+  type: git
+  location: https://github.com/graninas/Hydra
+
+library
+  exposed-modules:
+      Hydra.Core.CliHandlers.Interpreter
+      Hydra.Core.CliHandlers.Language
+      Hydra.Core.ControlFlow.FTL
+      Hydra.Core.ControlFlow.Interpreter
+      Hydra.Core.ControlFlow.Language
+      Hydra.Core.FTL
+      Hydra.Core.FTLI
+      Hydra.Core.Interpreters
+      Hydra.Core.KVDB.Interpreter
+      Hydra.Core.KVDB.Language
+      Hydra.Core.Lang.FTL
+      Hydra.Core.Lang.FTLI
+      Hydra.Core.Lang.Interpreter
+      Hydra.Core.Lang.Language
+      Hydra.Core.Language
+      Hydra.Core.Logger.FTL
+      Hydra.Core.Logger.FTLI
+      Hydra.Core.Logger.Impl.HsLoggerInterpreter
+      Hydra.Core.Logger.Impl.StmLogger
+      Hydra.Core.Logger.Language
+      Hydra.Core.Process.FTL
+      Hydra.Core.Process.FTLI
+      Hydra.Core.Process.Interpreter
+      Hydra.Core.Process.Language
+      Hydra.Core.Random.FTL
+      Hydra.Core.Random.FTLI
+      Hydra.Core.Random.Interpreter
+      Hydra.Core.Random.Language
+      Hydra.Core.SqlDB.Interpreter
+      Hydra.Core.SqlDB.Language
+      Hydra.Core.State.FTL
+      Hydra.Core.State.Interpreter
+      Hydra.Core.State.Language
+      Hydra.Framework.App.FTL
+      Hydra.Framework.App.FTLI
+      Hydra.Framework.App.Interpreter
+      Hydra.Framework.App.Language
+      Hydra.Framework.FTL
+      Hydra.Framework.FTLI
+      Hydra.Framework.Interpreters
+      Hydra.Framework.Language
+      Hydra.FTL
+      Hydra.FTLI
+      Hydra.Interpreters
+      Hydra.Language
+      Hydra.Language.Extra
+      Hydra.Runtime
+      Hydra.Testing.Functional
+      Hydra.Testing.Functional.AppInterpreter
+      Hydra.Testing.Functional.Common
+      Hydra.Testing.Functional.LangInterpreter
+      Hydra.Testing.Functional.RLens
+      Hydra.Testing.Functional.TestRuntime
+      Hydra.Testing.Integrational
+      Hydra.Testing.Wrappers
+  other-modules:
+      Paths_hydra_free
+  hs-source-dirs:
+      src
+      test-framework
+  default-extensions: NoImplicitPrelude GADTs RankNTypes DeriveFunctor DeriveGeneric OverloadedStrings LambdaCase MultiParamTypeClasses ExplicitNamespaces TypeApplications ScopedTypeVariables TypeOperators TypeFamilies DataKinds FlexibleContexts FlexibleInstances PatternSynonyms PolyKinds DefaultSignatures ConstraintKinds NamedFieldPuns TupleSections ViewPatterns MultiWayIf RecordWildCards
+  ghc-options: -Wall
+  build-depends:
+      MonadRandom
+    , QuickCheck
+    , aeson
+    , aeson-pretty
+    , arithmoi
+    , async
+    , base >=4.7 && <5
+    , base16-bytestring
+    , base58-bytestring
+    , base64-bytestring
+    , beam-core
+    , beam-migrate
+    , beam-postgres
+    , beam-sqlite
+    , bytestring
+    , bytestring-conversion
+    , cereal
+    , clock
+    , containers
+    , cryptohash-sha256
+    , cryptonite
+    , data-default
+    , directory
+    , entropy
+    , extra
+    , filepath
+    , fmt
+    , free
+    , generic-lens
+    , haskeline
+    , hedis
+    , hslogger
+    , hspec
+    , hspec-contrib
+    , http-client
+    , http-client-tls
+    , hydra-base
+    , iproute
+    , lens
+    , lens-aeson
+    , memory
+    , mtl
+    , network
+    , newtype-generics
+    , process
+    , random
+    , regex-posix
+    , resource-pool
+    , resourcet
+    , rocksdb-haskell
+    , safe-exceptions
+    , scientific
+    , servant
+    , servant-client
+    , servant-docs
+    , servant-server
+    , servant-swagger
+    , silently
+    , sqlite-simple
+    , stm
+    , template-haskell
+    , text
+    , th-abstraction
+    , time
+    , time-units
+    , transformers
+    , triplesec
+    , universum
+    , unliftio
+    , unliftio-core
+    , uuid
+    , validation
+    , vector
+    , wai
+    , warp
+    , yaml
+  default-language: Haskell2010
+
+test-suite functional-tests
+  type: exitcode-stdio-1.0
+  main-is: Spec.hs
+  other-modules:
+      Hydra.TestData
+      Hydra.TestData.Types.KVDB.CatalogueDB
+      Hydra.TestData.Types.Meteor
+      Hydra.TestData.Types.SqlDB.CatalogueDB
+      Hydra.Tests.Integration.Common
+      Hydra.Tests.Integration.FrameworkSpec
+      Hydra.Tests.Integration.KVDBSpec
+      Hydra.Tests.Integration.SqlDBSpec
+      Paths_hydra_free
+  hs-source-dirs:
+      test
+  default-extensions: NoImplicitPrelude GADTs RankNTypes DeriveFunctor DeriveGeneric OverloadedStrings LambdaCase MultiParamTypeClasses ExplicitNamespaces TypeApplications ScopedTypeVariables TypeOperators TypeFamilies DataKinds FlexibleContexts FlexibleInstances PatternSynonyms PolyKinds DefaultSignatures ConstraintKinds NamedFieldPuns TupleSections ViewPatterns MultiWayIf RecordWildCards
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      MonadRandom
+    , QuickCheck
+    , aeson
+    , aeson-pretty
+    , arithmoi
+    , async
+    , base >=4.7 && <5
+    , base16-bytestring
+    , base58-bytestring
+    , base64-bytestring
+    , beam-core
+    , beam-migrate
+    , beam-postgres
+    , beam-sqlite
+    , bytestring
+    , bytestring-conversion
+    , cereal
+    , clock
+    , containers
+    , cryptohash-sha256
+    , cryptonite
+    , data-default
+    , directory
+    , entropy
+    , extra
+    , filepath
+    , fmt
+    , free
+    , generic-lens
+    , haskeline
+    , hedis
+    , hslogger
+    , hspec
+    , hspec-contrib
+    , http-client
+    , http-client-tls
+    , hydra-base
+    , hydra-free
+    , iproute
+    , lens
+    , lens-aeson
+    , memory
+    , mtl
+    , network
+    , newtype-generics
+    , process
+    , random
+    , regex-posix
+    , resource-pool
+    , resourcet
+    , rocksdb-haskell
+    , safe-exceptions
+    , scientific
+    , servant
+    , servant-client
+    , servant-docs
+    , servant-server
+    , servant-swagger
+    , silently
+    , sqlite-simple
+    , stm
+    , template-haskell
+    , text
+    , th-abstraction
+    , time
+    , time-units
+    , transformers
+    , triplesec
+    , universum
+    , unliftio
+    , unliftio-core
+    , uuid
+    , validation
+    , vector
+    , wai
+    , warp
+    , yaml
+  default-language: Haskell2010
