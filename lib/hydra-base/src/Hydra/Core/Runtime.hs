@@ -52,7 +52,7 @@ newtype VarHandle = VarHandle (TVar Any)
 -- | State runtime.
 data StateRuntime = StateRuntime
     { _varId  :: TVar D.VarId                       -- ^ Var id counter
-    , _state  :: TMVar (Map.Map D.VarId VarHandle)  -- ^ Node state.
+    , _state  :: TMVar (Map.Map D.VarId VarHandle)  -- ^ Tracked variables
     , _stmLog :: TVar D.Log                         -- ^ Stm log entries
     }
 
