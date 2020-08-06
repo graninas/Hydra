@@ -31,15 +31,53 @@ spec =
         result <- E.catch (R.runAppL rt app) (\e -> pure $ show (e :: E.AssertionFailed))
         result `shouldBe` "Error"
 
-      it "ThrowException catched" $ \rt -> do
+      it "ThrowException & runSafely, catched exactly" $ \rt -> do
         let app = do
               void $ L.scenario $ L.runSafely @(E.AssertionFailed) $ L.throwException (E.AssertionFailed "Error")
               pure "Some"
-
         result <- R.runAppL rt app
         result `shouldBe` "Some"
 
-      it "ThrowException & runSafely" $ \rt -> do
+      it "ThrowException & runSafely, not catched different" $ \rt -> do
+        let app = do
+              void $ L.scenario $ L.runSafely @(E.AssertionFailed) $ L.throwException E.DivideByZero
+              pure "Some"
+
+        eRes :: Either SomeException String <- try $ R.runAppL rt app
+        case eRes of
+          Left err -> show err `shouldBe` "divide by zero"
+          Right res -> fail $ "Unexpected success: " <> res
+
+      it "ThrowException & runSafely, catched wider" $ \rt -> do
+        let app = do
+              void $ L.scenario $ L.runSafely @SomeException $ L.throwException (E.AssertionFailed "Error")
+              pure "Some"
+        result <- R.runAppL rt app
+        result `shouldBe` "Some"
+
+      it "ThrowException & runSafely, catched second, wider" $ \rt -> do
+        let app = do
+              void $ L.scenario
+                $ L.runSafely @SomeException
+                $ L.runSafely @(E.AssertionFailed)
+                $ L.throwException E.DivideByZero
+              pure "Some"
+        result <- R.runAppL rt app
+        result `shouldBe` "Some"
+
+      it "ThrowException & runSafely, not catched any" $ \rt -> do
+        let app = do
+              void $ L.scenario
+                $ L.runSafely @(E.AssertionFailed)
+                $ L.runSafely @(E.ArrayException)
+                $ L.throwException E.DivideByZero
+              pure "Some"
+        eRes :: Either SomeException String <- try $ R.runAppL rt app
+        case eRes of
+          Left err -> show err `shouldBe` "divide by zero"
+          Right res -> fail $ "Unexpected success: " <> res 
+
+      it "ThrowException & runSafely, catched after run" $ \rt -> do
         let (app :: L.AppL (Either E.AssertionFailed Int)) =
               L.scenario $ L.runSafely $ L.throwException (E.AssertionFailed "Error")
 
@@ -48,7 +86,7 @@ spec =
           Left (E.AssertionFailed errStr) -> errStr `shouldBe` "Error"
           Right r -> fail $ "Unexpected success: " <> show r
 
-      it "RunSafely" $ \rt -> do
+      it "RunSafely, no exceptions" $ \rt -> do
         let (app :: L.AppL (Either SomeException Int)) =
               L.scenario $ L.runSafely $ pure 10
 
