@@ -90,7 +90,7 @@ interpretLangF _      (L.ThrowException exc _) = throwIO exc
 interpretLangF coreRt (L.RunSafely act next) = do
   eResult <- try $ runLangL coreRt act
   pure $ next $ case eResult of
-    Left (err :: SomeException) -> Left $ show err
+    Left err -> Left err
     Right r  -> Right r
 
 interpretLangF coreRt (L.CallServantAPI bUrl clientAct next)

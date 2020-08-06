@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: df52f80088680a5faf7a59abef2318df8a2c4a1a1dc8f86b5dc029bb50e3af26
+-- hash: 2ea681f61abccbf8a1e3fa8befdca99f67295f77ea5690a884cd04c6aabb6a69
 
 name:           hydra-free
 version:        1.1.0.0
@@ -174,6 +174,8 @@ test-suite functional-tests
       Hydra.TestData.Types.SqlDB.CatalogueDB
       Hydra.Tests.Integration.Common
       Hydra.Tests.Integration.FrameworkSpec
+      Hydra.Tests.Integration.IOException1Spec
+      Hydra.Tests.Integration.IOException2Spec
       Hydra.Tests.Integration.KVDBSpec
       Hydra.Tests.Integration.SqlDBSpec
       Paths_hydra_free

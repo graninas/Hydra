@@ -33,22 +33,26 @@ spec =
 
       it "ThrowException catched" $ \rt -> do
         let app = do
-              void $ L.scenario $ L.runSafely $ L.throwException (E.AssertionFailed "Error")
+              void $ L.scenario $ L.runSafely @(E.AssertionFailed) $ L.throwException (E.AssertionFailed "Error")
               pure "Some"
 
         result <- R.runAppL rt app
         result `shouldBe` "Some"
 
       it "ThrowException & runSafely" $ \rt -> do
-        let (app :: L.AppL (Either Text Int)) =
+        let (app :: L.AppL (Either E.AssertionFailed Int)) =
               L.scenario $ L.runSafely $ L.throwException (E.AssertionFailed "Error")
 
-        result <- R.runAppL rt app
-        result `shouldBe` (Left "Error")
+        eRes <- R.runAppL rt app
+        case eRes of
+          Left (E.AssertionFailed errStr) -> errStr `shouldBe` "Error"
+          Right r -> fail $ "Unexpected success: " <> show r
 
       it "RunSafely" $ \rt -> do
-        let (app :: L.AppL (Either Text Int)) =
+        let (app :: L.AppL (Either SomeException Int)) =
               L.scenario $ L.runSafely $ pure 10
 
-        result <- R.runAppL rt app
-        result `shouldBe` (Right 10)
+        eRes <- R.runAppL rt app
+        case eRes of
+          Left e -> fail $ "Unexpected failure: " <> show e
+          Right n -> n `shouldBe` 10

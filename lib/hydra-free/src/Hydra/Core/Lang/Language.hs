@@ -43,7 +43,7 @@ data LangF next where
   -- | Throwing uncatchable exception
   ThrowException :: forall a e next. Exception e => e -> (a -> next) -> LangF next
   -- | Running a scenario safely catching its exceptions
-  RunSafely :: LangL a -> (Either Text a -> next) -> LangF next
+  RunSafely :: Exception e => LangL a -> (Either e a -> next) -> LangF next
   -- | Making an HTTP request using Servant Client
   CallServantAPI :: BaseUrl -> ClientM a -> (Either ClientError a -> next) -> LangF next
 
@@ -57,7 +57,7 @@ instance Functor LangF where
   fmap f (EvalSqlDB conn sqlAct next)     = EvalSqlDB conn sqlAct (f . next)
   fmap f (GetSqlDBConnection sqlCfg next) = GetSqlDBConnection sqlCfg  (f . next)
   fmap f (ThrowException exc next)        = ThrowException exc (f . next)
-  fmap f (RunSafely act next)             = RunSafely act (f . next)
+  fmap f (RunSafely act next)       = RunSafely act (f . next)
   fmap f (CallServantAPI url clM next)    = CallServantAPI url clM (f . next)
 
 type LangL = Free LangF
@@ -139,7 +139,7 @@ runDB = evalSqlDB
 throwException :: forall a e. Exception e => e -> LangL a
 throwException ex = liftF $ ThrowException ex id
 
-runSafely :: LangL a -> LangL (Either Text a)
+runSafely :: Exception e => LangL a -> LangL (Either e a)
 runSafely act = liftF $ RunSafely act id
 
 callServantAPI

@@ -53,7 +53,6 @@ fromNativeResult (Left ioException) = let
        IOE.NoSuchThing -> Left $ FileNotFound fileName
        _               -> Left $ OtherError $ show errType
 
-
 interpretFileSystemF :: FileSystemF a -> IO a
 interpretFileSystemF (WriteFile p c next) = do
   eRes <- try $ P.writeFile p c
