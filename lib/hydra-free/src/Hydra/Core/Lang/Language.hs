@@ -43,7 +43,7 @@ data LangF next where
   -- | Throwing uncatchable exception
   ThrowException :: forall a e next. Exception e => e -> (a -> next) -> LangF next
   -- | Running a scenario safely catching its exceptions
-  RunSafely :: Exception e => LangL a -> (Either e a -> next) -> LangF next
+  RunSafely :: forall a e next. Exception e => LangL a -> (Either e a -> next) -> LangF next
   -- | Making an HTTP request using Servant Client
   CallServantAPI :: BaseUrl -> ClientM a -> (Either ClientError a -> next) -> LangF next
 
