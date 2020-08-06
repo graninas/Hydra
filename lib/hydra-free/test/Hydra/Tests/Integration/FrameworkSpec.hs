@@ -55,11 +55,11 @@ spec =
         result <- R.runAppL rt app
         result `shouldBe` "Some"
 
-      it "ThrowException & runSafely, catched second, wider" $ \rt -> do
+      it "ThrowException & runSafely, catched by second, wider" $ \rt -> do
         let app = do
               void $ L.scenario
-                $ L.runSafely @SomeException
-                $ L.runSafely @(E.AssertionFailed)
+                $ L.runSafely @SomeException        -- by second
+                $ L.runSafely @(E.AssertionFailed)  -- by first
                 $ L.throwException E.DivideByZero
               pure "Some"
         result <- R.runAppL rt app
@@ -68,14 +68,24 @@ spec =
       it "ThrowException & runSafely, not catched any" $ \rt -> do
         let app = do
               void $ L.scenario
-                $ L.runSafely @(E.AssertionFailed)
-                $ L.runSafely @(E.ArrayException)
+                $ L.runSafely @(E.AssertionFailed)    -- second
+                $ L.runSafely @(E.ArrayException)     -- first
                 $ L.throwException E.DivideByZero
               pure "Some"
         eRes :: Either SomeException String <- try $ R.runAppL rt app
         case eRes of
           Left err -> show err `shouldBe` "divide by zero"
-          Right res -> fail $ "Unexpected success: " <> res 
+          Right res -> fail $ "Unexpected success: " <> res
+
+      it "ThrowException & runSafely', catched by second, wider" $ \rt -> do
+        let app = do
+              void $ L.scenario
+                $ L.runSafely'                        -- second (SomeException)
+                $ L.runSafely @(E.AssertionFailed)    -- first
+                $ L.throwException E.DivideByZero
+              pure "Some"
+        result <- R.runAppL rt app
+        result `shouldBe` "Some"
 
       it "ThrowException & runSafely, catched after run" $ \rt -> do
         let (app :: L.AppL (Either E.AssertionFailed Int)) =
