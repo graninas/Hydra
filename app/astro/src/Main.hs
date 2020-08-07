@@ -21,25 +21,55 @@ import qualified Astro.Client.FinalTagless  as FT
 import qualified Astro.Client.FinalTagless2 as FT2
 import qualified Astro.Client.GADT          as GADT
 
-runAstroClient :: ClientOptions -> IO ()
-runAstroClient (ClientOptions appr ch)
-    = R.withAppRuntime (Just loggerCfg) (\rt -> R.runAppL rt app')
-  where
-    app' = app'' appr ch
+-- how many beats per minute
 
-    app'' SH   _ = SH.consoleApp $ SH.makeServiceHandle ch
-    app'' RT   _ = runReaderT RT.consoleApp $ RT.makeAppEnv ch
-    app'' FM   _ = FM.consoleApp $ FM.getAstroServiceRunner ch
-    app'' GADT _ = GADT.consoleApp $ GADT.getAstroServiceRunner ch
-    app'' FT   HttpChannel = FT.consoleApp @(FT.HttpAstroService)
-    app'' FT   TcpChannel  = FT.consoleApp @(FT.TcpAstroService)
-    app'' FT2  HttpChannel = FT2.consoleApp @(FT2.HttpAstroService)
-    app'' FT2  TcpChannel  = FT2.consoleApp @(FT2.TcpAstroService)
-    app'' _ _    = error $ "Approach not yet implemented: " <> show appr
+-- b / m
+--
+-- b ~ n seconds
+--
+-- 60 sec / bpm
+--
+-- bpm = 120
+
+-- frequency = bps = 120 / 1 min (60 sec) = 2 beats per second
+-- duration = 1 second / (2 bps) = 0.5
+
+
+frequency :: Int -> Float
+frequency bpm = (fromIntegral bpm) / 60.0
+
+bps :: Int -> Float
+bps = frequency
+
+duration :: Int -> Float
+duration bpm = 1.0 / (frequency bpm)
+
+
+
+printingWorker :: Int -> IO ()
+printingWorker ms = do
+  putStrLn @Text "Hello, world!"
+  threadDelay ms
+  printingWorker ms
+
+
+-- size: 4 / 4
+--
+-- 4 beats of a quarter size
+-- if the duration is 0.5 then a beat should appear after 0.5 sec
+--
+-- 1 / 8 note
+--
+-- 1 / 8 + 1 / 4
+
 
 main :: IO ()
 main = do
-  (ConsoleOptions cmd) <- parseConsoleOptions
-  case cmd of
-    Client cliOpts -> runAstroClient cliOpts
-    Server serOpts  -> runAstroServer serOpts
+
+  putStrLn @Text $ show $ duration 120
+
+  -- forkIO $ printingWorker $ 1000 * 1000
+
+  input <- getLine
+
+  putStrLn input
