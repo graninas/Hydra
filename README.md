@@ -12,7 +12,7 @@ All-in-one framework for writing Haskell apps which use the following features o
 - Random data generation
 - Many others
 
-With the framework, you can create complex applications that have a good maintainability, testability, simplicity, that have a good structure and are easy to read and change. The key principles in the framework:
+With the framework, you can create complex applications which have a good maintainability, testability, simplicity, have a good structure and are easy to read and change. The key principles of the framework:
 
 - Layered architecture
 - Separation of Subsystem Interfaces, Business Logic, Runtime and Implementation
