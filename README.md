@@ -70,7 +70,7 @@ $ stack ghci labyrinth:exe:labyrinth
 Sample applications
 ===================
 
-There are 3 sample applications:
+There are several sample applications:
 * [Astro app](app/astro): web server (with servant) and CLI client tool which allows to track meteors (tool for astronomers).
 * [PerfTestApp](app/PerfTestApp): an application you can run to measure the performance of the three engines.
 * [PerfTestApp2](app/PerfTestApp2): another application you can run to measure the performance of the three engines.
