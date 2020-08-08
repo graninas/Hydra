@@ -80,8 +80,6 @@ There are several sample applications:
 Code samples
 ============
 
-###
-
 ### Sample SQL-related code
 
 ```haskell
@@ -131,5 +129,3 @@ Checkout the following materials to learn more about he Hierarchical Free Monads
 - [Final Tagless vs Free Monad (Talk, Rus)](https://www.youtube.com/watch?v=u1GGqDQyGfc) | [Slides (Eng)](https://docs.google.com/presentation/d/1VhS8ySgk2w5RoN_l_Ar_axcE4Dzf97zLw1uuzUJQbCo/edit?usp=sharing)
 - [Automatic Whitebox Testing with Free Monads (Talk, Eng)](https://www.youtube.com/watch?v=-cp2BDlwi-M) | [Slides (Eng)](https://docs.google.com/presentation/d/1KJj0OIUdSmkEmWo_u0P1ZyCw28wqpNx8VXClKjpIzEo/edit?usp=sharing)
 - [Automatic whitebox testing with Free Moands (Showcase, Article)](https://github.com/graninas/automatic-whitebox-testing-showcase)
-
-Hello!  
