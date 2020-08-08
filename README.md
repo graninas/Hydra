@@ -15,22 +15,24 @@ All-in-one framework for writing Haskell apps which use the following features o
 With the framework, you can create complex applications which have a good maintainability, testability, simplicity, have a good structure and are easy to read and change. The key principles of the framework:
 
 - Layered architecture
-- Separation of Subsystem Interfaces, Business Logic, Runtime and Implementation
-- Convenient and simple to use eDSLs for Business Logic
-- Layered structure of business application: State, Domain, Business Logic
+- Separation of concerns (interfaces, business logic, runtime and implementation)
+- Simple and convenient eDSLs
+- Testable and maintainable code
 
 The Hydra Project
 =================
 
-This project demonstrates the principles of Software Design and Architecture in pure Functional Programming. It provides a framework implemented with several different approaches for easy comparison:
+This project demonstrates the principles of Software Design and Architecture in pure Functional Programming. Hydra has several separate frameworks based on different engines for easy comparison:
 
-- Final Tagless
-- Free Monad
-- Church Encoded Free Monad
+- Final Tagless engine
+- Free monad based engine
+- Church-encoded Free monad based engine
 
-The core idea of the Free monadic frameworks is known as Hierarchical Free Monads.
+The core idea of the two Free monadic frameworks is known as Hierarchical Free Monads.
 
 The project is a showcase for my book [Functional Design and Architecture](https://graninas.com/functional-design-and-architecture-book/). The approaches presented in Hydra are well-described and rationalized in the book, so you may obtain even more info about best practices and ideas of how to write a good Haskell code.
+
+**Note** The Free monad based framework is the most developed by functionality. I'm working on synchronizing the functionality between all the engines.
 
 Building dependencies
 =====================
