@@ -24,9 +24,12 @@ import           Astro.Domain.Types
 
 data TcpConn = DummyTcpConn
 
-data ReportChannel = TcpChannel | HttpChannel deriving Show
+data ReportChannel
+  = TcpChannel
+  | HttpChannel
+  deriving (Show, Read, Eq, Ord, Enum, Bounded)
 
-data Approach
+data DIApproach
   = SH    -- ^ ServiceHandle
   | RT    -- ^ ReaderT
   | FM    -- ^ Free Monad
@@ -34,7 +37,7 @@ data Approach
   | FT2   -- ^ Final Tagless 2 (mtl-style)
   | CEFM  -- ^ Church Encoded Free Monad
   | GADT  -- ^ GADT
-  deriving (Show, Read, Bounded, Enum)
+  deriving (Show, Read, Bounded, Eq, Ord, Enum)
 
 setPhysical :: Int -> Physical -> ClientM Int
 setOrbital :: Int -> Orbital -> ClientM Int

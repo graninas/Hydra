@@ -13,7 +13,7 @@ import qualified "hydra-free" Hydra.Interpreters         as R
 import           Astro.Config               (loggerCfg)
 import           Astro.ConsoleOptions
 import           Astro.Server               (runAstroServer)
-import           Astro.Client.Common        (ReportChannel(..), Approach(..))
+import           Astro.Client.Common        (ReportChannel(..), DIApproach(..))
 import qualified Astro.Client.ServiceHandle as SH
 import qualified Astro.Client.ReaderT       as RT
 import qualified Astro.Client.FreeMonad     as FM
@@ -27,6 +27,7 @@ runAstroClient (ClientOptions appr ch)
   where
     app' = app'' appr ch
 
+    -- Selector of a DI approach.
     app'' SH   _ = SH.consoleApp $ SH.makeServiceHandle ch
     app'' RT   _ = runReaderT RT.consoleApp $ RT.makeAppEnv ch
     app'' FM   _ = FM.consoleApp $ FM.getAstroServiceRunner ch
@@ -42,4 +43,4 @@ main = do
   (ConsoleOptions cmd) <- parseConsoleOptions
   case cmd of
     Client cliOpts -> runAstroClient cliOpts
-    Server serOpts  -> runAstroServer serOpts
+    Server serOpts -> runAstroServer serOpts

@@ -4,7 +4,10 @@ module Astro.ConsoleOptions
     , ServerOptions (..)
     , ClientOptions (..)
     , RelDbOptions
+    , DIApproach (..)
+    , ReportChannel (..)
     , parseConsoleOptions
+    , clientOptionParser
     ) where
 
 import           Hydra.Prelude
@@ -15,30 +18,36 @@ import           Network.URI
 import           Network.Wai.Handler.Warp (Port)
 import           Options.Applicative
 
-import           Astro.Client.Common        (ReportChannel(..), Approach(..))
+import           Astro.Client.Common (ReportChannel(..), DIApproach(..))
 
-data ConsoleOptions = ConsoleOptions Command deriving (Show)
+data ConsoleOptions = ConsoleOptions Command
+  deriving (Show, Eq, Ord)
 
 data Command
     = Server ServerOptions
     | Client ClientOptions
-      deriving (Show)
+  deriving (Show, Eq, Ord)
 
 data ServerOptions = ServerOptions
     { soRelDbOptions :: RelDbOptions
     , soListenPort   :: Port
-    } deriving (Show)
+    }
+  deriving (Show, Eq, Ord)
 
-data RelDbOptions = UseSqliteDb String | UseMySqlDb URI
+data RelDbOptions
+  = UseSqliteDb String
+  | UseMySqlDb URI
+  deriving (Eq, Ord)
 
 instance Show RelDbOptions where
     show (UseSqliteDb dbFilePath) = dbFilePath
     show (UseMySqlDb uri) = show uri
 
 data ClientOptions = ClientOptions
-    { coApproach :: Approach,
+    { coApproach :: DIApproach,
       coReportChannel :: ReportChannel
-    } deriving (Show)
+    }
+    deriving (Show, Eq, Ord)
 
 parseConsoleOptions :: IO ConsoleOptions
 parseConsoleOptions
@@ -46,59 +55,57 @@ parseConsoleOptions
 
 consoleOptionParser :: Parser ConsoleOptions
 consoleOptionParser =
-    ConsoleOptions
-    <$> hsubparser
-            (  command "server"
-                 (info serverOptionParser (progDesc "runs as server"))
-            <> command "client"
-                 (info clientOptionParser (progDesc "runs as client"))
-            )
+  ConsoleOptions
+  <$> hsubparser
+          (  command "server"
+               (info serverOptionParser (progDesc "runs as server"))
+          <> command "client"
+               (info clientOptionParser (progDesc "runs as client"))
+          )
 
 serverOptionParser :: Parser Command
 serverOptionParser
-    = Server <$> (ServerOptions
-                  <$> relDbParser
-                          <*> listenPortParser)
-    where
-      relDbParser = sqliteParser <|> mysqlParser
-      sqliteParser = option filePathParser
-                     (  long "sqlite"
-                     <> metavar "DB"
-                     <> help "path to sqlite file"
-                     <> showDefault
-                     <> value (UseSqliteDb "/tmp/astro.db")
-                     )
+  = Server <$> (ServerOptions <$> relDbParser <*> listenPortParser)
+  where
+    relDbParser = sqliteParser <|> mysqlParser
+    sqliteParser = option filePathParser
+                   (  long "sqlite"
+                   <> metavar "DB"
+                   <> help "path to sqlite file"
+                   <> showDefault
+                   <> value (UseSqliteDb "/tmp/astro.db")
+                   )
 
-      mysqlParser = option uriParser (  long "mysql"
-                                     <> short 'u'
-                                     <> metavar "URI"
-                                     <> help "uri to database"
-                                     <> showDefault
-                                     <> value defaultUri
-                                     )
-      defaultUri = UseMySqlDb
-                   $ fromJust (parseURI "mysql://root@localhost:3600/astro")
+    mysqlParser = option uriParser (  long "mysql"
+                                   <> short 'u'
+                                   <> metavar "URI"
+                                   <> help "uri to database"
+                                   <> showDefault
+                                   <> value defaultUri
+                                   )
+    defaultUri = UseMySqlDb
+                 $ fromJust (parseURI "mysql://root@localhost:3600/astro")
 
-      listenPortParser = option auto (  long "listen-port"
-                                     <> short 'l'
-                                     <> metavar "PORT"
-                                     <> help "port for serving HTTP requests"
-                                     <> showDefault
-                                     <> value 8080
-                                     )
+    listenPortParser = option auto (  long "listen-port"
+                                   <> short 'l'
+                                   <> metavar "PORT"
+                                   <> help "port for serving HTTP requests"
+                                   <> showDefault
+                                   <> value 8080
+                                   )
 
 filePathParser :: ReadM RelDbOptions
 filePathParser = eitherReader parse
-    where
-      parse = Right . UseSqliteDb
+  where
+    parse = Right . UseSqliteDb
 
 uriParser :: ReadM RelDbOptions
 uriParser = eitherReader parse
-    where
-      parse uri = maybe err (Right . UseMySqlDb) parsed
-          where
-            err = Left $ "Bad URI " ++ uri
-            parsed = parseURI uri
+  where
+    parse uri = maybe err (Right . UseMySqlDb) parsed
+      where
+        err = Left $ "Bad URI " ++ uri
+        parsed = parseURI uri
 
 
 
@@ -108,7 +115,7 @@ clientOptionParser
       <$> (ClientOptions
               <$> option auto (  long "approach"
                       <> help ("approach one of: "
-                               ++ show ([minBound .. maxBound] :: [Approach]))
+                               ++ show ([minBound .. maxBound] :: [DIApproach]))
                       <> showDefault
                       <> value SH
                       )
@@ -121,7 +128,7 @@ clientOptionParser
 
 channelParser :: ReadM ReportChannel
 channelParser = eitherReader parse
-    where
-      parse "http" = Right HttpChannel
-      parse "tcp" = Right TcpChannel
-      parse o  = Left $ "Bad channel [" ++ o ++ "] must be [http] or [tcp]"
+  where
+    parse "http" = Right HttpChannel
+    parse "tcp" = Right TcpChannel
+    parse o  = Left $ "Bad channel [" ++ o ++ "] must be [http] or [tcp]"
