@@ -35,6 +35,17 @@ import qualified Astro.Client.GADT          as GADT
 -- duration = 1 second / (2 bps) = 0.5
 
 
+-- size: 4 / 4
+--
+-- 4 beats of a quarter size
+-- if the duration is 0.5 then a beat should appear after 0.5 sec
+--
+-- 1 / 8 note
+--
+-- 1 / 8 + 1 / 4
+sampleRate :: Float
+sampleRate = 48000.0
+
 frequency :: Int -> Float
 frequency bpm = (fromIntegral bpm) / 60.0
 
@@ -44,6 +55,22 @@ bps = frequency
 duration :: Int -> Float
 duration bpm = 1.0 / (frequency bpm)
 
+bpm:: Int
+bpm = 120
+
+
+
+count :: Float -> Float -> [Float]
+count tacks = timing $ (duration bpm) * tacks
+
+timing :: Float -> [Float]
+timing beat = map
+  zip output
+  where
+    step = (hz * 2 * pi) / sampleRate
+
+    output :: [Float]
+    output = map (* step) [0.0 .. sampleRate * beat]
 
 
 printingWorker :: Int -> IO ()
@@ -53,22 +80,20 @@ printingWorker ms = do
   printingWorker ms
 
 
--- size: 4 / 4
 --
--- 4 beats of a quarter size
--- if the duration is 0.5 then a beat should appear after 0.5 sec
---
--- 1 / 8 note
---
--- 1 / 8 + 1 / 4
-
+test :: [Float]
+test = concat
+    [ timing 0.25
+    , timing 0.25
+    , timing 0.5
+    ]
 
 main :: IO ()
 main = do
 
-  putStrLn @Text $ show $ duration 120
+  putStrLn @Text $ show $ map duration bpm
 
-  -- forkIO $ printingWorker $ 1000 * 1000
+  forkIO $ map printingWorker $ count test
 
   input <- getLine
 
