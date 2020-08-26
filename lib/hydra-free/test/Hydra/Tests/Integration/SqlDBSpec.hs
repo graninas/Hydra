@@ -15,6 +15,7 @@ import           Database.Beam.Sqlite (Sqlite)
 import qualified Database.Beam.Sqlite as SQLite
 import qualified Database.SQLite.Simple as SQLite (Connection)
 import           Database.Beam.Query (runSelectReturningList)
+import           Data.Time.Clock (UTCTime(..), secondsToDiffTime)
 
 import qualified Hydra.Domain   as D
 import qualified Hydra.Language as L
@@ -28,34 +29,6 @@ import           Hydra.Tests.Integration.Common
 
 
 
--- runBeamSqliteDebug putStrLn {- for debug output -} conn $ runInsert $
--- insert (_shoppingCartUsers shoppingCartDb) $
--- insertValues [ User "james@example.com" "James" "Smith" "b4cc344d25a2efe540adbf2678e2304c" {- james -}
---              , User "betty@example.com" "Betty" "Jones" "82b054bd83ffad9b6cf8bdb98ce3cc2f" {- betty -}
---              , User "sam@example.com" "Sam" "Taylor" "332532dcfaa1cbf61e2a266bd723612c" {- sam -} ]
---
--- let allUsers = all_ (_shoppingCartUsers shoppingCartDb)
-
--- runBeamSqliteDebug putStrLn conn $ do
---   users <- runSelectReturningList $ select allUsers
---   mapM_ (liftIO . putStrLn . show) users
---
--- SqlSelect be0 (QExprToIdentity (CatDB.DBMeteorT (QExpr be0 QBaseScope)))
---
--- getMeteorsWithMass :: D.SQLiteHandle -> Int -> L.AppL [CatDB.DBMeteor]
--- getMeteorsWithMass sqliteConn size = do
---   eMeteors <- L.scenario
---     $ L.evalSQLiteDB sqliteConn
---     $ L.runBeamSelect
---     $ B.select
---     $ B.filter_ (\meteor -> CatDB._size meteor ==. B.val_ size)
---     $ B.all_ (CatDB._meteors CatDB.catalogueDB)
---   case eMeteors of
---     Left err -> do
---       L.logError $ "Error occurred when extracting meteors: " <> show err
---       pure []
---     Right ms -> pure ms
-
 data SqlDBException = SqlDBException Text
   deriving (Show, Eq)
 
@@ -68,8 +41,15 @@ connectOrFail cfg = L.initSqlDB cfg >>= \case
 
 withTestDB :: ((R.AppRuntime, D.SqlConn SQLite.SqliteM) -> IO a) -> IO a
 withTestDB act = R.withAppRuntime Nothing $ \rt -> do
-    conn <- R.startApp rt $ connectOrFail sqliteCfg
-    act (rt, conn)
+    conn <- R.startApp rt $ do
+      conn <- connectOrFail sqliteCfg
+      void $ deleteAllMeteors conn
+      pure conn
+    a <- act (rt, conn)
+    void $ R.startApp rt $ do
+      deleteAllMeteors conn
+      -- TODO: deinit conn here
+    pure a
   where
     sqliteCfg :: D.DBConfig BS.SqliteM
     sqliteCfg = D.mkSQLiteConfig "test.db"
@@ -88,29 +68,83 @@ getRow conn query = do
     Left err    -> L.throwException $ SqlDBException $ show err
     Right mbRow -> pure mbRow
 
-findMeteor :: D.SqlConn SQLite.SqliteM -> L.AppL (Either SqlDBException (Maybe Meteor))
+
+findMeteor
+  :: D.SqlConn SQLite.SqliteM
+  -> L.AppL (Either SqlDBException (Maybe Meteor))
 findMeteor conn = L.scenario $ L.runSafely $ do
   mbRow <- getRow conn $ getMeteorsWithMass 100
   pure $ convertMeteor <$> mbRow
 
+getMeteor
+  :: D.SqlConn SQLite.SqliteM
+  -> Int
+  -> L.AppL (Either SqlDBException (Maybe Meteor))
+getMeteor conn pkVal = L.scenario $ L.runSafely $ do
+  mbRow <- getRow conn
+    $ B.select
+    $ B.filter_ (\meteor -> CatDB._id meteor ==. B.val_ pkVal)
+    $ B.all_ (CatDB._meteors CatDB.catalogueDB)
+  pure $ convertMeteor <$> mbRow
 
--- insertMeteor :: L.AppL (Either SomeException ())
--- insertMeteor = L.runSafely $ do
---   conn <- connectOrFail sqliteCfg
+insertMeteor :: D.SqlConn SQLite.SqliteM -> Int -> L.AppL (D.DBResult ())
+insertMeteor conn pkVal = L.scenario $ do
+  let meteorDB :: CatDB.DBMeteor = CatDB.DBMeteor
+        { CatDB._id        = pkVal
+        , CatDB._size      = 100
+        , CatDB._mass      = 100
+        , CatDB._azimuth   = 100
+        , CatDB._altitude  = 100
+        , CatDB._timestamp = UTCTime (toEnum 1) (secondsToDiffTime 0)
+        }
 
-  -- around (R.withAppRuntime Nothing) $
-  --   describe "KV DB functional tests" $
-  --     it "load game failure test" $ \appRt -> do
+  L.evalSqlDB conn
+       $ L.insertRows
+       $ B.insert (CatDB._meteors CatDB.catalogueDB)
+       $ B.insertExpressions [ B.val_ meteorDB ]
+       -- Sample of autoincrement:
+       -- $ B.insertExpressions [ (B.val_ meteorDB) { CatDB._id = B.default_ } ]
 
+deleteMeteor :: D.SqlConn SQLite.SqliteM -> Int -> L.AppL (D.DBResult ())
+deleteMeteor conn pkVal
+  = L.scenario
+  $ L.evalSqlDB conn
+  $ L.deleteRows
+  $ B.delete (CatDB._meteors CatDB.catalogueDB)
+  $ (\m -> (CatDB._id m) ==. (B.val_ pkVal))
+
+deleteAllMeteors :: D.SqlConn SQLite.SqliteM -> L.AppL (D.DBResult ())
+deleteAllMeteors conn
+  = L.scenario
+  $ L.evalSqlDB conn
+  $ L.deleteRows
+  $ B.delete (CatDB._meteors CatDB.catalogueDB)
+  $ (\m -> (CatDB._id m) /=. (B.val_ 0))
 
 
 spec :: Spec
 spec = around withTestDB $
-  describe "SQLite DB tests" $
+  describe "SQLite DB tests" $ do
     it "Select, not found" $ \(rt, conn) -> do
       eRes <- R.startApp rt $ findMeteor conn
       eRes `shouldBe` Right Nothing
 
-    --   it "Insert / Select / Delete test" $ do
-    --     eRes <- evalApp insertSelectApp
-    --     eRes `shouldBe` Right Nothing
+    it "Insert / Select / Delete test" $ \(rt, conn) -> do
+      (eRes1, eRes2, eRes3, eRes4) <- R.startApp rt $ do
+        eRes1 <- insertMeteor conn 100
+        eRes2 <- getMeteor conn 100
+        eRes3 <- deleteMeteor conn 100
+        eRes4 <- getMeteor conn 100
+        pure (eRes1, eRes2, eRes3, eRes4)
+
+      let m = Meteor
+              { _id        = 100
+              , _size      = 100
+              , _mass      = 100
+              , _coords    = Coords 100 100
+              , _timestamp = UTCTime (toEnum 1) (secondsToDiffTime 0)
+              }
+      isRight eRes1 `shouldBe` True
+      eRes2 `shouldBe` (Right (Just m))
+      isRight eRes3 `shouldBe` True
+      eRes4 `shouldBe` (Right Nothing)
