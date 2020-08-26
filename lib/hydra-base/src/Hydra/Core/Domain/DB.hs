@@ -53,9 +53,3 @@ type ConnTag = String
 
 class GetConnTag a where
   getConnTag :: a -> ConnTag
-
-data ResourceStatus conn
-  = ResourceCreated conn
-  | ResourceDisposed
-
-type SharedResource conn = MVar (ResourceStatus conn)

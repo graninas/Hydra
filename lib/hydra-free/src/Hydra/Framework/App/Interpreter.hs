@@ -25,7 +25,7 @@ initKVDB' coreRt cfg@(D.RedisConfig) dbName =
 
 connect :: D.DBConfig beM -> IO (D.DBResult (D.SqlConn beM))
 connect cfg = do
-  eConn <- try $ R.connect' cfg
+  eConn <- try $ R.createSqlConn cfg
   case eConn of
     Left (e :: SomeException) -> pure $ Left $ D.DBError D.FailedToConnect $ show e
     Right conn -> pure $ Right conn
