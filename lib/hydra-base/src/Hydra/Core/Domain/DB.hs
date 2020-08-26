@@ -21,6 +21,7 @@ data DBErrorType
   | ConnectionAlreadyExists
   | ConnectionDoesNotExist
   | FailedToConnect
+  | TransactionRollbacked
   deriving (Generic, Ord, Eq, Enum, Bounded, Show, Read)
 
 data DBError = DBError DBErrorType Text

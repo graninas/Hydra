@@ -7,7 +7,6 @@
 {-# LANGUAGE TypeFamilies           #-}
 {-# LANGUAGE DeriveAnyClass         #-}
 
-
 module Hydra.Core.Domain.SQLDB where
 
 import           Hydra.Prelude
@@ -30,7 +29,7 @@ class (B.BeamSqlBackend be, B.MonadBeam be beM) => BeamRuntime be beM
   rtDelete :: B.SqlDelete be table -> beM ()
 
 class BeamRunner beM where
-  getBeamDebugRunner :: SqlConn beM -> beM a -> ((String -> IO ()) -> IO a)
+  getBeamDebugRunner :: NativeSqlConn -> beM a -> ((String -> IO ()) -> IO a)
 
 instance BeamRuntime BS.Sqlite BS.SqliteM where
   rtSelectReturningList = B.runSelectReturningList
@@ -40,17 +39,27 @@ instance BeamRuntime BS.Sqlite BS.SqliteM where
   rtDelete = B.runDelete
 
 instance BeamRunner BS.SqliteM where
-  getBeamDebugRunner (SQLitePool tag pool) beM
-    = \logger -> DP.withResource pool
-    $ \conn -> SQLite.runBeamSqliteDebug logger conn beM
+  getBeamDebugRunner (NativeSQLiteConn conn) beM
+    = \logger -> SQLite.runBeamSqliteDebug logger conn beM
 
+-- | Connection data type with a naked connection (not thread-safe).
+-- Used for the internal mechanisms when all the Data.Pool manipulations are done.
 data NativeSqlConn
-  = NativeSQLitePool (DP.Pool SQLite.Connection)
+  = NativeSQLiteConn SQLite.Connection
 
+-- | Connection data type that we store in the CoreRuntime.
+data RuntimeSqlConn
+  = RuntimeSQLiteConn (DP.Pool SQLite.Connection)
+  deriving Show
+
+-- | Represents SQL connection.
+-- beM is a phantom type for keeping a certain DB mark for beam.
 data SqlConn beM
   = SQLitePool ConnTag (DP.Pool SQLite.Connection)
   deriving (Generic)
 
+-- | Database configuration.
+-- beM is a phantom type for keeping a certain DB mark for beam.
 data DBConfig beM
   = SQLitePoolConf DBName ConnTag PoolConfig
   deriving (Show, Eq, Ord, Generic, ToJSON, FromJSON)

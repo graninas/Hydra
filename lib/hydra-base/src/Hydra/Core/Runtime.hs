@@ -37,7 +37,7 @@ data CoreRuntime = CoreRuntime
     , _loggerRuntime     :: LoggerRuntime
     , _stateRuntime      :: StateRuntime
     , _processRuntime    :: ProcessRuntime
-    , _sqlConns          :: MVar (Map D.ConnTag D.NativeSqlConn)
+    , _sqlConns          :: MVar (Map D.ConnTag D.RuntimeSqlConn)
     , _httpClientManager :: Manager
     , _cmdVerbosity      :: CmdVerbosity
     }
