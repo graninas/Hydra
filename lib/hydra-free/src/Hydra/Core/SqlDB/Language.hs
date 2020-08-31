@@ -59,7 +59,7 @@ data SqlDBMethodF beM next where
 instance Functor (SqlDBMethodF beM) where
   fmap f (SqlDBMethod runner next) = SqlDBMethod runner (f . next)
 
-type SqlDBL beM = F (SqlDBMethodF beM)
+type SqlDBL beM = Free (SqlDBMethodF beM)
 
 sqlDBMethod
   :: (D.BeamRunner beM, D.BeamRuntime be beM)

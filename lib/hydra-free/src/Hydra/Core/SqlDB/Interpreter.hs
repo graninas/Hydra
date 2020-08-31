@@ -15,4 +15,4 @@ interpretSqlDBMethod nativeConn logger (L.SqlDBMethod runner next) =
   next <$> runner nativeConn logger
 
 runSqlDBL  :: D.NativeSqlConn -> (String -> IO ()) -> L.SqlDBL beM a -> IO a
-runSqlDBL nativeConn logger = foldF (interpretSqlDBMethod nativeConn logger)
+runSqlDBL nativeConn logger = foldFree (interpretSqlDBMethod nativeConn logger)

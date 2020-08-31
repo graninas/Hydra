@@ -87,31 +87,38 @@ getMeteor conn pkVal = L.scenario $ L.runSafely $ do
     $ B.all_ (CatDB._meteors CatDB.catalogueDB)
   pure $ convertMeteor <$> mbRow
 
-insertMeteor :: D.SqlConn SQLite.SqliteM -> Int -> L.AppL (D.DBResult ())
-insertMeteor conn pkVal = L.scenario $ do
+insertMeteorQuery
+  :: Int -> Int -> Int -> Int -> Int -> UTCTime
+  -> L.SqlDBL SQLite.SqliteM ()
+insertMeteorQuery meteorId size mass azmth alt time = do
   let meteorDB :: CatDB.DBMeteor = CatDB.DBMeteor
-        { CatDB._id        = pkVal
-        , CatDB._size      = 100
-        , CatDB._mass      = 100
-        , CatDB._azimuth   = 100
-        , CatDB._altitude  = 100
-        , CatDB._timestamp = UTCTime (toEnum 1) (secondsToDiffTime 0)
+        { CatDB._id        = meteorId
+        , CatDB._size      = size
+        , CatDB._mass      = mass
+        , CatDB._azimuth   = azmth
+        , CatDB._altitude  = alt
+        , CatDB._timestamp = time
         }
-
-  L.evalSqlDB conn
-       $ L.insertRows
-       $ B.insert (CatDB._meteors CatDB.catalogueDB)
-       $ B.insertExpressions [ B.val_ meteorDB ]
+  L.insertRows
+    $ B.insert (CatDB._meteors CatDB.catalogueDB)
+    $ B.insertExpressions [ B.val_ meteorDB ]
        -- Sample of autoincrement:
        -- $ B.insertExpressions [ (B.val_ meteorDB) { CatDB._id = B.default_ } ]
 
+insertMeteor :: D.SqlConn SQLite.SqliteM -> Int -> L.AppL (D.DBResult ())
+insertMeteor conn meteorId
+  = L.scenario
+  $ L.evalSqlDB conn
+  $ insertMeteorQuery meteorId 100 100 100 100 (UTCTime (toEnum 1) (secondsToDiffTime 0))
+
+
 deleteMeteor :: D.SqlConn SQLite.SqliteM -> Int -> L.AppL (D.DBResult ())
-deleteMeteor conn pkVal
+deleteMeteor conn meteorId
   = L.scenario
   $ L.evalSqlDB conn
   $ L.deleteRows
   $ B.delete (CatDB._meteors CatDB.catalogueDB)
-  $ (\m -> (CatDB._id m) ==. (B.val_ pkVal))
+  $ (\m -> (CatDB._id m) ==. (B.val_ meteorId))
 
 deleteAllMeteors :: D.SqlConn SQLite.SqliteM -> L.AppL (D.DBResult ())
 deleteAllMeteors conn
@@ -148,3 +155,20 @@ spec = around withTestDB $
       eRes2 `shouldBe` (Right (Just m))
       isRight eRes3 `shouldBe` True
       eRes4 `shouldBe` (Right Nothing)
+
+    it "Transaction test" $ \(rt, conn) -> do
+      let timestamp = UTCTime (toEnum 1) (secondsToDiffTime 0)
+
+      eRes1 <- R.startApp rt $ getMeteor conn 1
+
+      eRes2 <- R.startApp rt
+          $ L.scenario
+          $ L.evalSqlDB conn $ do
+            insertMeteorQuery 1 1 1 1 1 timestamp
+            error "This is exception."
+
+      eRes3 <- R.startApp rt $ getMeteor conn 1
+
+      eRes1 `shouldBe` (Right Nothing)
+      isLeft eRes2 `shouldBe` True
+      eRes3 `shouldBe` (Right Nothing)
