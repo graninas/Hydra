@@ -136,18 +136,19 @@ runDB
   -> LangL (D.DBResult a)
 runDB = evalSqlDB
 
+-- | Throws an exception.
 throwException :: forall a e. Exception e => e -> LangL a
 throwException ex = liftF $ ThrowException ex id
-
--- | Catches any type of exceptions and returns as SomeException.
-runSafely' :: LangL a -> LangL (Either SomeException a)
-runSafely' act = liftF $ RunSafely act id
 
 -- | Catches only a specified type of exceptions or exceptions which are wider.
 -- For example, when SomeException is specified, any exceptions will be catched.
 -- Otherwise depends on the hierarchy of the exceptions.
 runSafely :: Exception e => LangL a -> LangL (Either e a)
 runSafely act = liftF $ RunSafely act id
+
+-- | Catches any type of exceptions and returns as SomeException.
+runSafely' :: LangL a -> LangL (Either SomeException a)
+runSafely' = runSafely
 
 callServantAPI
   :: BaseUrl
