@@ -46,7 +46,7 @@ delete'' a = SqlDBAction (D.rtDelete a)
 
 getBeamRunner'
   :: (D.BeamRunner beM, D.BeamRuntime be beM)
-  => D.SqlConn beM
+  => D.NativeSqlConn
   -> SqlDBAction beM a
   -> ((String -> IO ()) -> IO a)
 getBeamRunner' conn (SqlDBAction beM) = D.getBeamDebugRunner conn beM
@@ -54,12 +54,12 @@ getBeamRunner' conn (SqlDBAction beM) = D.getBeamDebugRunner conn beM
 
 
 data SqlDBMethodF beM next where
-  SqlDBMethod :: (D.SqlConn beM -> (String -> IO ()) -> IO a) -> (a -> next) -> SqlDBMethodF beM next
+  SqlDBMethod :: (D.NativeSqlConn -> (String -> IO ()) -> IO a) -> (a -> next) -> SqlDBMethodF beM next
 
 instance Functor (SqlDBMethodF beM) where
   fmap f (SqlDBMethod runner next) = SqlDBMethod runner (f . next)
 
-type SqlDBL beM = F (SqlDBMethodF beM)
+type SqlDBL beM = Free (SqlDBMethodF beM)
 
 sqlDBMethod
   :: (D.BeamRunner beM, D.BeamRuntime be beM)

@@ -7,7 +7,6 @@
 {-# LANGUAGE TypeFamilies           #-}
 {-# LANGUAGE DeriveAnyClass         #-}
 
-
 module Hydra.Core.Domain.SQLDB where
 
 import           Hydra.Prelude
@@ -30,7 +29,7 @@ class (B.BeamSqlBackend be, B.MonadBeam be beM) => BeamRuntime be beM
   rtDelete :: B.SqlDelete be table -> beM ()
 
 class BeamRunner beM where
-  getBeamDebugRunner :: SqlConn beM -> beM a -> ((String -> IO ()) -> IO a)
+  getBeamDebugRunner :: NativeSqlConn -> beM a -> ((String -> IO ()) -> IO a)
 
 instance BeamRuntime BS.Sqlite BS.SqliteM where
   rtSelectReturningList = B.runSelectReturningList
@@ -39,48 +38,41 @@ instance BeamRuntime BS.Sqlite BS.SqliteM where
   rtUpdate = B.runUpdate
   rtDelete = B.runDelete
 
-withMVar :: MVar a -> (a -> IO b) -> IO b
-withMVar mvar = bracket (takeMVar mvar) (putMVar mvar)
-
-withSharedResource :: Text -> SharedResource r -> (r -> IO b) -> IO b
-withSharedResource tag mvar act = withMVar mvar act'
-  where
-    act' (ResourceCreated r) = act r
-    act' ResourceDisposed    = error $ tag <> " was disposed." -- TODO: proper error
-
 instance BeamRunner BS.SqliteM where
-  getBeamDebugRunner (SQLiteConn tag sharedConn) beM = \logger ->
-    withSharedResource ("Conn " +| tag |+ "") sharedConn
-    $ \conn -> SQLite.runBeamSqliteDebug logger conn beM
-  getBeamDebugRunner (SQLitePool tag sharedPool) beM = \logger ->
-    withSharedResource ("Pool " +| tag |+ "") sharedPool
-    $ \pool -> DP.withResource pool
-    $ \conn -> SQLite.runBeamSqliteDebug logger conn beM
+  getBeamDebugRunner (NativeSQLiteConn conn) beM
+    = \logger -> SQLite.runBeamSqliteDebug logger conn beM
 
+-- | Connection data type with a naked connection (not thread-safe).
+-- Used for the internal mechanisms when all the Data.Pool manipulations are done.
 data NativeSqlConn
-  = NativeSQLiteConn (SharedResource SQLite.Connection)
-  | NativeSQLitePool (SharedResource (DP.Pool SQLite.Connection))
+  = NativeSQLiteConn SQLite.Connection
 
+-- | Connection data type that we store in the CoreRuntime.
+data RuntimeSqlConn
+  = RuntimeSQLiteConn (DP.Pool SQLite.Connection)
+  deriving Show
+
+-- | Represents SQL connection.
+-- beM is a phantom type for keeping a certain DB mark for beam.
 data SqlConn beM
-  = SQLiteConn ConnTag (SharedResource SQLite.Connection)
-  | SQLitePool ConnTag (SharedResource (DP.Pool SQLite.Connection))
+  = SQLitePool ConnTag (DP.Pool SQLite.Connection)
   deriving (Generic)
 
+-- | Database configuration.
+-- beM is a phantom type for keeping a certain DB mark for beam.
 data DBConfig beM
-  = SQLiteConf DBName
-  | SQLitePoolConf PoolConfig DBName
+  = SQLitePoolConf DBName ConnTag PoolConfig
   deriving (Show, Eq, Ord, Generic, ToJSON, FromJSON)
 
+-- TODO: default idle time - ?
 mkSQLiteConfig :: DBName -> DBConfig BS.SqliteM
-mkSQLiteConfig = SQLiteConf
+mkSQLiteConfig dbname = SQLitePoolConf dbname dbname $ PoolConfig 1 1000000 1
 
-mkSQLitePoolConfig :: PoolConfig -> DBName -> DBConfig BS.SqliteM
-mkSQLitePoolConfig = SQLitePoolConf
+mkSQLitePoolConfig :: DBName -> PoolConfig -> DBConfig BS.SqliteM
+mkSQLitePoolConfig dbname = SQLitePoolConf dbname dbname
 
 instance GetConnTag (SqlConn beM) where
-  getConnTag (SQLiteConn tag _) = tag
   getConnTag (SQLitePool tag _) = tag
 
 instance GetConnTag (DBConfig beM) where
-  getConnTag (SQLiteConf tag) = tag
-  getConnTag (SQLitePoolConf _ tag) = tag
+  getConnTag (SQLitePoolConf _ connTag _) = connTag

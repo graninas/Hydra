@@ -67,20 +67,21 @@ interpretLangF _      (L.EvalIO f next)             = do
   pure $ next r
 interpretLangF coreRt (L.EvalKVDB storage act next) = next <$> evalKVDB' coreRt storage act
 interpretLangF coreRt (L.EvalSqlDB conn sqlDbMethod next) = do
+
+  -- TODO: Debug logging beam function is known to be slow.
   let dbgLogger = runLoggerL (coreRt ^. RLens.loggerRuntime . RLens.hsLoggerHandle)
                 . L.logMessage D.Debug . show
-  -- TODO: transactions
-  eRes <- try $ runSqlDBL conn dbgLogger sqlDbMethod
-  pure $ next $ case eRes of
-    Left (err :: SomeException) -> Left $ D.DBError D.SystemError $ show err
-    Right res -> Right res
+
+  eRes <- R.withTransaction conn $ \nativeConn ->
+      runSqlDBL nativeConn dbgLogger sqlDbMethod
+  pure $ next eRes
 
 interpretLangF coreRt (L.GetSqlDBConnection cfg next) = do
   let connTag = D.getConnTag cfg
   let connsVar = coreRt ^. RLens.sqlConns
   connMap <- readMVar connsVar
   case Map.lookup connTag connMap of
-    Just conn -> pure $ next $ Right $ R.nativeToBem connTag conn
+    Just conn -> pure $ next $ Right $ R.runtimeToBem connTag conn
     Nothing -> pure
       $ next $ Left $ D.DBError D.ConnectionDoesNotExist
       $ "Connection for " <> show connTag <> " not found."

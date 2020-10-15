@@ -12,7 +12,7 @@ import qualified Hydra.Runtime            as R
 import qualified Hydra.Framework.Language as L
 import qualified Hydra.Framework.RLens    as RLens
 
-import qualified System.Console.Haskeline         as HS
+import qualified System.Console.Haskeline as HS
 
 langRunner :: R.CoreRuntime -> Impl.LangRunner L.LangL
 langRunner coreRt = Impl.LangRunner (Impl.runLangL coreRt)
@@ -25,16 +25,16 @@ initKVDB' coreRt cfg@(D.RedisConfig) dbName =
 
 connect :: D.DBConfig beM -> IO (D.DBResult (D.SqlConn beM))
 connect cfg = do
-  eConn <- try $ R.connect' cfg
+  eConn <- try $ R.createSqlConn cfg
   case eConn of
     Left (e :: SomeException) -> pure $ Left $ D.DBError D.FailedToConnect $ show e
     Right conn -> pure $ Right conn
 
 evalCliAction :: R.CoreRuntime -> D.CliToken -> D.CliAction -> HS.InputT IO Bool
 evalCliAction coreRt cliToken (D.CliFinish mbMsg) = do
-      whenJust mbMsg HS.outputStrLn
-      liftIO $ Impl.runLangL coreRt $ L.writeVarIO (D.cliFinishedToken cliToken) True
-      pure True
+  whenJust mbMsg HS.outputStrLn
+  liftIO $ Impl.runLangL coreRt $ L.writeVarIO (D.cliFinishedToken cliToken) True
+  pure True
 evalCliAction _ _ D.CliLoop            = pure True
 evalCliAction _ _ (D.CliOutputMsg msg) = HS.outputStrLn msg >> pure True
 
@@ -66,7 +66,7 @@ interpretAppF appRt (L.InitSqlDB cfg next) = do
       eConn <- connect cfg
       case eConn of
         Right conn -> do
-          putMVar connsVar $ Map.insert connTag (R.bemToNative conn) connMap
+          putMVar connsVar $ Map.insert connTag (R.bemToRuntime conn) connMap
           pure $ next $ Right conn
         Left err -> do
           putMVar connsVar connMap

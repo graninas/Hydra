@@ -7,12 +7,12 @@ import qualified Hydra.Core.Domain as D
 
 
 interpretSqlDBMethod
-  :: D.SqlConn beM
+  :: D.NativeSqlConn
   -> (String -> IO ())
   -> L.SqlDBMethodF beM a
   -> IO a
-interpretSqlDBMethod conn logger (L.SqlDBMethod runner next) =
-  next <$> runner conn logger
+interpretSqlDBMethod nativeConn logger (L.SqlDBMethod runner next) =
+  next <$> runner nativeConn logger
 
-runSqlDBL  :: D.SqlConn beM -> (String -> IO ()) -> L.SqlDBL beM a -> IO a
-runSqlDBL sqlConn logger = foldF (interpretSqlDBMethod sqlConn logger)
+runSqlDBL  :: D.NativeSqlConn -> (String -> IO ()) -> L.SqlDBL beM a -> IO a
+runSqlDBL nativeConn logger = foldFree (interpretSqlDBMethod nativeConn logger)
