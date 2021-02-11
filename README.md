@@ -42,6 +42,11 @@ Ubuntu:
 $ sudo apt-get install libpg-dev librocksdb-dev
 ```
 
+MacOS:
+```
+brew install rocksdb postgresql
+```
+
 Building and running
 ====================
 
