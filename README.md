@@ -39,7 +39,7 @@ Building dependencies
 
 Ubuntu:
 ```bash
-$ sudo apt-get install libpg-dev librocksdb-dev
+$ sudo apt-get install libpq-dev librocksdb-dev
 ```
 
 MacOS:
