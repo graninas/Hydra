@@ -43,7 +43,9 @@ Running:
 
 Command line options:
 
-```  --approach ARG           approach one of:
+```
+  --approach ARG           DI approach, one of:
                            [SH,RT,FM,FT,FT2,CEFM,GADT] (default: SH)
   --channel ARG            channel: http or tcp (default: HttpChannel)
-  -h,--help                Show this help text,ExitSuccess,80))```
+  -h,--help                Show this help text,ExitSuccess,80))
+  ```
