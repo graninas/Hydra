@@ -11,7 +11,8 @@ import qualified Hydra.Core.KVDBRuntime as R
 
 import           Network.HTTP.Client     (Manager, newManager)
 import           Network.HTTP.Client.TLS (tlsManagerSettings)
-import qualified System.Mem             as SYSM (performGC)
+import           Network.Socket          (Socket)
+import qualified System.Mem as SYSM (performGC)
 
 -- | Runtime data for the concrete logger impl.
 newtype LoggerRuntime = LoggerRuntime
@@ -30,6 +31,11 @@ data CmdVerbosity
   | WithSkipErrors
   deriving (Show, Eq)
 
+data ServerHandle = ServerHandle (MVar Socket) ThreadId
+type RpcServers = Map.Map D.Port ServerHandle
+
+type SqlConnections = Map D.ConnTag D.RuntimeSqlConn
+
 -- | Runtime data for core subsystems.
 data CoreRuntime = CoreRuntime
     { _rocksDBs          :: R.RocksDBHandles
@@ -37,9 +43,10 @@ data CoreRuntime = CoreRuntime
     , _loggerRuntime     :: LoggerRuntime
     , _stateRuntime      :: StateRuntime
     , _processRuntime    :: ProcessRuntime
-    , _sqlConns          :: MVar (Map D.ConnTag D.RuntimeSqlConn)
+    , _sqlConns          :: MVar SqlConnections
     , _httpClientManager :: Manager
     , _cmdVerbosity      :: CmdVerbosity
+    , _rpcServers        :: MVar RpcServers
     }
 
 -- | Logger that can be used in runtime via the logging subsystem.

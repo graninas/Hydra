@@ -16,3 +16,4 @@ import           Hydra.Core.State.Language       as X
 import           Hydra.Core.KVDB.Language        as X
 import           Hydra.Core.SqlDB.Language       as X
 import           Hydra.Core.CliHandlers.Language as X
+import           Hydra.Core.JsonRPC.Language     as X

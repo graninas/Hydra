@@ -42,7 +42,9 @@ data AppF next where
        -> L.CliHandlerL a ()
        -> D.CliToken
        -> (() -> next)
-       -> AppF  next
+       -> AppF next
+
+  ServeRpc :: D.Port -> L.RpcProtocol () -> (Either D.RpcServerError () -> next) -> AppF next
 
 
 instance Functor AppF where
@@ -50,6 +52,7 @@ instance Functor AppF where
   fmap g (EvalLang act next)                      = EvalLang act                      (g . next)
   fmap g (InitKVDB cfg name next)                 = InitKVDB cfg name                 (g . next)
   fmap g (InitSqlDB cfg next)                     = InitSqlDB cfg                     (g . next)
+  fmap g (ServeRpc port protocol next)            = ServeRpc port protocol            (g . next)
   fmap g (CliF completeFunc onStep onUnknownCommand handlers cliToken next)
     = CliF completeFunc onStep onUnknownCommand handlers cliToken (g . next)
 
@@ -134,3 +137,6 @@ initSqlDB cfg = liftF $ InitSqlDB cfg id
 
 -- deinitSqlDB :: T.SqlConn beM -> Flow ()
 -- deinitSqlDB conn = liftFC $ DeInitSqlDBConnection conn id
+
+serveRpc :: D.Port -> L.RpcProtocol () -> AppL (Either D.RpcServerError ())
+serveRpc port protocol = liftF $ ServeRpc port protocol id

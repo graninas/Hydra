@@ -2,8 +2,6 @@ module Hydra.Framework.App.Interpreter where
 
 import           Hydra.Prelude
 
-import qualified Data.Map as Map
-
 import qualified Hydra.Core.Domain        as D
 import qualified Hydra.Core.Interpreters  as Impl
 import qualified Hydra.Core.Language      as L
@@ -13,6 +11,14 @@ import qualified Hydra.Framework.Language as L
 import qualified Hydra.Framework.RLens    as RLens
 
 import qualified System.Console.Haskeline as HS
+
+import qualified Data.Map as Map
+import           Control.Concurrent (forkFinally)
+import qualified Control.Exception.Safe as Safe
+import qualified Network as N
+import qualified Network.Socket as S hiding (recv)
+import qualified Network.Socket.ByteString.Lazy as S
+import           Data.Aeson as A
 
 langRunner :: R.CoreRuntime -> Impl.LangRunner L.LangL
 langRunner coreRt = Impl.LangRunner (Impl.runLangL coreRt)
@@ -72,6 +78,15 @@ interpretAppF appRt (L.InitSqlDB cfg next) = do
           putMVar connsVar connMap
           pure $ next $ Left err
 
+
+
+
+interpretAppF appRt (L.ServeRpc port protocol next) = do
+  eRes <- startRpcServer port protocol
+  pure $ next eRes
+
+
+
 interpretAppF appRt (L.CliF completeFunc onStep onUnknownCommand handlers cliToken next) = do
   let coreRt = appRt ^. RLens.coreRuntime
 
@@ -110,3 +125,67 @@ runAppL appRt = foldFree (interpretAppF appRt)
 
 instance R.StartApp L.AppL where
   startApp = runAppL
+
+
+
+
+
+readRpcProtocol protocol = do
+  handlersRef <- newIORef mempty
+  void $ Impl.prepareRpcHandlers handlersRef protocol
+  readIORef handlersRef
+
+
+
+
+startRpcServer
+  :: R.AppRuntime
+  -> D.Port
+  -> L.RpcProtocol ()
+  -> IO (Either D.RpcServerError ())
+startRpcServer appRt port protocol = do
+  handlers <- readRpcProtocol protocol
+
+  servers  <- takeMVar $ appRt ^. RLens.rpcServers
+
+  -- TODO: rewrite this catchAny. Seems it doesn't clear resources in case of
+  -- an exxception after N.listenOn
+  catchAny
+    (do
+        when (Map.member port servers)
+          $ Safe.throwString $ "Port " <> show port <> " is used"
+
+        listenSockVar <- newMVar listenSock
+        registeredVar <- newEmptyMVar         -- no activity until the server is registered
+
+        listenSock <- N.listenOn (N.PortNumber port)
+
+        -- connection acceptance worker
+
+        acceptWorkerId <- forkIO $ do
+          takeMVar registeredVar              -- no activity until the server is registered
+
+          forever $ do
+            (connSock, _) <- S.accept listenSock
+
+            -- rpc interaction worker
+            -- TODO: track each worker and close on resource cleanup
+            void $ forkFinally
+                (do
+                    msg      <- receiveDatagram connSock
+                    response <- callRpc (runLangL appRt) handlerMap msg
+                    sendDatagram connSock $ A.encode response
+                ) (\_ -> S.close connSock)
+
+        -- add server handler to server map
+        putMVar (nodeRt ^. RLens.servers)
+          $ M.insert port (R.ServerHandle listenSockVar acceptWorkerId) servers
+
+        putMVar registeredVar ()    -- server activity is now allowed
+
+        pure $ Right ()
+    )
+    (\err -> do
+      putMVar (nodeRt ^. RLens.servers) servers
+      pure $ Left err
+    )
