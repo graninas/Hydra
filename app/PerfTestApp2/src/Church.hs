@@ -8,8 +8,8 @@ module Church where
 import           Control.Monad
 import           Hydra.Prelude
 
+import qualified Hydra.Runtime as R
 import qualified "hydra-church-free" Hydra.Language as L
-import qualified "hydra-church-free" Hydra.Runtime as R
 import qualified "hydra-church-free" Hydra.Interpreters as R
 
 flow :: IORef Int -> L.AppL ()

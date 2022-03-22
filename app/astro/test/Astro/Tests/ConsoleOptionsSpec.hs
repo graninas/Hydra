@@ -5,8 +5,8 @@ module Astro.Tests.ConsoleOptionsSpec where
 import           Test.Hspec (Spec, around, describe, it, shouldBe, shouldSatisfy)
 import           Test.Hspec.QuickCheck (prop)
 
-import qualified "hydra-base" Hydra.Domain  as D
-import qualified "hydra-free" Hydra.Runtime as R
+import qualified Hydra.Runtime as R
+import qualified Hydra.Domain  as D
 import qualified "hydra-free" Hydra.Interpreters as R
 import qualified "hydra-free" Hydra.Testing.Functional as F
 

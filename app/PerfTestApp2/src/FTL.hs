@@ -9,7 +9,7 @@ import           Control.Monad
 import           Hydra.Prelude
 
 import qualified Hydra.FTL     as FTL
-import qualified "hydra-base" Hydra.Runtime as R
+import qualified Hydra.Runtime as R
 
 import           Hydra.FTLI    ()
 

@@ -94,6 +94,7 @@ createCoreRuntime' loggerRt verbosity = CoreRuntime
   <*> newMVar Map.empty
   <*> newManager tlsManagerSettings
   <*> pure verbosity
+  <*> newMVar Map.empty
 
 createCoreRuntime :: LoggerRuntime -> IO CoreRuntime
 createCoreRuntime loggerRt = createCoreRuntime' loggerRt WithArgErrors
@@ -105,6 +106,7 @@ clearProcessRuntime procRt = do
   mapM_ killThread $ Map.elems processes
 
 -- TODO: close DB handlers.
+-- TODO: close RPC servers & connections
 clearCoreRuntime :: CoreRuntime -> IO ()
 clearCoreRuntime coreRt =
   (clearProcessRuntime $ _processRuntime coreRt)

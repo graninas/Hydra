@@ -8,8 +8,8 @@ module Free where
 import           Control.Monad
 import           Hydra.Prelude
 
+import qualified Hydra.Runtime  as R
 import qualified "hydra-free" Hydra.Language as L
-import qualified "hydra-free" Hydra.Runtime  as R
 import qualified "hydra-free" Hydra.Interpreters as R
 
 flow :: IORef Int -> L.AppL ()

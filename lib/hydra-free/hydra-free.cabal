@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 2ea681f61abccbf8a1e3fa8befdca99f67295f77ea5690a884cd04c6aabb6a69
+-- hash: 48a7bbb87fbf207e1bfccdbd7a0e3080bae6d564e36275aa671b1fbce1247cd3
 
 name:           hydra-free
 version:        1.1.0.0
@@ -31,6 +31,8 @@ library
       Hydra.Core.FTL
       Hydra.Core.FTLI
       Hydra.Core.Interpreters
+      Hydra.Core.JsonRPC.Interpreter
+      Hydra.Core.JsonRPC.Language
       Hydra.Core.KVDB.Interpreter
       Hydra.Core.KVDB.Language
       Hydra.Core.Lang.FTL
@@ -43,6 +45,7 @@ library
       Hydra.Core.Logger.Impl.HsLoggerInterpreter
       Hydra.Core.Logger.Impl.StmLogger
       Hydra.Core.Logger.Language
+      Hydra.Core.Networking.Internal.Socket
       Hydra.Core.Process.FTL
       Hydra.Core.Process.FTLI
       Hydra.Core.Process.Interpreter
@@ -69,7 +72,6 @@ library
       Hydra.Interpreters
       Hydra.Language
       Hydra.Language.Extra
-      Hydra.Runtime
       Hydra.Testing.Functional
       Hydra.Testing.Functional.AppInterpreter
       Hydra.Testing.Functional.Common

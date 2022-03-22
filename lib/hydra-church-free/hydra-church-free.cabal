@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 126b98dca77f3ee49ac8b8810350e872113b6117853d6cbb95a68aabe7048dc2
+-- hash: 8ba1027dad32d189d254306ed859423c29d7373565e931935cab5e220e4a4505
 
 name:           hydra-church-free
 version:        1.1.0.0
@@ -45,7 +45,6 @@ library
       Hydra.Interpreters
       Hydra.Language
       Hydra.Language.Extra
-      Hydra.Runtime
   other-modules:
       Paths_hydra_church_free
   hs-source-dirs:

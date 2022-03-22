@@ -12,10 +12,10 @@ import           Test.Hspec.QuickCheck (prop)
 import           Test.QuickCheck (arbitrary, property, verbose, withMaxSuccess)
 import           Test.QuickCheck.Monadic (assert, monadicIO, pick, pre, run)
 
-import qualified Hydra.Domain               as D
-import qualified "hydra-free" Hydra.Runtime as R
-import qualified Hydra.Interpreters         as R
-import qualified Hydra.Testing.Functional   as F
+import qualified Hydra.Domain             as D
+import qualified Hydra.Runtime            as R
+import qualified Hydra.Interpreters       as R
+import qualified Hydra.Testing.Functional as F
 
 import           Labyrinth.Prelude
 import           Labyrinth

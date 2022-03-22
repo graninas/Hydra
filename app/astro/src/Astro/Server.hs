@@ -15,7 +15,7 @@ import           Network.Wai.Handler.Warp (run)
 import           Servant
 
 import           Hydra.Prelude
-import qualified "hydra-free" Hydra.Runtime as R
+import qualified Hydra.Runtime as R
 import qualified "hydra-free" Hydra.Interpreters as R
 import qualified "hydra-free" Hydra.Language     as L
 

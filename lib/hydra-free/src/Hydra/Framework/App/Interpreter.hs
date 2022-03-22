@@ -9,6 +9,7 @@ import qualified Hydra.Core.RLens         as RLens
 import qualified Hydra.Runtime            as R
 import qualified Hydra.Framework.Language as L
 import qualified Hydra.Framework.RLens    as RLens
+import qualified Hydra.Core.Networking.Internal.Socket as SockImpl
 
 import qualified System.Console.Haskeline as HS
 
@@ -82,7 +83,7 @@ interpretAppF appRt (L.InitSqlDB cfg next) = do
 
 
 interpretAppF appRt (L.ServeRpc port protocol next) = do
-  eRes <- startRpcServer port protocol
+  eRes <- startRpcServer appRt port protocol
   pure $ next eRes
 
 
@@ -128,13 +129,23 @@ instance R.StartApp L.AppL where
 
 
 
-
-
+readRpcProtocol :: L.RpcProtocol () -> IO Impl.RpcHandlers
 readRpcProtocol protocol = do
   handlersRef <- newIORef mempty
   void $ Impl.prepareRpcHandlers handlersRef protocol
   readIORef handlersRef
 
+
+callRpc
+  :: (L.LangL D.RpcResponse -> IO D.RpcResponse)
+  -> Impl.RpcHandlers
+  -> LByteString
+  -> IO D.RpcResponse
+callRpc runner handlers msg = case A.decode msg of
+  Just (D.RpcRequest tag params reqId) -> case Map.lookup tag handlers of
+    Just justMethod -> runner $ justMethod params reqId
+    Nothing         -> pure $ D.RpcResponseError (A.String $ "The method " <> tag <> " isn't supported.") reqId
+  Nothing -> pure $ D.RpcResponseError (A.String "error of request parsing") 0
 
 
 
@@ -146,19 +157,20 @@ startRpcServer
 startRpcServer appRt port protocol = do
   handlers <- readRpcProtocol protocol
 
-  servers  <- takeMVar $ appRt ^. RLens.rpcServers
+  let coreRt = appRt ^. RLens.coreRuntime
+  servers  <- takeMVar $ coreRt ^. RLens.rpcServers
 
   -- TODO: rewrite this catchAny. Seems it doesn't clear resources in case of
   -- an exxception after N.listenOn
-  catchAny
+  eResult <- catchAny
     (do
         when (Map.member port servers)
           $ Safe.throwString $ "Port " <> show port <> " is used"
 
-        listenSockVar <- newMVar listenSock
         registeredVar <- newEmptyMVar         -- no activity until the server is registered
 
-        listenSock <- N.listenOn (N.PortNumber port)
+        listenSock <- N.listenOn $ N.PortNumber $ fromIntegral port
+        listenSockVar <- newMVar listenSock
 
         -- connection acceptance worker
 
@@ -172,20 +184,24 @@ startRpcServer appRt port protocol = do
             -- TODO: track each worker and close on resource cleanup
             void $ forkFinally
                 (do
-                    msg      <- receiveDatagram connSock
-                    response <- callRpc (runLangL appRt) handlerMap msg
-                    sendDatagram connSock $ A.encode response
+                    msg      <- SockImpl.receiveDatagram connSock
+                    response <- callRpc (Impl.runLangL coreRt) handlers msg
+                    SockImpl.sendDatagram connSock $ A.encode response
                 ) (\_ -> S.close connSock)
 
         -- add server handler to server map
-        putMVar (nodeRt ^. RLens.servers)
-          $ M.insert port (R.ServerHandle listenSockVar acceptWorkerId) servers
+        putMVar (coreRt ^. RLens.rpcServers)
+          $ Map.insert port (R.ServerHandle listenSockVar acceptWorkerId) servers
 
         putMVar registeredVar ()    -- server activity is now allowed
 
         pure $ Right ()
     )
     (\err -> do
-      putMVar (nodeRt ^. RLens.servers) servers
+      putMVar (coreRt ^. RLens.rpcServers) servers
       pure $ Left err
     )
+
+  case eResult of
+    Left (err :: SomeException) -> pure $ Left $ show err
+    Right () -> pure $ Right ()

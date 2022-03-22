@@ -20,6 +20,7 @@ import           Control.Lens.TH              as X (makeFieldsNoPrefix,
                                                     makeLenses)
 import           Control.Monad                as X (liftM, unless, void, when)
 import           Control.Monad.Free           as X (Free (..), foldFree, liftF)
+import           Control.Monad.Free.Class     as X (MonadFree)
 import           Control.Monad.Free.Church    as X (F (..), foldF, fromF, iter,
                                                     iterM, retract)
 import           Control.Newtype.Generics     as X (Newtype, O, pack, unpack)
@@ -43,8 +44,7 @@ import           Universum.Unsafe             as X (head, init, last, tail,
                                                     (!!))
 
 import qualified Control.Monad.Free.Church    as CF
-import qualified Control.Monad.Free.Class     as MF
 
 -- Lift for Church encoded Free
-liftFC :: (Functor f, MF.MonadFree f m) => f a -> m a
+liftFC :: (Functor f, MonadFree f m) => f a -> m a
 liftFC = CF.liftF

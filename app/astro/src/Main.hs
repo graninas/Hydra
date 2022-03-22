@@ -5,9 +5,9 @@
 
 module Main where
 
-import           "hydra-base" Hydra.Prelude
+import           Hydra.Prelude
 
-import qualified "hydra-base" Hydra.Runtime              as R
+import qualified Hydra.Runtime              as R
 import qualified "hydra-free" Hydra.Interpreters         as R
 
 import           Astro.Config               (loggerCfg)
