@@ -43,13 +43,13 @@ data AppState = AppState
   , _bearPos              :: StateVar BearPos
   , _playerInventory      :: InventoryState
   , _gameState            :: StateVar GameState
-  , _gameMessages         :: StateVar [String]
+  , _gameMessages         :: StateVar [Text]
   , _kvdbConfig           :: KVDBConfig LabKVDB
   }
 
 data AppException
-  = NotImplemented String
-  | NotSupported String
-  | InvalidOperation String
-  | GenerationError String
+  = NotImplemented Text
+  | NotSupported Text
+  | InvalidOperation Text
+  | GenerationError Text
   deriving (Show, Read, Eq, Ord, Generic, ToJSON, FromJSON, Exception)

@@ -36,10 +36,11 @@ data AppF next where
   --   -> (() -> next)
   --   -> FlowMethod next
 
-  CliF :: (String -> [HS.Completion])
-       -> (a -> AppL D.CliAction)
-       -> (String -> AppL D.CliAction)
-       -> L.CliHandlerL a ()
+  CliF :: (Text -> [HS.Completion])    -- ^ completion func
+       -> (AppL D.CliAction)           -- ^ on step
+       -> (Text -> AppL D.CliAction)   -- ^ on unknown cmd
+       -> (Text -> AppL D.CliAction)   -- ^ on parse error
+       -> L.CliHandlerL ()             -- ^ method handler
        -> D.CliToken
        -> (() -> next)
        -> AppF next
@@ -53,8 +54,8 @@ instance Functor AppF where
   fmap g (InitKVDB cfg name next)                 = InitKVDB cfg name                 (g . next)
   fmap g (InitSqlDB cfg next)                     = InitSqlDB cfg                     (g . next)
   fmap g (ServeRpc port protocol next)            = ServeRpc port protocol            (g . next)
-  fmap g (CliF completeFunc onStep onUnknownCommand handlers cliToken next)
-    = CliF completeFunc onStep onUnknownCommand handlers cliToken (g . next)
+  fmap g (CliF completeFunc onStep onUnknownCommand onParamsParseError handlers cliToken next)
+    = CliF completeFunc onStep onUnknownCommand onParamsParseError handlers cliToken (g . next)
 
 type AppL = Free AppF
 
@@ -70,22 +71,24 @@ scenario = evalLang'
 evalProcess' :: L.ProcessL L.LangL a -> AppL a
 evalProcess' action = liftF $ EvalProcess action id
 
--- | Do not make it evaluating many times.
+-- TODO: do not make it evaluating many times.
 cliF
-  :: (String -> [HS.Completion])
-  -> (a -> AppL D.CliAction)
-  -> (String -> AppL D.CliAction)
-  -> L.CliHandlerL a ()
+  :: (Text -> [HS.Completion])
+  -> (AppL D.CliAction)
+  -> (Text -> AppL D.CliAction)
+  -> (Text -> AppL D.CliAction)
+  -> L.CliHandlerL ()
   -> AppL D.CliToken
-cliF completionFunc onStep onUnknownCommand handlers = do
+cliF completionFunc onStep onUnknownCommand onParamsParseError handlers = do
   token <- D.CliToken <$> (scenario $ L.newVarIO False)
-  liftF $ CliF completionFunc onStep onUnknownCommand handlers token id
+  liftF $ CliF completionFunc onStep onUnknownCommand onParamsParseError handlers token id
   pure token
 
 cli
-  :: (a -> AppL D.CliAction)
-  -> (String -> AppL D.CliAction)
-  -> L.CliHandlerL a ()
+  :: (AppL D.CliAction)
+  -> (Text -> AppL D.CliAction)
+  -> (Text -> AppL D.CliAction)
+  -> L.CliHandlerL ()
   -> AppL D.CliToken
 cli = cliF (\_ -> [])
 

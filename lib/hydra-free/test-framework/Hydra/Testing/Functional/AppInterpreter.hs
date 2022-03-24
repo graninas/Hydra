@@ -33,7 +33,7 @@ interpretAppF testRt f@(L.InitKVDB cfg dbName next) =
 interpretAppF testRt (L.InitSqlDB cfg next) =
   error "AppF.InitSqlDB test interpreter not implemented."
 
-interpretAppF testRt (L.CliF completeFunc onStep onUnknownCommand handlers cliToken next) =
+interpretAppF testRt (L.CliF completeFunc onStep onUnknownCommand onParamsParseError handlers cliToken next) =
   error "AppF.CliF test interpreter not implemented."
 
 runAppL :: TestRuntime -> L.AppL a -> IO a

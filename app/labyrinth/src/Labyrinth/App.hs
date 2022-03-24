@@ -3,12 +3,14 @@ Resulting actions, states, and effects
 of when a player moves within the game.
 -}
 
+{-# LANGUAGE OverloadedStrings #-}
 
 module Labyrinth.App where
 
 import qualified Data.Map      as Map
 import qualified Data.String   as Str
 import qualified Data.List     as List
+import qualified Data.Text     as T
 
 import qualified Hydra.Domain  as D
 import Labyrinth.Prelude       as L
@@ -30,8 +32,8 @@ data Passage
 
 data MovingResult
   = SuccessfullMove Pos
-  | ImpossibleMove String
-  | InvalidMove String
+  | ImpossibleMove Text
+  | InvalidMove Text
   | LeavingLabyrinthMove
   deriving (Show, Read, Eq)
 
@@ -54,19 +56,19 @@ getPassage (Cell _ (Monolith False) _ _) DirRight = MonolithWall
 getPassage _ _ = RegularWall
 
 
-noMapYet :: String
+noMapYet :: Text
 noMapYet = "You didn't find the map yet. You can print the map after you find it."
 
-leaveWithoutTreasure :: String
+leaveWithoutTreasure :: Text
 leaveWithoutTreasure = "You didn't find a treasure. Leaving means failure. Do you want to leave the labyrinth? (yes / no)"
 
-winning :: String
+winning :: Text
 winning = "Congratulations! You win!"
 
-loosing :: String
+loosing :: Text
 loosing = "You lose..."
 
-unknownCommand :: String -> String
+unknownCommand :: Text -> Text
 unknownCommand cmdStr = "Unknown command: " <> cmdStr
 
 
@@ -123,7 +125,7 @@ updateTrail appState pos = do
   let maybeLabCell = Map.lookup pos lab
 
   case maybeLabCell of
-    Nothing -> throwException $ InvalidOperation $ "The cell is not found on pos" ++ show pos
+    Nothing -> throwException $ InvalidOperation $ T.pack $ "The cell is not found on pos" <> show pos
     Just (cell, _) -> do
       let n = maxTrailpoint trailPoints
       let newTrailpoints = Map.insert pos (cell, Trailpoint (n+1)) trailPoints
@@ -200,10 +202,10 @@ performPlayerContentEvent' st pos TheMap = do
 performPlayerContentEvent' st _ (Trailpoint n) =
   throwException $ InvalidOperation "Performing a player content event on Trailpoint."
 
-addGameMessage :: AppState -> String -> LangL ()
+addGameMessage :: AppState -> Text -> LangL ()
 addGameMessage st msg = do
   msgs <- readVarIO $ st ^. gameMessages
-  writeVarIO (st ^. gameMessages) $ msgs ++ [msg]
+  writeVarIO (st ^. gameMessages) $ msgs <> [msg]
 
 
 makePlayerInit :: AppState -> LangL ()
@@ -296,8 +298,8 @@ moveBear st = do
       Just (cell, _) -> unless (isWallOnDirection cell dir) $
         writeVarIO (st ^. bearPos) newPos
 
-onStep :: AppState -> () -> AppL D.CliAction
-onStep st _ = do
+onStep :: AppState -> AppL D.CliAction
+onStep st = do
   gameSt   <- scenario $ getGameState st
   treasure <- scenario $ getPlayerThreasureState st
 
@@ -323,7 +325,7 @@ onStep st _ = do
 
   msgs <- readVarIO $ st ^. gameMessages
   writeVarIO (st ^. gameMessages) []
-  let outputMsg = intercalate "\n" msgs
+  let outputMsg = T.pack . intercalate "\n" . map T.unpack $ msgs
 
   case isFinished of
     True  | null outputMsg -> pure $ D.CliFinish $ Just "Bye-bye"
@@ -331,10 +333,10 @@ onStep st _ = do
     False | null outputMsg -> pure D.CliLoop
           | otherwise      -> pure $ D.CliOutputMsg outputMsg
 
-startGame :: AppState -> Int -> AppL String
+startGame :: AppState -> Int -> AppL Text
 startGame st s = scenario $ generateLabyrinth (s, s) 3 5 >>= startGame' st
 
-saveGame :: AppState -> Int -> AppL String
+saveGame :: AppState -> Int -> AppL Text
 saveGame st idx = do
   -- TODO: do not save game when it's not a player move
   lab   <- readVarIO $ st ^. labyrinth
@@ -353,7 +355,7 @@ saveGame st idx = do
     Left err -> pure $ show err
     Right _ -> pure "Game successully saved to KV DB."
 
-loadGame :: AppState -> Int -> AppL String
+loadGame :: AppState -> Int -> AppL Text
 loadGame st idx = do
   eRes <- KVDB.loadGameState (st ^. kvdbConfig) idx
   case eRes of
@@ -381,7 +383,7 @@ startRndGame st = do
   addGameMessage st msg
   makePlayerInit st
 
-startGame' :: AppState -> Labyrinth -> LangL String
+startGame' :: AppState -> Labyrinth -> LangL Text
 startGame' st lab = do
   let LabyrinthInfo {liBounds, liWormholes} = analyzeLabyrinth lab
   let (xSize, ySize) = liBounds
@@ -408,12 +410,13 @@ startGame' st lab = do
 
   pure "New game started."
 
+onParamsParseError :: Text -> AppL CliAction
+onParamsParseError errMsg = pure $ D.CliOutputMsg errMsg
 
-
-onUnknownCommand :: AppState -> String -> AppL CliAction
-onUnknownCommand _ ""     = pure D.CliLoop
+onUnknownCommand :: AppState -> Text -> AppL CliAction
+-- onUnknownCommand _ ""     = pure D.CliLoop
 onUnknownCommand st cmdStr = do
-  case Str.words cmdStr of
+  case Str.words $ T.unpack cmdStr of
     ["start", sizeStr] -> case readMaybe sizeStr of
       Nothing   -> pure $ D.CliOutputMsg $ "start command should have 1 int argument."
       Just size -> D.CliOutputMsg <$> startGame st size
@@ -432,6 +435,11 @@ onPlayerMove st act = do
     GameFinished -> addGameMessage st "Game finished. Please type 'start <lab_size>' to start a new game."
     GameStart -> addGameMessage st "Game is not yet started. Please type 'start <lab_size>' to start a new game."
     _ -> act
+
+
+
+tryMove :: AppState -> Direction -> LangL ()
+tryMove st dir = makePlayerMove st dir
 
 help :: LangL ()
 help = do
@@ -510,7 +518,7 @@ labyrinthApp st = do
   scenario $ putStrLn "load-kvdb <idx>    to load a game from KV DB (file by default)"
   scenario $ putStrLn "save-kvdb <idx>    to save a game to KV DB (file by default)"
 
-  cliToken <- cli (onStep st) (onUnknownCommand st) $ do
+  cliToken <- cli (onStep st) (onUnknownCommand st) onParamsParseError $ do
     cmd "help"     $ help
     cmd "go up"    $ onPlayerMove st $ makePlayerMove st DirUp
     cmd "go down"  $ onPlayerMove st $ makePlayerMove st DirDown
@@ -521,6 +529,8 @@ labyrinthApp st = do
     cmd "down"     $ onPlayerMove st $ makePlayerMove st DirDown
     cmd "left"     $ onPlayerMove st $ makePlayerMove st DirLeft
     cmd "right"    $ onPlayerMove st $ makePlayerMove st DirRight
+
+    cmdMethod "move" $ tryMove st
 
     cmd "yes"      $ handleYes st
     cmd "no"       $ handleNo st

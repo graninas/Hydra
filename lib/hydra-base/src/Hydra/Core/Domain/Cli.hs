@@ -11,9 +11,9 @@ data CliToken = CliToken
 
 -- TODO: make it abstract for the client code
 data CliAction
-  = CliFinish (Maybe String)
+  = CliFinish (Maybe Text)
   | CliLoop
-  | CliOutputMsg String
+  | CliOutputMsg Text
 
 cliFinishedToken :: CliToken -> SignalVar
 cliFinishedToken token = _finished token

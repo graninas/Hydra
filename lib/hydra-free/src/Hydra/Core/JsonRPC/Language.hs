@@ -24,7 +24,7 @@ type RpcProtocol a = Free RpcMethod a
 
 
 
-whenSucces
+whenRequestParseSucces
   :: ( Applicative f
      , FromJSON t
      )
@@ -32,9 +32,8 @@ whenSucces
   -> D.ReqId
   -> (t -> f D.RpcResponse)
   -> f D.RpcResponse
-whenSucces a i f = case A.fromJSON a of
+whenRequestParseSucces a i f = case A.fromJSON a of
   A.Success req -> f req
-
   -- TODO: error payload
   A.Error _ -> pure $ D.RpcResponseError (A.toJSON $ A.String "Error in parsing of args") i
 
@@ -44,7 +43,7 @@ makeRpcHandler
      )
   => (requestMsg -> L.LangL responseMsg)
   -> RpcHandler
-makeRpcHandler f a i = whenSucces a i $ \req -> do
+makeRpcHandler f a i = whenRequestParseSucces a i $ \req -> do
   res <- f req
   pure $ D.RpcResponseResult (A.toJSON res) i
 
@@ -54,7 +53,7 @@ makeRpcHandler'
      )
   => (requestMsg -> L.LangL (Either Text responseMsg))
   -> RpcHandler
-makeRpcHandler' f a i = whenSucces a i $ \req -> do
+makeRpcHandler' f a i = whenRequestParseSucces a i $ \req -> do
   res <- f req
   pure $ case res of
     Right b -> D.RpcResponseResult (A.toJSON b)            i

@@ -14,6 +14,7 @@ import qualified Hydra.Core.Networking.Internal.Socket as SockImpl
 import qualified System.Console.Haskeline as HS
 
 import qualified Data.Map as Map
+import qualified Data.Text as T
 import           Control.Concurrent (forkFinally)
 import qualified Control.Exception.Safe as Safe
 import qualified Network as N
@@ -39,11 +40,11 @@ connect cfg = do
 
 evalCliAction :: R.CoreRuntime -> D.CliToken -> D.CliAction -> HS.InputT IO Bool
 evalCliAction coreRt cliToken (D.CliFinish mbMsg) = do
-  whenJust mbMsg HS.outputStrLn
+  whenJust (T.unpack <$> mbMsg) HS.outputStrLn
   liftIO $ Impl.runLangL coreRt $ L.writeVarIO (D.cliFinishedToken cliToken) True
   pure True
 evalCliAction _ _ D.CliLoop            = pure True
-evalCliAction _ _ (D.CliOutputMsg msg) = HS.outputStrLn msg >> pure True
+evalCliAction _ _ (D.CliOutputMsg msg) = HS.outputStrLn (T.unpack msg) >> pure True
 
 interpretAppF :: R.AppRuntime -> L.AppF a -> IO a
 interpretAppF appRt (L.EvalLang action next) = do
@@ -88,35 +89,42 @@ interpretAppF appRt (L.ServeRpc port protocol next) = do
 
 
 
-interpretAppF appRt (L.CliF completeFunc onStep onUnknownCommand handlers cliToken next) = do
+interpretAppF appRt (L.CliF completeFunc onStep onUnknownCommand onParamsParseError methods cliToken next) = do
   let coreRt = appRt ^. RLens.coreRuntime
 
-  handlersRef <- newIORef Map.empty
-  Impl.runCliHandlerL handlersRef handlers
-  handlersVal <- readIORef handlersRef
+  handlersRef <- newIORef []
+  Impl.runCliHandlerL handlersRef methods
+  handlers <- readIORef handlersRef
 
   void $ forkIO $ do
     let loop = do
-          mbLine <- HS.getInputLine "> "
-          let eAct = case mbLine of
-                Nothing -> Left Nothing
-                Just line -> case Map.lookup line handlersVal of
-                  Nothing -> Left (Just line)
-                  Just act -> Right act
 
-          doLoop <- case eAct of
-            Left Nothing    -> pure True
-            Left (Just cmd) -> do
-              cliAction <- liftIO $ runAppL appRt $ onUnknownCommand cmd
+          -- TODO: configurable prompt
+          mbLine <- HS.getInputLine "> "
+          let mbLine' = (T.stripStart . T.stripEnd . T.pack) <$> mbLine
+
+          let eHandlerResult = case mbLine' of
+                Nothing   -> Left ()
+                Just ""   -> Left ()
+                Just line -> Right $ Impl.getHandler handlers line
+
+          doLoop <- case eHandlerResult of
+            Left ()    -> pure True
+            Right (Impl.CmdHandlerNotFound line) -> do
+              cliAction <- liftIO $ runAppL appRt $ onUnknownCommand line
               evalCliAction coreRt cliToken cliAction
-            Right action    -> do
-              result    <- liftIO $ Impl.runLangL coreRt action
-              cliAction <- liftIO $ runAppL appRt $ onStep result
+            Right (Impl.CmdHandlerParamsError msg) -> do
+              cliAction <- liftIO $ runAppL appRt $ onParamsParseError msg
+              evalCliAction coreRt cliToken cliAction
+            Right (Impl.CmdHandler action) -> do
+              liftIO $ Impl.runLangL coreRt action
+              cliAction <- liftIO $ runAppL appRt onStep
               evalCliAction coreRt cliToken cliAction
 
           when doLoop loop
 
-    let cf = HS.completeWord Nothing " \t" $ pure . completeFunc
+    let completeFunc' = \str -> completeFunc $ T.pack str
+    let cf = HS.completeWord Nothing " \t" $ pure . completeFunc'
     HS.runInputT (HS.setComplete cf HS.defaultSettings) loop
 
   pure $ next ()
