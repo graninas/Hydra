@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 4b58ea4ba6948ee20614b9c74db95fb413d5b4be74e57e71757f03c165d89811
+-- hash: e23f11d008ce61da5938eff14c3dd26736aa40fcaadf630d5966207ba5f75294
 
 name:           hydra-base
 version:        1.1.0.0
@@ -32,6 +32,7 @@ library
       Hydra.Core.Domain.JsonRPC
       Hydra.Core.Domain.KVDB
       Hydra.Core.Domain.Logger
+      Hydra.Core.Domain.Networking
       Hydra.Core.Domain.Process
       Hydra.Core.Domain.SQLDB
       Hydra.Core.Domain.State

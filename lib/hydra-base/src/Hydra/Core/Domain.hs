@@ -9,4 +9,5 @@ import           Hydra.Core.Domain.DB      as X
 import           Hydra.Core.Domain.KVDB    as X
 import           Hydra.Core.Domain.SQLDB   as X
 import           Hydra.Core.Domain.Cli     as X
+import           Hydra.Core.Domain.Networking as X
 import           Hydra.Core.Domain.JsonRPC as X

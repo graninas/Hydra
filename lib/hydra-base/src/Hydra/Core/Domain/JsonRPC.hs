@@ -1,25 +1,20 @@
+{-# LANGUAGE FunctionalDependencies #-}
+
 module Hydra.Core.Domain.JsonRPC where
 
 import           Hydra.Prelude hiding ((.=))
-
 
 import qualified Data.Aeson as A
 import           Data.Aeson ((.:), (.=))
 import           Data.Typeable
 import qualified Data.Text as T
 
-
-
-type Address = Text
-type Port = Int
-
+import qualified Hydra.Core.Domain.Networking as D
 
 type RpcServerError = Text
 
 type RpcMethodTag = Text
 
-
--- TODO: it's completely unclear where this ReqId comes from in Enecuum
 type ReqId = Int
 
 data RpcRequest = RpcRequest Text A.Value ReqId
@@ -34,9 +29,25 @@ data RpcResponse
 methodToTag :: Typeable a => a -> Text
 methodToTag = T.pack . takeWhile (/= ' ') . show . typeOf
 
+class
+  ( Typeable req, ToJSON req, FromJSON resp )
+  => Rpc req resp | req -> resp, resp -> req where
+  toRpcRequest
+    :: req
+    -> RpcRequest
+  toRpcRequest a = RpcRequest (T.pack . show . typeOf $ a) (toJSON a) 0
 
--- toRpcRequest :: (Typeable a, ToJSON a) => a -> RpcRequest
--- toRpcRequest a = RpcRequest (T.pack . show . typeOf $ a) (toJSON a) 0
+  fromRpcResponse
+    :: RpcResponse
+    -> Either D.NetworkError resp
+  fromRpcResponse resp = case resp of
+    RpcResponseError (A.String err) _ -> Left err
+    RpcResponseError err _ -> Left $ show err
+    RpcResponseResult val _ ->
+      case A.fromJSON val of
+        A.Error   txt  -> Left $ T.pack txt
+        A.Success resp' -> Right resp'
+
 
 instance FromJSON RpcRequest where
   parseJSON (A.Object o) = RpcRequest

@@ -6,6 +6,11 @@ import           Hydra.Prelude
 
 import qualified Data.Map as Map
 import           Control.Exception (throwIO)
+import qualified Data.Aeson as A
+import qualified Servant.Client                             as S
+import qualified Network.Socket                             as Sock hiding (recv, send)
+import qualified Network.Socket.ByteString.Lazy             as Sock
+import qualified Data.Text as T
 
 import           Hydra.Core.ControlFlow.Interpreter         (runControlFlowL)
 import qualified Hydra.Core.Language                        as L
@@ -17,7 +22,7 @@ import qualified Hydra.Domain                               as D
 import           Hydra.Core.State.Interpreter               (runStateL)
 import           Hydra.Core.KVDB.Interpreter                (runAsRocksDBL, runAsRedisL)
 import           Hydra.Core.SqlDB.Interpreter               (runSqlDBL)
-import qualified Servant.Client                             as S
+import qualified Hydra.Core.Networking.Internal.Socket      as ISock
 
 evalRocksKVDB'
   :: R.CoreRuntime
@@ -99,5 +104,22 @@ interpretLangF coreRt (L.CallServantAPI bUrl clientAct next)
       (S.runClientM clientAct (S.mkClientEnv (coreRt ^. RLens.httpClientManager) bUrl))
       (pure . Left . S.ConnectionError)
 
+interpretNetworkingL _ (L.CallRPC (D.Address host port) req next) =
+  next <$> catchAny (do
+    address <- head <$> Sock.getAddrInfo Nothing (Just $ T.unpack host) (Just $ show port)
+    sock    <- Sock.socket (Sock.addrFamily address) Sock.Stream Sock.defaultProtocol
+    finally (do
+      Sock.connect sock $ Sock.addrAddress address
+      ISock.sendDatagram sock $ A.encode req
+      msg <- ISock.receiveDatagram sock
+      pure $ transformEither T.pack id $ A.eitherDecode msg
+      ) (Sock.close sock)
+  ) (pure . Left . show)
+
 runLangL :: R.CoreRuntime -> L.LangL a -> IO a
 runLangL coreRt = foldFree (interpretLangF coreRt)
+
+
+transformEither :: (a -> c) -> (b -> d) -> Either a b -> Either c d
+transformEither f _ (Left  a) = Left (f a)
+transformEither _ f (Right a) = Right (f a)

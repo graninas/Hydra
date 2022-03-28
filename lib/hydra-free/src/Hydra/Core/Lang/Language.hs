@@ -46,6 +46,7 @@ data LangF next where
   RunSafely :: forall a e next. Exception e => LangL a -> (Either e a -> next) -> LangF next
   -- | Making an HTTP request using Servant Client
   CallServantAPI :: BaseUrl -> ClientM a -> (Either ClientError a -> next) -> LangF next
+  CallRPC :: D.Address -> D.RpcRequest -> (Either D.NetworkError D.RpcResponse -> next) -> LangF next
 
 instance Functor LangF where
   fmap f (EvalStateAtomically st next)    = EvalStateAtomically st (f . next)
@@ -57,8 +58,9 @@ instance Functor LangF where
   fmap f (EvalSqlDB conn sqlAct next)     = EvalSqlDB conn sqlAct (f . next)
   fmap f (GetSqlDBConnection sqlCfg next) = GetSqlDBConnection sqlCfg  (f . next)
   fmap f (ThrowException exc next)        = ThrowException exc (f . next)
-  fmap f (RunSafely act next)       = RunSafely act (f . next)
+  fmap f (RunSafely act next)             = RunSafely act (f . next)
   fmap f (CallServantAPI url clM next)    = CallServantAPI url clM (f . next)
+  fmap f (CallRPC addr req next)          = CallRPC addr req (f . next)
 
 type LangL = Free LangF
 
@@ -150,14 +152,28 @@ runSafely act = liftF $ RunSafely act id
 runSafely' :: LangL a -> LangL (Either SomeException a)
 runSafely' = runSafely
 
+-- | Servant API client. Invoke a method and wait for the result.
 callServantAPI
   :: BaseUrl
   -> ClientM a
   -> LangL (Either ClientError a)
 callServantAPI url cl = liftF $ CallServantAPI url cl id
 
+-- | Servant API client. Invoke a method and wait for the result.
 callAPI
   :: BaseUrl
   -> ClientM a
   -> LangL (Either ClientError a)
 callAPI = callServantAPI
+
+-- | JSON-RPC client. Invoke a method and wait for the result.
+callRPC
+  :: ( D.Rpc req resp )
+  => D.Address
+  -> req
+  -> LangL (Either D.NetworkError resp)
+callRPC addr req = do
+  eResult <- liftF $ CallRPC addr (D.toRpcRequest req) id
+  pure $ case eResult of
+    Left err -> Left err
+    Right resp -> D.fromRpcResponse resp
