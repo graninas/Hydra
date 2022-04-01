@@ -104,7 +104,7 @@ interpretLangF coreRt (L.CallServantAPI bUrl clientAct next)
       (S.runClientM clientAct (S.mkClientEnv (coreRt ^. RLens.httpClientManager) bUrl))
       (pure . Left . S.ConnectionError)
 
-interpretNetworkingL _ (L.CallRPC (D.Address host port) req next) =
+interpretLangF _ (L.CallRPC (D.Address host port) req next) =
   next <$> catchAny (do
     address <- head <$> Sock.getAddrInfo Nothing (Just $ T.unpack host) (Just $ show port)
     sock    <- Sock.socket (Sock.addrFamily address) Sock.Stream Sock.defaultProtocol
