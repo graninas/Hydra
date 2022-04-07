@@ -58,13 +58,13 @@ evalKVDB' coreRt (D.DBHandle D.Redis   dbname) act =
 
 interpretLangF :: R.CoreRuntime -> L.LangF a -> IO a
 interpretLangF coreRt (L.EvalStateAtomically action next) = do
-    let stateRt = coreRt ^. RLens.stateRuntime
-    let logHndl = coreRt ^. RLens.loggerRuntime . RLens.hsLoggerHandle
-    res <- atomically $ runStateL stateRt action
-    flushStmLogger (stateRt ^. RLens.stmLog) logHndl
-    pure $ next res
+  let stateRt = coreRt ^. RLens.stateRuntime
+  let logHndl = coreRt ^. RLens.loggerRuntime . RLens.hsLoggerHandle
+  res <- atomically $ runStateL stateRt action
+  flushStmLogger (stateRt ^. RLens.stmLog) logHndl
+  pure $ next res
 interpretLangF coreRt (L.EvalLogger loggerAct next) =
-    next <$> runLoggerL (coreRt ^. RLens.loggerRuntime . RLens.hsLoggerHandle) loggerAct
+  next <$> runLoggerL (coreRt ^. RLens.loggerRuntime . RLens.hsLoggerHandle) loggerAct
 interpretLangF _      (L.EvalRandom  s next)        = next <$> runRandomL s
 interpretLangF coreRt (L.EvalControlFlow f    next) = next <$> runControlFlowL coreRt f
 interpretLangF _      (L.EvalIO f next)             = do
