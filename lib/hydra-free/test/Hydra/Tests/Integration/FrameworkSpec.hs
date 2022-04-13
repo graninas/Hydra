@@ -1,6 +1,7 @@
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE PackageImports         #-}
 {-# LANGUAGE TemplateHaskell        #-}
+{-# LANGUAGE DeriveAnyClass        #-}
 
 module Hydra.Tests.Integration.FrameworkSpec where
 
@@ -17,11 +18,42 @@ import           Test.Hspec
 
 import           Hydra.TestData
 
+data TestRequest = TestRequest Text
+  deriving (Show, Eq, Generic, ToJSON, FromJSON)
+
+data TestResponse = TestResponse Text
+  deriving (Show, Eq, Generic, ToJSON, FromJSON)
+
+instance D.Rpc TestRequest TestResponse
+
+acceptTestRequest :: TestRequest -> L.LangL TestResponse
+acceptTestRequest (TestRequest echo) = pure $ TestResponse echo
+
+jsonRpcServer :: L.AppL (Either D.NetworkError TestResponse)
+jsonRpcServer = do
+  void
+    $ L.serveRpc 5555
+    $ L.rpcMethod acceptTestRequest
+
+  L.delay 1000000
+
+  L.scenario
+    $ L.callRPC (D.Address "127.0.0.1" 5555)
+    $ TestRequest "Hi!"
+
+
+
 
 spec :: Spec
 spec =
   around (R.withAppRuntime Nothing) $ do
     describe "Methods" $ do
+
+      it "Run JSON-RPC Server and make JSON-RPC request" $ \rt -> do
+        eResult <- R.runAppL rt jsonRpcServer
+        case eResult of
+          Left err -> fail ""
+          Right (TestResponse t) -> t `shouldBe` "Hi!"
 
       it "ThrowException not catched" $ \rt -> do
         let app = do
