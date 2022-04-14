@@ -4,13 +4,14 @@ module Hydra.Core.Lang.Interpreter where
 
 import           Hydra.Prelude
 
-import qualified Data.Map as Map
-import           Control.Exception (throwIO)
 import qualified Data.Aeson as A
+import qualified Data.ByteString.Lazy as LBS
+import qualified Data.Map as Map
+import qualified Data.Text as T
+import           Control.Exception (throwIO)
 import qualified Servant.Client                             as S
 import qualified Network.Socket                             as Sock hiding (recv, send)
 import qualified Network.Socket.ByteString.Lazy             as Sock
-import qualified Data.Text as T
 
 import           Hydra.Core.ControlFlow.Interpreter         (runControlFlowL)
 import qualified Hydra.Core.Language                        as L
@@ -24,7 +25,6 @@ import           Hydra.Core.KVDB.Interpreter                (runAsRocksDBL, runA
 import           Hydra.Core.SqlDB.Interpreter               (runSqlDBL)
 import qualified Hydra.Core.Networking.Internal.Socket      as ISock
 
-import qualified Data.ByteString.Lazy as LBS
 
 evalRocksKVDB'
   :: R.CoreRuntime
@@ -106,17 +106,23 @@ interpretLangF coreRt (L.CallServantAPI bUrl clientAct next)
       (S.runClientM clientAct (S.mkClientEnv (coreRt ^. RLens.httpClientManager) bUrl))
       (pure . Left . S.ConnectionError)
 
-interpretLangF _ (L.CallRPC (D.Address host port) req next) =
-  next <$> catchAny (do
-    address <- head <$> Sock.getAddrInfo Nothing (Just $ T.unpack host) (Just $ show port)
-    sock    <- Sock.socket (Sock.addrFamily address) Sock.Stream Sock.defaultProtocol
-    finally (do
-      Sock.connect sock $ Sock.addrAddress address
-      ISock.sendDatagram sock $ LBS.toStrict $ A.encode req
-      msg <- ISock.receiveDatagram sock
-      pure $ transformEither T.pack id $ A.eitherDecodeStrict msg
-      ) (Sock.close sock)
-  ) (pure . Left . show)
+interpretLangF _ (L.CallRPC (D.Address host port) req next) = do
+
+  let sockCall = do
+        address <- head <$> Sock.getAddrInfo Nothing (Just $ T.unpack host) (Just $ show port)
+        sock    <- Sock.socket (Sock.addrFamily address) Sock.Stream Sock.defaultProtocol
+        finally (do
+          Sock.connect sock $ Sock.addrAddress address
+          ISock.sendDatagram sock $ LBS.toStrict $ A.encode req
+          msg <- ISock.receiveDatagram sock
+          pure $ A.eitherDecodeStrict msg
+          ) (Sock.close sock)
+
+  eRes <- catchAny sockCall (pure . Left . show)
+
+  pure $ next $ case eRes of
+    Left err    -> Left $ T.pack err
+    Right val   -> Right val
 
 runLangL :: R.CoreRuntime -> L.LangL a -> IO a
 runLangL coreRt = foldFree (interpretLangF coreRt)
