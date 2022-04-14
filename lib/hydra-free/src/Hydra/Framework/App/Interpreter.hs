@@ -13,6 +13,7 @@ import qualified Hydra.Core.Networking.Internal.Socket as SockImpl
 
 import qualified System.Console.Haskeline as HS
 
+import           Data.Aeson as A
 import qualified Data.Map as Map
 import qualified Data.Text as T
 import           Control.Concurrent (forkFinally)
@@ -20,7 +21,8 @@ import qualified Control.Exception.Safe as Safe
 import qualified Network as N
 import qualified Network.Socket as S hiding (recv)
 import qualified Network.Socket.ByteString.Lazy as S
-import           Data.Aeson as A
+
+import qualified Data.ByteString.Lazy as LBS
 
 langRunner :: R.CoreRuntime -> Impl.LangRunner L.LangL
 langRunner coreRt = Impl.LangRunner (Impl.runLangL coreRt)
@@ -195,6 +197,7 @@ startRpcServer appRt port protocol = do
                     msg      <- SockImpl.receiveDatagram connSock
                     response <- callRpc (Impl.runLangL coreRt) handlers msg
                     SockImpl.sendDatagram connSock $ A.encode response
+                    -- SockImpl.sendDatagram connSock $ LBS.toStrict $ A.encode response
                 ) (\_ -> S.close connSock)
 
         -- add server handler to server map

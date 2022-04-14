@@ -24,6 +24,8 @@ import           Hydra.Core.KVDB.Interpreter                (runAsRocksDBL, runA
 import           Hydra.Core.SqlDB.Interpreter               (runSqlDBL)
 import qualified Hydra.Core.Networking.Internal.Socket      as ISock
 
+import qualified Data.ByteString.Lazy as LBS
+
 evalRocksKVDB'
   :: R.CoreRuntime
   -> String
@@ -110,6 +112,7 @@ interpretLangF _ (L.CallRPC (D.Address host port) req next) =
     sock    <- Sock.socket (Sock.addrFamily address) Sock.Stream Sock.defaultProtocol
     finally (do
       Sock.connect sock $ Sock.addrAddress address
+      -- ISock.sendDatagram sock $ LBS.toStrict $ A.encode req
       ISock.sendDatagram sock $ A.encode req
       msg <- ISock.receiveDatagram sock
       pure $ transformEither T.pack id $ A.eitherDecode msg

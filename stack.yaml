@@ -3,13 +3,13 @@ resolver: lts-14.4
 packages:
 - lib/hydra-base
 - lib/hydra-free
-- lib/hydra-church-free
-# - lib/hydra-final-tagless
-- app/astro
-- app/labyrinth
-- app/MeteorCounter
-- app/PerfTestApp
-- app/PerfTestApp2
+# - lib/hydra-church-free
+#
+# - app/astro
+# - app/labyrinth
+# - app/MeteorCounter
+# - app/PerfTestApp
+# - app/PerfTestApp2
 
 extra-deps:
   - base58-bytestring-0.1.0

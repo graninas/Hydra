@@ -37,11 +37,13 @@ jsonRpcServer = do
 
   L.delay 1000000
 
-  L.scenario
+  val <- L.scenario
     $ L.callRPC (D.Address "127.0.0.1" 5555)
     $ TestRequest "Hi!"
 
+  L.delay 1000000
 
+  pure val
 
 
 spec :: Spec
@@ -52,8 +54,13 @@ spec =
       it "Run JSON-RPC Server and make JSON-RPC request" $ \rt -> do
         eResult <- R.runAppL rt jsonRpcServer
         case eResult of
-          Left err -> fail ""
+          Left err -> fail $ show err
           Right (TestResponse t) -> t `shouldBe` "Hi!"
+      -- it "Run JSON-RPC Server and make JSON-RPC request" $ \rt -> do
+      --   eResult <- R.runAppL rt jsonRpcServer
+      --   case eResult of
+      --     Left err -> fail ""
+      --     Right (TestResponse t) -> t `shouldBe` "Hi!"
 
       it "ThrowException not catched" $ \rt -> do
         let app = do
