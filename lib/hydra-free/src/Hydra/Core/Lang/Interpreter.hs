@@ -112,10 +112,9 @@ interpretLangF _ (L.CallRPC (D.Address host port) req next) =
     sock    <- Sock.socket (Sock.addrFamily address) Sock.Stream Sock.defaultProtocol
     finally (do
       Sock.connect sock $ Sock.addrAddress address
-      -- ISock.sendDatagram sock $ LBS.toStrict $ A.encode req
-      ISock.sendDatagram sock $ A.encode req
+      ISock.sendDatagram sock $ LBS.toStrict $ A.encode req
       msg <- ISock.receiveDatagram sock
-      pure $ transformEither T.pack id $ A.eitherDecode msg
+      pure $ transformEither T.pack id $ A.eitherDecodeStrict msg
       ) (Sock.close sock)
   ) (pure . Left . show)
 

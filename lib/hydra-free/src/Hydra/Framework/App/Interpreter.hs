@@ -149,9 +149,9 @@ readRpcProtocol protocol = do
 callRpc
   :: (L.LangL D.RpcResponse -> IO D.RpcResponse)
   -> Impl.RpcHandlers
-  -> LByteString
+  -> ByteString
   -> IO D.RpcResponse
-callRpc runner handlers msg = case A.decode msg of
+callRpc runner handlers msg = case A.decodeStrict msg of
   Just (D.RpcRequest tag params reqId) -> case Map.lookup tag handlers of
     Just justMethod -> runner $ justMethod params reqId
     Nothing         -> pure $ D.RpcResponseError (A.String $ "The method " <> tag <> " isn't supported.") reqId
@@ -196,8 +196,7 @@ startRpcServer appRt port protocol = do
                 (do
                     msg      <- SockImpl.receiveDatagram connSock
                     response <- callRpc (Impl.runLangL coreRt) handlers msg
-                    SockImpl.sendDatagram connSock $ A.encode response
-                    -- SockImpl.sendDatagram connSock $ LBS.toStrict $ A.encode response
+                    SockImpl.sendDatagram connSock $ LBS.toStrict $ A.encode response
                 ) (\_ -> S.close connSock)
 
         -- add server handler to server map
