@@ -7,7 +7,7 @@ import           Hydra.Prelude
 
 import           Astro.Domain.Types
 
-type AsteroidId  = Int
+type AsteroidId  = Int32
 
 data Asteroid = Asteroid
   { asteroidId  :: AsteroidId

@@ -31,10 +31,10 @@ instance D.DBEntity AstroDB MeteorEntity where
   data KeyEntity MeteorEntity = MeteorKey D.MeteorId
     deriving (Show, Eq, Ord)
   data ValueEntity MeteorEntity = KVDBMeteor
-          { size  :: Int
-          , mass  :: Int
-          , azmt  :: Int
-          , alt   :: Int
+          { size  :: Int32
+          , mass  :: Int32
+          , azmt  :: Int32
+          , alt   :: Int32
           , time  :: D.DateTime
           }
           deriving (Show, Eq, Ord, Generic, ToJSON, FromJSON)
@@ -77,7 +77,7 @@ data MeteorsCountEntity
 instance D.DBEntity AstroDB MeteorsCountEntity where
   data KeyEntity MeteorsCountEntity = MeteorsCountKey String
     deriving (Show, Eq, Ord)
-  data ValueEntity MeteorsCountEntity = MeteorsCountValue Int
+  data ValueEntity MeteorsCountEntity = MeteorsCountValue Int32
     deriving (Show, Eq, Ord, Generic, ToJSON, FromJSON)
   toDBKey (MeteorsCountKey k) = show k
   toDBValue   = D.toDBValueJSON
@@ -86,7 +86,7 @@ instance D.DBEntity AstroDB MeteorsCountEntity where
 instance D.AsKeyEntity MeteorsCountEntity String where
   toKeyEntity _ = MeteorsCountKey "meteors_count"
 
-instance D.AsValueEntity MeteorsCountEntity Int where
+instance D.AsValueEntity MeteorsCountEntity Int32 where
   toValueEntity = MeteorsCountValue
   fromValueEntity _ (MeteorsCountValue v) = v
 
@@ -96,5 +96,5 @@ meteorsCountKey = D.toKeyEntity ("" :: String)
 
 -- ------------------------------------------------------------------
 
-toIdxBase :: Int -> String
+toIdxBase :: Int32 -> String
 toIdxBase = printf "%07d"

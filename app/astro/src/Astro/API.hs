@@ -19,8 +19,8 @@ import           Astro.Domain.AstroObject
 
 type AstroAPI =
   (  "meteors"
-    :> QueryParam "mass" Int
-    :> QueryParam "size" Int
+    :> QueryParam "mass" Int32
+    :> QueryParam "size" Int32
     :> Get '[JSON] Meteors
     )
   :<|>

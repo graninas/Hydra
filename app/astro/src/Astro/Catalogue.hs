@@ -30,7 +30,7 @@ loadMeteor astroDB = L.withKVDB astroDB
   $ L.loadEntity
   $ KVDB.mkMeteorKey 0
 
-loadMeteorsCount :: AppState -> L.LangL Int
+loadMeteorsCount :: AppState -> L.LangL Int32
 loadMeteorsCount st = do
   eCount <- withAstroKVDB st $ L.loadEntity KVDB.meteorsCountKey
   case eCount of
@@ -78,13 +78,13 @@ connectOrFail :: D.DBConfig BS.SqliteM -> L.AppL (D.SqlConn BS.SqliteM)
 connectOrFail cfg = doOrFail' ConnectionFailedException $ L.getOrInitSqlConn cfg
 
 
-getMeteors :: Maybe Int -> Maybe Int -> D.SqlConn BS.SqliteM -> L.AppL Meteors
+getMeteors :: Maybe Int32 -> Maybe Int32 -> D.SqlConn BS.SqliteM -> L.AppL Meteors
 getMeteors mbMass mbSize conn = do
   L.logInfo $ "Lookup meteors with mbMass and mbSize: " <> show (mbMass, mbSize)
 
   let predicate meteorDB = case (mbMass, mbSize) of
         (Just m, Just s)  -> (SqlDB._meteorSize meteorDB ==. B.val_ s)
-            &&. (SqlDB._meteorMass meteorDB ==. B.val_ m)
+                         &&. (SqlDB._meteorMass meteorDB ==. B.val_ m)
         (Just m, Nothing) -> (SqlDB._meteorMass meteorDB ==. B.val_ m)
         (Nothing, Just s) -> (SqlDB._meteorSize meteorDB ==. B.val_ s)
         _                 -> B.val_ True

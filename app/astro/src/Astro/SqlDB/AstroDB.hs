@@ -12,17 +12,17 @@ import qualified Database.Beam as B
 import qualified Astro.Domain.Meteor as D
 
 data MeteorT f = Meteor
-    { _meteorId         :: B.C f Int
-    , _meteorSize       :: B.C f Int
-    , _meteorMass       :: B.C f Int
-    , _meteorAzimuth    :: B.C f Int
-    , _meteorAltitude   :: B.C f Int
+    { _meteorId         :: B.C f Int32
+    , _meteorSize       :: B.C f Int32
+    , _meteorMass       :: B.C f Int32
+    , _meteorAzimuth    :: B.C f Int32
+    , _meteorAltitude   :: B.C f Int32
     , _meteorTimestamp  :: B.C f UTCTime
     } deriving (Generic, B.Beamable)
 
 instance B.Table MeteorT where
   data PrimaryKey MeteorT f =
-    MeteorId (B.C f Int) deriving (Generic, B.Beamable)
+    MeteorId (B.C f Int32) deriving (Generic, B.Beamable)
   primaryKey = MeteorId . _meteorId
 
 type Meteor = MeteorT Identity

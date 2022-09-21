@@ -109,7 +109,7 @@ submitObjectPhysical = error "not implemented"
 submitObjectOrbital :: AstroObjectId -> Orbital -> AppHandler AstroObjectId
 submitObjectOrbital = error "not implemented"
 
-meteors :: Maybe Int -> Maybe Int -> AppHandler Meteors
+meteors :: Maybe Int32 -> Maybe Int32 -> AppHandler Meteors
 meteors mbMass mbSize = runApp
   $ withDB dbConfig
   $ getMeteors mbMass mbSize

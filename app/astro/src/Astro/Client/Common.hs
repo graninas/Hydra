@@ -9,7 +9,6 @@ import           Hydra.Prelude
 import qualified Data.ByteString.Lazy  as BSL
 import qualified Data.ByteString.Lazy.Char8 as BSL8
 import           Data.Aeson            (decode)
-import           Data.Either           (rights)
 import           Servant
 import           Servant.Client        (ClientM, BaseUrl(..), Scheme(..), client)
 
@@ -39,12 +38,12 @@ data DIApproach
   | GADT  -- ^ GADT
   deriving (Show, Read, Bounded, Eq, Ord, Enum)
 
-setPhysical :: Int -> Physical -> ClientM Int
-setOrbital :: Int -> Orbital -> ClientM Int
-setObjectTemplate :: API.AstroObjectTemplate -> ClientM Int
-getObject :: Int -> ClientM (Maybe AstroObject)
+setPhysical :: Int32 -> Physical -> ClientM Int32
+setOrbital :: Int32 -> Orbital -> ClientM Int32
+setObjectTemplate :: API.AstroObjectTemplate -> ClientM Int32
+getObject :: Int32 -> ClientM (Maybe AstroObject)
 
-meteors  :: Maybe Int -> Maybe Int -> ClientM Meteors
+meteors  :: Maybe Int32 -> Maybe Int32 -> ClientM Meteors
 meteor   :: API.MeteorTemplate     -> ClientM MeteorId
 asteroid :: API.AsteroidTemplate   -> ClientM AsteroidId
 ( meteors

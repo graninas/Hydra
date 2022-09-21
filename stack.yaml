@@ -1,4 +1,4 @@
-resolver: lts-14.4
+resolver: lts-18.28
 
 packages:
 - lib/hydra-base
@@ -15,3 +15,7 @@ extra-deps:
   - base58-bytestring-0.1.0
   - time-units-1.0.0
   - rocksdb-haskell-1.0.1
+  - beam-core-0.9.2.1@sha256:33b9a2bf40f4b3408a2c7b58d001d7cf133aa1e2c95b5c5d782838c6b989cf24,5282
+  - beam-migrate-0.5.1.2@sha256:e385a2ddb213398aca38a4f15334613057552b83a467a81c0dc3562c49a59884,4923
+  - beam-postgres-0.5.2.1@sha256:5ba4fecca3a210790aa858e32469d126995c25f08dc89df267cf987301c2269f,4392
+  - beam-sqlite-0.5.1.2@sha256:7486e165b8ae625a9a7e27df1be4df9f92d03841342362e58459d09343c04f7d,3671
