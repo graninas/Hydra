@@ -10,8 +10,8 @@ import           Data.Time.Clock (UTCTime)
 type DateTime = UTCTime
 
 data Coords = Coords
-  { azimuth  :: Int
-  , altitude :: Int
+  { azimuth  :: Int32
+  , altitude :: Int32
   }
   deriving (Show, Eq, Ord, Generic, ToJSON, FromJSON)
 
