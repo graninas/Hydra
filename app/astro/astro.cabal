@@ -1,10 +1,10 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.33.0.
+-- This file has been generated from package.yaml by hpack version 0.35.0.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 0b70d9c7ae836fba6b567e098aa3d2ec16331b36441b49fae2ce61bccf3e00c0
+-- hash: bfd806c45b9bb22322a451a9022728ebaab8168a662bcc8b319ec87074b94dad
 
 name:           astro
 version:        1.0.0.0
@@ -51,7 +51,32 @@ library
       Paths_astro
   hs-source-dirs:
       src
-  default-extensions: NoImplicitPrelude GADTs RankNTypes DeriveFunctor DeriveGeneric OverloadedStrings LambdaCase MultiParamTypeClasses ExplicitNamespaces TypeApplications ScopedTypeVariables TypeOperators TypeFamilies DataKinds FlexibleContexts FlexibleInstances PatternSynonyms PolyKinds DefaultSignatures ConstraintKinds NamedFieldPuns TupleSections ViewPatterns MultiWayIf RecordWildCards
+  default-extensions:
+      NoImplicitPrelude
+      GADTs
+      RankNTypes
+      DeriveFunctor
+      DeriveGeneric
+      OverloadedStrings
+      LambdaCase
+      MultiParamTypeClasses
+      ExplicitNamespaces
+      TypeApplications
+      ScopedTypeVariables
+      TypeOperators
+      TypeFamilies
+      DataKinds
+      FlexibleContexts
+      FlexibleInstances
+      PatternSynonyms
+      PolyKinds
+      DefaultSignatures
+      ConstraintKinds
+      NamedFieldPuns
+      TupleSections
+      ViewPatterns
+      MultiWayIf
+      RecordWildCards
   ghc-options: -Wall -Wcompat -Widentities -fhide-source-paths
   build-depends:
       HUnit
@@ -165,7 +190,32 @@ executable astro
       Paths_astro
   hs-source-dirs:
       src/
-  default-extensions: NoImplicitPrelude GADTs RankNTypes DeriveFunctor DeriveGeneric OverloadedStrings LambdaCase MultiParamTypeClasses ExplicitNamespaces TypeApplications ScopedTypeVariables TypeOperators TypeFamilies DataKinds FlexibleContexts FlexibleInstances PatternSynonyms PolyKinds DefaultSignatures ConstraintKinds NamedFieldPuns TupleSections ViewPatterns MultiWayIf RecordWildCards
+  default-extensions:
+      NoImplicitPrelude
+      GADTs
+      RankNTypes
+      DeriveFunctor
+      DeriveGeneric
+      OverloadedStrings
+      LambdaCase
+      MultiParamTypeClasses
+      ExplicitNamespaces
+      TypeApplications
+      ScopedTypeVariables
+      TypeOperators
+      TypeFamilies
+      DataKinds
+      FlexibleContexts
+      FlexibleInstances
+      PatternSynonyms
+      PolyKinds
+      DefaultSignatures
+      ConstraintKinds
+      NamedFieldPuns
+      TupleSections
+      ViewPatterns
+      MultiWayIf
+      RecordWildCards
   ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall
   build-depends:
       HUnit
@@ -258,7 +308,32 @@ test-suite functional-tests
       Paths_astro
   hs-source-dirs:
       test/
-  default-extensions: NoImplicitPrelude GADTs RankNTypes DeriveFunctor DeriveGeneric OverloadedStrings LambdaCase MultiParamTypeClasses ExplicitNamespaces TypeApplications ScopedTypeVariables TypeOperators TypeFamilies DataKinds FlexibleContexts FlexibleInstances PatternSynonyms PolyKinds DefaultSignatures ConstraintKinds NamedFieldPuns TupleSections ViewPatterns MultiWayIf RecordWildCards
+  default-extensions:
+      NoImplicitPrelude
+      GADTs
+      RankNTypes
+      DeriveFunctor
+      DeriveGeneric
+      OverloadedStrings
+      LambdaCase
+      MultiParamTypeClasses
+      ExplicitNamespaces
+      TypeApplications
+      ScopedTypeVariables
+      TypeOperators
+      TypeFamilies
+      DataKinds
+      FlexibleContexts
+      FlexibleInstances
+      PatternSynonyms
+      PolyKinds
+      DefaultSignatures
+      ConstraintKinds
+      NamedFieldPuns
+      TupleSections
+      ViewPatterns
+      MultiWayIf
+      RecordWildCards
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       HUnit

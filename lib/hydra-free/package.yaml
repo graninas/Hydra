@@ -110,6 +110,7 @@ dependencies:
 - http-client-tls
 - data-default
 - generic-lens
+- unordered-containers
 
 library:
   source-dirs:

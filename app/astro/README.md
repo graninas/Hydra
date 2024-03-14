@@ -48,4 +48,13 @@ Command line options:
                            [SH,RT,FM,FT,FT2,CEFM,GADT] (default: SH)
   --channel ARG            channel: http or tcp (default: HttpChannel)
   -h,--help                Show this help text,ExitSuccess,80))
-  ```
+```
+
+Legend:
+- SH - Service Handle
+- RT - ReaderT pattern
+- FM - Regular Free Monad
+- FT - Final Tagless / mtl
+- FT2 - Final Tagless / mtl (another variant)
+- CEFM - Church-Encoded Free monad
+- GADT - Generalized Algebraic Data Type

@@ -1,10 +1,10 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.33.0.
+-- This file has been generated from package.yaml by hpack version 0.35.0.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 9329fa0d97a5093eed7a97bf52a51f12aeefb147a42e0bcd1191685d0856d061
+-- hash: 50dbe029b5a2c038187e29c6d7d6d28bfb3fa5cf94434c0e9284207d817e1f6c
 
 name:           hydra-base
 version:        1.1.0.0
@@ -34,6 +34,7 @@ library
       Hydra.Core.Domain.Process
       Hydra.Core.Domain.SQLDB
       Hydra.Core.Domain.State
+      Hydra.Core.Domain.StructuredLogger
       Hydra.Core.KVDB.Impl.Redis
       Hydra.Core.KVDB.Impl.RocksDB
       Hydra.Core.KVDBRuntime
@@ -57,7 +58,32 @@ library
       Paths_hydra_base
   hs-source-dirs:
       src
-  default-extensions: NoImplicitPrelude GADTs RankNTypes DeriveFunctor DeriveGeneric OverloadedStrings LambdaCase MultiParamTypeClasses ExplicitNamespaces TypeApplications ScopedTypeVariables TypeOperators TypeFamilies DataKinds FlexibleContexts FlexibleInstances PatternSynonyms PolyKinds DefaultSignatures ConstraintKinds NamedFieldPuns TupleSections ViewPatterns MultiWayIf RecordWildCards
+  default-extensions:
+      NoImplicitPrelude
+      GADTs
+      RankNTypes
+      DeriveFunctor
+      DeriveGeneric
+      OverloadedStrings
+      LambdaCase
+      MultiParamTypeClasses
+      ExplicitNamespaces
+      TypeApplications
+      ScopedTypeVariables
+      TypeOperators
+      TypeFamilies
+      DataKinds
+      FlexibleContexts
+      FlexibleInstances
+      PatternSynonyms
+      PolyKinds
+      DefaultSignatures
+      ConstraintKinds
+      NamedFieldPuns
+      TupleSections
+      ViewPatterns
+      MultiWayIf
+      RecordWildCards
   ghc-options: -Wall
   build-depends:
       MonadRandom

@@ -10,6 +10,9 @@ import qualified Hydra.Core.ControlFlow.Class    as L
 import qualified Hydra.Core.ControlFlow.Language as L
 import qualified Hydra.Core.Logger.Class         as L
 import qualified Hydra.Core.Logger.Language      as L
+import qualified Hydra.Core.ControlFlow.Language as L
+import qualified Hydra.Core.StructuredLogger.Class         as L
+import qualified Hydra.Core.StructuredLogger.Language      as L
 import qualified Hydra.Core.Random.Class         as L
 import qualified Hydra.Core.Random.Language      as L
 import qualified Hydra.Core.State.Class          as L
@@ -27,6 +30,8 @@ data LangF next where
   EvalStateAtomically :: L.StateL a -> (a -> next) -> LangF next
   -- | Logger effect
   EvalLogger      :: L.LoggerL ()     -> (() -> next) -> LangF next
+  -- | Structured Logger
+  EvalStructuredLogger :: L.StructuredLoggerL () -> (() -> next) -> LangF next
   -- | Random effect
   EvalRandom      :: L.RandomL a     -> (a  -> next) -> LangF next
   -- | ControlFlow effect
@@ -50,6 +55,7 @@ data LangF next where
 instance Functor LangF where
   fmap f (EvalStateAtomically st next)    = EvalStateAtomically st (f . next)
   fmap f (EvalLogger logAct next)         = EvalLogger logAct (f . next)
+  fmap f (EvalStructuredLogger logAct next) = EvalStructuredLogger logAct (f . next)
   fmap f (EvalRandom rndAct next)         = EvalRandom rndAct (f . next)
   fmap f (EvalControlFlow cfAct next)     = EvalControlFlow cfAct (f . next)
   fmap f (EvalIO ioAct next)              = EvalIO ioAct (f . next)
@@ -57,7 +63,7 @@ instance Functor LangF where
   fmap f (EvalSqlDB conn sqlAct next)     = EvalSqlDB conn sqlAct (f . next)
   fmap f (GetSqlDBConnection sqlCfg next) = GetSqlDBConnection sqlCfg  (f . next)
   fmap f (ThrowException exc next)        = ThrowException exc (f . next)
-  fmap f (RunSafely act next)       = RunSafely act (f . next)
+  fmap f (RunSafely act next)             = RunSafely act (f . next)
   fmap f (CallServantAPI url clM next)    = CallServantAPI url clM (f . next)
 
 type LangL = Free LangF
@@ -70,6 +76,9 @@ evalStateAtomically' action = liftF $ EvalStateAtomically action id
 
 evalLogger' :: L.LoggerL () -> LangL ()
 evalLogger' logger = liftF $ EvalLogger logger id
+
+evalStructuredLogger' :: L.StructuredLoggerL () -> LangL ()
+evalStructuredLogger' logger = liftF $ EvalStructuredLogger logger id
 
 evalRandom' :: L.RandomL a -> LangL a
 evalRandom' g = liftF $ EvalRandom g id

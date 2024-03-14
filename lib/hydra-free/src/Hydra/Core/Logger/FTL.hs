@@ -11,9 +11,6 @@ import qualified Hydra.Core.Domain as D
 class Monad m => LoggerL m where
   logMessage :: D.LogLevel -> D.Message -> m ()
 
--- -- class Logger m => StmLoggerL m where
--- --   logMessage :: D.LogLevel -> D.Message -> STM ()
-
 
 -- | Log message with Info level.
 logInfo :: LoggerL m => D.Message -> m ()

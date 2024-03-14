@@ -1,10 +1,10 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.33.0.
+-- This file has been generated from package.yaml by hpack version 0.35.0.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 28eee222954224a8d9f86601887d0c0700a7f1884df9c8976654370c976fc1b3
+-- hash: 9c3f9c5e57376274c872d87a03e33982b888776180cf6e4bd996a73d78ec097a
 
 name:           MeteorCounter
 version:        1.0.0.0
@@ -33,7 +33,32 @@ library
       Paths_MeteorCounter
   hs-source-dirs:
       src
-  default-extensions: NoImplicitPrelude GADTs RankNTypes DeriveFunctor DeriveGeneric OverloadedStrings LambdaCase MultiParamTypeClasses ExplicitNamespaces TypeApplications ScopedTypeVariables TypeOperators TypeFamilies DataKinds FlexibleContexts FlexibleInstances PatternSynonyms PolyKinds DefaultSignatures ConstraintKinds NamedFieldPuns TupleSections ViewPatterns MultiWayIf RecordWildCards
+  default-extensions:
+      NoImplicitPrelude
+      GADTs
+      RankNTypes
+      DeriveFunctor
+      DeriveGeneric
+      OverloadedStrings
+      LambdaCase
+      MultiParamTypeClasses
+      ExplicitNamespaces
+      TypeApplications
+      ScopedTypeVariables
+      TypeOperators
+      TypeFamilies
+      DataKinds
+      FlexibleContexts
+      FlexibleInstances
+      PatternSynonyms
+      PolyKinds
+      DefaultSignatures
+      ConstraintKinds
+      NamedFieldPuns
+      TupleSections
+      ViewPatterns
+      MultiWayIf
+      RecordWildCards
   ghc-options: -Wall -Wcompat -Widentities -fhide-source-paths
   build-depends:
       MonadRandom
@@ -124,7 +149,32 @@ executable MeteorCounter
       Paths_MeteorCounter
   hs-source-dirs:
       src/
-  default-extensions: NoImplicitPrelude GADTs RankNTypes DeriveFunctor DeriveGeneric OverloadedStrings LambdaCase MultiParamTypeClasses ExplicitNamespaces TypeApplications ScopedTypeVariables TypeOperators TypeFamilies DataKinds FlexibleContexts FlexibleInstances PatternSynonyms PolyKinds DefaultSignatures ConstraintKinds NamedFieldPuns TupleSections ViewPatterns MultiWayIf RecordWildCards
+  default-extensions:
+      NoImplicitPrelude
+      GADTs
+      RankNTypes
+      DeriveFunctor
+      DeriveGeneric
+      OverloadedStrings
+      LambdaCase
+      MultiParamTypeClasses
+      ExplicitNamespaces
+      TypeApplications
+      ScopedTypeVariables
+      TypeOperators
+      TypeFamilies
+      DataKinds
+      FlexibleContexts
+      FlexibleInstances
+      PatternSynonyms
+      PolyKinds
+      DefaultSignatures
+      ConstraintKinds
+      NamedFieldPuns
+      TupleSections
+      ViewPatterns
+      MultiWayIf
+      RecordWildCards
   ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall
   build-depends:
       MonadRandom
