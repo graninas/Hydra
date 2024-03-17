@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: ab77fa1dc97ecc81a9223e5036df9c46bb5a1e4275cc1e1d298aaa0ddaaf7225
+-- hash: 8bcaeaf5e03d8f8b4829eae784fa718af54c34b82cce9764e2eb1c95432dc040
 
 name:           hydra-free
 version:        1.1.0.0
@@ -185,6 +185,7 @@ library
     , universum
     , unliftio
     , unliftio-core
+    , unordered-containers
     , uuid
     , validation
     , vector
@@ -309,6 +310,7 @@ test-suite functional-tests
     , universum
     , unliftio
     , unliftio-core
+    , unordered-containers
     , uuid
     , validation
     , vector
