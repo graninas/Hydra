@@ -30,7 +30,7 @@ instance D.DB CatalogueDB where
 data MeteorEntity
 
 instance D.DBEntity CatalogueDB MeteorEntity where
-  data KeyEntity MeteorEntity = MeteorKey Int
+  data KeyEntity MeteorEntity = MeteorKey Int32
     deriving (Show, Eq, Ord)
   data ValueEntity MeteorEntity = MeteorValue D.Meteor
     deriving (Show, Eq, Ord, Generic, ToJSON, FromJSON)
@@ -38,7 +38,7 @@ instance D.DBEntity CatalogueDB MeteorEntity where
   toDBValue   = D.toDBValueJSON
   fromDBValue = D.fromDBValueJSON
 
-instance D.AsKeyEntity MeteorEntity Int where
+instance D.AsKeyEntity MeteorEntity Int32 where
   toKeyEntity = MeteorKey
 
 instance D.AsKeyEntity MeteorEntity D.Meteor where
@@ -54,7 +54,7 @@ data MeteorsCountEntity
 instance D.DBEntity CatalogueDB MeteorsCountEntity where
   data KeyEntity MeteorsCountEntity = MeteorsCountKey String
     deriving (Show, Eq, Ord)
-  data ValueEntity MeteorsCountEntity = MeteorsCountValue Int
+  data ValueEntity MeteorsCountEntity = MeteorsCountValue Int32
     deriving (Show, Eq, Ord, Generic, ToJSON, FromJSON)
   toDBKey (MeteorsCountKey k) = show k
   toDBValue   = D.toDBValueJSON
@@ -63,7 +63,7 @@ instance D.DBEntity CatalogueDB MeteorsCountEntity where
 instance D.AsKeyEntity MeteorsCountEntity String where
   toKeyEntity _ = MeteorsCountKey "meteors_count"
 
-instance D.AsValueEntity MeteorsCountEntity Int where
+instance D.AsValueEntity MeteorsCountEntity Int32 where
   toValueEntity = MeteorsCountValue
   fromValueEntity _ (MeteorsCountValue v) = v
 
@@ -71,8 +71,8 @@ instance D.AsValueEntity MeteorsCountEntity Int where
 meteorsCountKey :: D.KeyEntity MeteorsCountEntity
 meteorsCountKey = D.toKeyEntity ("" :: String)
 
-toIdxBase :: Int -> String
+toIdxBase :: Int32 -> String
 toIdxBase = printf "%07d"
 
-toMeteorEntityKey :: Int -> String
+toMeteorEntityKey :: Int32 -> String
 toMeteorEntityKey = ("0|" <>) . toIdxBase

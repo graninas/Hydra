@@ -11,19 +11,19 @@ import           Data.Time.Clock (UTCTime)
 type DateTime = UTCTime
 
 data Coords = Coords
-  { _azimuth  :: Int
-  , _altitude :: Int
+  { _azimuth  :: Int32
+  , _altitude :: Int32
   }
   deriving (Show, Eq, Ord, Generic, ToJSON, FromJSON)
 
 data Meteor' k = Meteor
   { _id          :: k
-  , _size        :: Int
-  , _mass        :: Int
+  , _size        :: Int32
+  , _mass        :: Int32
   , _coords      :: Coords
   , _timestamp   :: DateTime
   }
   deriving (Show, Eq, Ord, Generic, ToJSON, FromJSON)
 
 type RawMeteor = Meteor' ()
-type Meteor    = Meteor' Int
+type Meteor    = Meteor' Int32

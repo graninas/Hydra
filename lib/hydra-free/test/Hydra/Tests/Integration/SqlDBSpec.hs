@@ -78,7 +78,7 @@ findMeteor conn = L.scenario $ L.runSafely $ do
 
 getMeteor
   :: D.SqlConn SQLite.SqliteM
-  -> Int
+  -> Int32
   -> L.AppL (Either SqlDBException (Maybe Meteor))
 getMeteor conn pkVal = L.scenario $ L.runSafely $ do
   mbRow <- getRow conn
@@ -88,7 +88,7 @@ getMeteor conn pkVal = L.scenario $ L.runSafely $ do
   pure $ convertMeteor <$> mbRow
 
 insertMeteorQuery
-  :: Int -> Int -> Int -> Int -> Int -> UTCTime
+  :: Int32 -> Int32 -> Int32 -> Int32 -> Int32 -> UTCTime
   -> L.SqlDBL SQLite.SqliteM ()
 insertMeteorQuery meteorId size mass azmth alt time = do
   let meteorDB :: CatDB.DBMeteor = CatDB.DBMeteor
@@ -105,14 +105,14 @@ insertMeteorQuery meteorId size mass azmth alt time = do
        -- Sample of autoincrement:
        -- $ B.insertExpressions [ (B.val_ meteorDB) { CatDB._id = B.default_ } ]
 
-insertMeteor :: D.SqlConn SQLite.SqliteM -> Int -> L.AppL (D.DBResult ())
+insertMeteor :: D.SqlConn SQLite.SqliteM -> Int32 -> L.AppL (D.DBResult ())
 insertMeteor conn meteorId
   = L.scenario
   $ L.evalSqlDB conn
   $ insertMeteorQuery meteorId 100 100 100 100 (UTCTime (toEnum 1) (secondsToDiffTime 0))
 
 
-deleteMeteor :: D.SqlConn SQLite.SqliteM -> Int -> L.AppL (D.DBResult ())
+deleteMeteor :: D.SqlConn SQLite.SqliteM -> Int32 -> L.AppL (D.DBResult ())
 deleteMeteor conn meteorId
   = L.scenario
   $ L.evalSqlDB conn

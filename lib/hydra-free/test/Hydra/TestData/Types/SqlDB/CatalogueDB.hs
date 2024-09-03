@@ -8,11 +8,11 @@ import           Database.Beam
 import           Data.Time.Clock (UTCTime)
 
 data DBMeteorT f = DBMeteor
-  { _id          :: Columnar f Int
-  , _size        :: Columnar f Int
-  , _mass        :: Columnar f Int
-  , _azimuth     :: Columnar f Int
-  , _altitude    :: Columnar f Int
+  { _id          :: Columnar f Int32
+  , _size        :: Columnar f Int32
+  , _mass        :: Columnar f Int32
+  , _azimuth     :: Columnar f Int32
+  , _altitude    :: Columnar f Int32
   , _timestamp   :: Columnar f UTCTime
   }
   deriving (Generic, Beamable)
@@ -24,7 +24,7 @@ type DBMeteorId = PrimaryKey DBMeteorT Identity
 -- CREATE TABLE meteors (id INTEGER PRIMARY KEY AUTOINCREMENT, size INT NOT NULL, mass INT NOT NULL, azimuth INT NOT NULL, altitude INT NOT NULL, timestamp TIMESTAMP NULL);
 
 instance Table DBMeteorT where
-  data PrimaryKey DBMeteorT f = DBMeteorId (Columnar f Int)
+  data PrimaryKey DBMeteorT f = DBMeteorId (Columnar f Int32)
     deriving (Generic, Beamable)
   primaryKey = DBMeteorId . _id
 
